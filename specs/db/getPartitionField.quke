@@ -1,0 +1,17 @@
+feature Get partition field.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give partition field of a partitioned database.
+    expect partition field of the current database.
+      .qu.compare[.db.getPartitionField[]; `date]
+

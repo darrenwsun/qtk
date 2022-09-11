@@ -16,6 +16,14 @@
  };
 
 // @kind function
+// @overview Get partition field.
+// @return {symbol} Partition fields of the database.
+// @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
+.db.getPartitionField:{
+  @[value; `.Q.pf; {' "RuntimeError: no partition"}]
+ };
+
+// @kind function
 // @overview Get partitioned tables.
 // @return {symbol[]} Partitioned tables of the database.
 // @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
@@ -25,7 +33,7 @@
 
 // @kind function
 // @overview Count table per partition.
-// @param table {symbol} A partitioned table.
+// @param table {table} A partitioned table.
 // @return {long[]} Counts of the partitioned table per partition.
 .db.countTablePerPartition:{[table]
   @[.Q.cn; table; { ' "RuntimeError: not a partitioned table" }]
