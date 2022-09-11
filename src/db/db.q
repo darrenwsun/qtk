@@ -14,3 +14,11 @@
 .db.getModifiedPartitions:{
   @[value; `.Q.pv; {' "RuntimeError: no partition"}]
  };
+
+// @kind function
+// @overview Count table per partition.
+// @param table {symbol} A partitioned table by name.
+// @return {long[]} Counts of the partitioned table per partition.
+.db.countTablePerPartition:{[table]
+  @[.Q.cn; table; { ' "RuntimeError: not a partitioned table" }]
+ };

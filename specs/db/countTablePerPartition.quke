@@ -1,0 +1,21 @@
+feature Count table per partition.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should return table count per partition.
+    expect table count per partition.
+      .qu.compare[.db.countTablePerPartition[Table]; 0 0]
+
+  should raise error "RuntimeError: * is not a partitioned table" if the table is not a partitioned table.
+    expect error "RuntimeError: * is not a partitioned table"
+      Table2:([] c1:`boolean$());
+      .qu.compare[@[.db.countTablePerPartition; Table2; {x}]; "RuntimeError: not a partitioned table"]

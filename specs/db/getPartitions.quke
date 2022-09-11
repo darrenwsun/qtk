@@ -1,4 +1,4 @@
-feature Get all partitions
+feature Get all partitions.
 
   before
     import "db";
@@ -11,7 +11,7 @@ feature Get all partitions
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should give all partitions of a partitioned database
-    expect partitions of the current database
+  should give all partitions of a partitioned database.
+    expect partitions of the current database.
       .qu.compare[2022.01.01 2022.01.02; .db.getPartitions[]]
 
