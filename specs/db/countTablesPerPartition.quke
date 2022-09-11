@@ -1,4 +1,4 @@
-feature Get all partitions, subject to modification by .Q.view.
+feature Count tables per partition.
 
   before
     import "db";
@@ -7,11 +7,10 @@ feature Get all partitions, subject to modification by .Q.view.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    .Q.view 2022.01.01;
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should give all modified partitions of a partitioned database.
-    expect modified partitions of the current database.
-      .qu.compare[.db.getModifiedPartitions[]; enlist 2022.01.01]
+  should return a dictionary between tables and their counts per partition.
+    expect a dictionary between tables and their counts per partition.
+      .qu.compare[.db.countTablesPerPartition[]; (enlist`Table)!(enlist 0 0)]

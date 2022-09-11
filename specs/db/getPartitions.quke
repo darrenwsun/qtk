@@ -13,5 +13,5 @@ feature Get all partitions.
 
   should give all partitions of a partitioned database.
     expect partitions of the current database.
-      .qu.compare[2022.01.01 2022.01.02; .db.getPartitions[]]
+      .qu.compare[.db.getPartitions[]; 2022.01.01 2022.01.02]
 

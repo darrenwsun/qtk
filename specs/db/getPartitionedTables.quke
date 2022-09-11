@@ -1,4 +1,4 @@
-feature Get all partitions, subject to modification by .Q.view.
+feature Get partitioned tables.
 
   before
     import "db";
@@ -7,11 +7,11 @@ feature Get all partitions, subject to modification by .Q.view.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    .Q.view 2022.01.01;
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should give all modified partitions of a partitioned database.
-    expect modified partitions of the current database.
-      .qu.compare[.db.getModifiedPartitions[]; enlist 2022.01.01]
+  should give partitioned tables of a partitioned database.
+    expect a vector of partitioned tables by name.
+      .qu.compare[.db.getPartitionedTables[]; enlist`Table]
+

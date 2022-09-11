@@ -18,4 +18,7 @@ feature Count table per partition.
   should raise error "RuntimeError: * is not a partitioned table" if the table is not a partitioned table.
     expect error "RuntimeError: * is not a partitioned table"
       Table2:([] c1:`boolean$());
-      .qu.compare[@[.db.countTablePerPartition; Table2; {x}]; "RuntimeError: not a partitioned table"]
+      .qu.compare[
+        @[.db.countTablePerPartition; Table2; {x}];
+        "RuntimeError: not a partitioned table"
+       ]
