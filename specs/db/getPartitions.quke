@@ -1,0 +1,17 @@
+feature Get all partitions
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give all partitions of a partitioned database
+    expect partitions of the current database
+      .qu.compare[2022.01.01 2022.01.02; .db.getPartitions[]]
+

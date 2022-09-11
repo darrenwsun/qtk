@@ -1,0 +1,17 @@
+feature Get all partitions, subject to modification by .Q.view.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    .Q.view 2022.01.01;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give all modified partitions of a partitioned database
+    expect modified partitions of the current database
+      .qu.compare[enlist 2022.01.01; .db.getModifiedPartitions[]]
