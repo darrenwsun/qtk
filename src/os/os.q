@@ -14,6 +14,19 @@
  };
 
 // @kind function
+// @overview List files and directories under a path.
+// @param dir {symbol} A file symbol representing a directory.
+// @return {symbol[]} Items under the directory in ascending order.
+// @throws {FileNotFoundError: *} If the directory doesn't exist.
+// @throws {NotADirectoryError: *} If the input argument is not a directory.
+.os.listDir:{[dir]
+  files:key dir;
+  if[()~files; '"FileNotFoundError: ",.os.getPath dir];
+  if[dir~files; '"NotADirectoryError: ",.os.getPath dir];
+  files
+ };
+
+// @kind function
 // @overview Copy a file from a source to a target.
 // @param source {symbol | string} Source file path, of either symbol, file symbol, or string format.
 // @param target {symbol | string} Target file path, of either symbol, file symbol, or string format.
@@ -22,4 +35,13 @@
   targetPath:.os.getPath target;
   copyCmd:$[.os.isWindows; "copy /v /z"; "cp"];
   system copyCmd," ",sourcePath," ",targetPath;
+ };
+
+// @kind function
+// @overview remove a file.
+// @param file {symbol | string} file path, of either symbol, file symbol, or string format.
+.os.remove:{[file]
+  filePath:.os.getPath file;
+  removeCmd:$[.os.isWindows; "del /q /f"; "rm -f"];
+  system removeCmd," ",filePath;
  };

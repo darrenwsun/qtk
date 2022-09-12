@@ -7,13 +7,13 @@ feature Apply a function to a column.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should apply a function to a column of an in-memory table and save.
     expect the column has the function-applied values.
-      `InMemoryTable set ([] c1:1 2);
       .db.applyToColumn[`InMemoryTable;`c1;1+];
       .qu.compare[InMemoryTable`c1; 2 3]
 

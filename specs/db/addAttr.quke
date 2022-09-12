@@ -7,13 +7,13 @@ feature Add attribute to a column.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should add an attribute to a column of an in-memory table.
     expect the attribute added to the column.
-      `InMemoryTable set ([] c1:1 2);
       .db.addAttr[`InMemoryTable; `c1; `p];
       .qu.compare[(meta[InMemoryTable]`c1)`a; `p]
 

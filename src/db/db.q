@@ -68,6 +68,20 @@ import "os";
  };
 
 // @kind function
+// @overview Delete a column from a table.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column to be deleted.
+// @return {symbol} The table by name.
+.db.deleteColumn:{[tableName;column]
+  if[not tableName in .db.getPartitionedTables[];
+     ![tableName; (); 0b; enlist[column]];
+     :tableName
+    ];
+  .db._deleteColumn[; tableName; column] each .db.getPartitions[];
+  tableName
+ };
+
+// @kind function
 // @overview Copy an existing column to a new column.
 // @param tableName {symbol} A table by name.
 // @param sourceColumn {symbol} Source column.
@@ -177,6 +191,27 @@ import "os";
   .[.Q.dd[path; column]; (); :; countInPath#defaultValue];
   @[path; `.d; ,; column];
   path
+ };
+
+// @kind function
+// @overview Delete a column of a table in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} New column to be added.
+// @return {symbol} The path to the table in the partition.
+.db._deleteColumn:{[partition;tableName;column]
+  tablePath:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns[partition; tableName];
+  if[(not column in allColumns) and (not column in .os.listDir tablePath); :tablePath];
+  columnPath:.Q.dd[tablePath; column];
+  .os.remove columnPath;
+  if[.os.path.isFile dataFile:`$string[columnPath],"#";
+    .os.remove dataFile];
+  if[.os.path.isFile dataFile:`$string[columnPath],"##";
+     .os.remove dataFile];
+
+  @[tablePath; `.d; :; allColumns except column];
+  tableName
  };
 
 // @kind function

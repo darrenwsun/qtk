@@ -1,0 +1,24 @@
+feature Delete a column from a table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2; c2:3 4f);
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should delete a column from an in-memory table.
+    expect the column deleted from the table.
+      .db.deleteColumn[`InMemoryTable;`c2];
+      .qu.compare[cols InMemoryTable; enlist `c1]
+
+  should delete a column from a partitioned table.
+    expect the column deleted from the table.
+      .db.deleteColumn[`Table;`c2];
+      system "l .";
+      .qu.compare[cols Table; `date`c1]

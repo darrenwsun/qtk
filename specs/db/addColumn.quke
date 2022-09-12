@@ -7,13 +7,13 @@ feature Add a column to a table.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should add a column to an in-memory table with a default value.
     expect the column added to the table.
-      `InMemoryTable set ([] c1:1 2);
       .db.addColumn[`InMemoryTable;`c2;`test];
       .qu.compare[cols InMemoryTable; `c1`c2]
 
@@ -28,4 +28,3 @@ feature Add a column to a table.
       .qu.compare[
         @[.db.addColumn[`Table; ; 0]; `$"53"; {x}];
         "NameError: invalid column name [53]"]
-

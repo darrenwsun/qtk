@@ -1,2 +1,2 @@
-# qtemplate
-Template project for q, a language for KDB+.
+# qutils
+A collection of q utilities for KDB+ development and administration.
