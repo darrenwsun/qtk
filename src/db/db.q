@@ -61,10 +61,37 @@
     if[-11h=type defaultValue; defaultValue:enlist defaultValue];   // enlist singleton symbol value
     ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
     :tableName
-   ];
+    ];
   .db._addColumn[; tableName; column; .db._enumerate defaultValue] each .db.getPartitions[];
  };
 
+// @kind function
+// @overview Cast the datatype of a column.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} New column to be added.
+// @param newType {symbol | char} Name or char code of the new type.
+// @return {symbol} The table by name.
+.db.castColumn:{[tableName;column;newType]
+  .db.applyToColumn[tableName; column; newType$]
+ };
+
+// @kind function
+// @overview Apply a function to a column.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} New column to be added.
+// @param function {function} Function to be applied.
+// @return {symbol} The table by name.
+.db.applyToColumn:{[tableName;column;function]
+  if[not tableName in .db.getPartitionedTables[];
+    ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
+    :tableName
+   ];
+  .db._applyToColumn[; tableName; column; function] each .db.getPartitions[];
+ };
+
+/////////////////////////////////////////////
+// private functions
+/////////////////////////////////////////////
 
 // @kind function
 // @overview Validate column name.
@@ -100,9 +127,9 @@
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The path to the table in the partition.
 .db._addColumn:{[partition;tableName;column;defaultValue]
-  allColumns:.db._getColumns[partition; tableName];
-  if[column in allColumns; :tableName];
   path:.Q.par[`:.;partition;tableName];
+  allColumns:.db._getColumns[partition; tableName];
+  if[column in allColumns; :path];
   countInPath:count get .Q.dd[path; first allColumns];
   .[.Q.dd[path; column]; (); :; countInPath#defaultValue];
   @[path; `.d; ,; column];
@@ -116,4 +143,27 @@
 // @return {symbol[]} Columns of the table in the partition.
 .db._getColumns:{[partition;tableName]
   get .Q.dd[.Q.par[`:.;partition;tableName]; `.d]
+ };
+
+// @kind function
+// @overview Apply a function to a column of a table in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column of the table.
+// @param function {function} Function to be applied to the column.
+// @return {symbol} The path to the table in the partition.
+.db._applyToColumn:{[partition;tableName;column;function]
+  tablePath:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns[partition; tableName];
+  if[not column in allColumns; :tablePath];  // the column doesn't exist in the current partition, ignore
+
+  columnPath:.Q.dd[tablePath; column];
+  oldValue:get columnPath;
+  oldAttr:attr oldValue;
+  newValue:function oldValue;
+  newAttr:attr newValue;
+  if[(not oldValue~newValue) or (not oldAttr~newAttr);
+    .[columnPath; (); :; newValue]
+   ];
+  tablePath
  };
