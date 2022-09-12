@@ -1,0 +1,19 @@
+feature Add a column to a table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should add a column to a table with a default value.
+    expect partitions of the current database.
+      .db.addColumn[`Table;`c3;`test];
+      system "l .";
+      .qu.compare[cols Table; `date`c1`c2`c3]
+
