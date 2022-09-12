@@ -1,3 +1,5 @@
+import "os";
+
 // @kind function
 // @overview Get all partitions.
 // @return {date[] | month[] | int[]} Partitions of the database.
@@ -62,6 +64,23 @@
      :tableName
     ];
   .db._addColumn[; tableName; column; .db._enumerate defaultValue] each .db.getPartitions[];
+  tableName
+ };
+
+// @kind function
+// @overview Copy an existing column to a new column.
+// @param tableName {symbol} A table by name.
+// @param sourceColumn {symbol} Source column.
+// @param targetColumn {symbol} Target column.
+// @return {symbol} The table by name.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
+.db.copyColumn:{[tableName;sourceColumn;targetColumn]
+  if[not .db._validateColumnName targetColumn; '"NameError: invalid column name [",string[targetColumn],"]"];
+  $[not tableName in .db.getPartitionedTables[];
+    ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
+    .db._copyColumn[; tableName; sourceColumn; targetColumn] each .db.getPartitions[]
+   ];
+  tableName
  };
 
 // @kind function
@@ -76,6 +95,7 @@
      :tableName
     ];
   .db._applyToColumn[; tableName; column; function] each .db.getPartitions[];
+  tableName
  };
 
 // @kind function
@@ -100,6 +120,7 @@
      :tableName
     ];
   .db._applyToColumn[; tableName; column; newAttr#] each .db.getPartitions[];
+  tableName
  };
 
 // @kind function
@@ -155,6 +176,30 @@
   countInPath:count get .Q.dd[path; first allColumns];
   .[.Q.dd[path; column]; (); :; countInPath#defaultValue];
   @[path; `.d; ,; column];
+  path
+ };
+
+// @kind function
+// @overview Copy an existing column to a new column in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param sourceColumn {symbol} Source column.
+// @param targetColumn {symbol} Target column.
+// @return {symbol} The path to the table in the partition.
+.db._copyColumn:{[partition;tableName;sourceColumn;targetColumn]
+  path:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns[partition; tableName];
+  if[(not sourceColumn in allColumns) or (targetColumn in allColumns); :path];
+
+  sourceFilePath:.Q.dd[.Q.par[`:.; partition; tableName]; sourceColumn];
+  targetFilePath:.Q.dd[.Q.par[`:.; partition; tableName]; targetColumn];
+  .os.copy[sourceFilePath; targetFilePath];
+  if[.os.path.isFile dataFile:`$string[sourceFilePath],"#";
+    .os.copy[dataFile; `$string[targetFilePath],"#"]];
+  if[.os.path.isFile dataFile:`$string[sourceFilePath],"##";
+     .os.copy[dataFile; `$string[targetFilePath],"##"]];
+
+  @[path; `.d; ,; targetColumn];
   path
  };
 

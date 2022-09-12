@@ -1,0 +1,31 @@
+feature Copy an existing column to a new column.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:10b; c2:1 2);
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2);
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should copy a column of an in-memory table to a new column.
+    expect the new column have the same value as the specified column.
+      .db.copyColumn[`InMemoryTable;`c1;`c2];
+      .qu.compare[InMemoryTable`c2; InMemoryTable`c1]
+
+  should copy a column of a partitioned table to a new column.
+    expect the new column have the same value as the specified column.
+      .db.copyColumn[`Table;`c2;`c3];
+      system "l .";
+      .qu.compare[exec c3 from select c3 from Table; exec c2 from select c2 from Table]
+
+  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
+    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+      .qu.compare[
+        @[.db.copyColumn[`Table; `c2; ]; `$"53"; {x}];
+        "NameError: invalid column name [53]"]
+
