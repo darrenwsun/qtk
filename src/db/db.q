@@ -56,7 +56,12 @@
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.addColumn:{[tableName;column;defaultValue]
-  if[not .db._validateColumnName column; ' "NameError: invalid column name [",string column,"]"];
+  if[not .db._validateColumnName column; ' "NameError: invalid column name [",string[column],"]"];
+  if[not tableName in .db.getPartitionedTables[];
+    if[-11h=type defaultValue; defaultValue:enlist defaultValue];   // enlist singleton symbol value
+    ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
+    :tableName
+   ];
   .db._addColumn[; tableName; column; .db._enumerate defaultValue] each .db.getPartitions[];
  };
 

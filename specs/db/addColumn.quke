@@ -11,9 +11,21 @@ feature Add a column to a table.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should add a column to a table with a default value.
-    expect partitions of the current database.
+  should add a column to an in-memory table with a default value.
+    expect the column added to the table.
+      `InMemoryTable set ([] c1:1 2);
+      .db.addColumn[`InMemoryTable;`c2;`test];
+      .qu.compare[cols InMemoryTable; `c1`c2]
+
+  should add a column to a partitioned table with a default value.
+    expect the column added to the table.
       .db.addColumn[`Table;`c3;`test];
       system "l .";
       .qu.compare[cols Table; `date`c1`c2`c3]
+
+  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
+    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+      .qu.compare[
+        @[.db.addColumn[`Table; ; 0]; `$"53"; {x}];
+        "NameError: invalid column name [53]"]
 
