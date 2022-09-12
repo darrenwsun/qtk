@@ -1,10 +1,9 @@
-
 // @kind function
 // @overview Get all partitions.
 // @return {date[] | month[] | int[]} Partitions of the database.
 // @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
 .db.getPartitions:{
-  @[value; `.Q.PV; {' "RuntimeError: no partition"}]
+  @[value; `.Q.PV; {'"RuntimeError: no partition"}]
  };
 
 // @kind function
@@ -12,7 +11,7 @@
 // @return {date[] | month[] | int[]} Partitions of the database, subject to modification by .Q.view.
 // @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
 .db.getModifiedPartitions:{
-  @[value; `.Q.pv; {' "RuntimeError: no partition"}]
+  @[value; `.Q.pv; {'"RuntimeError: no partition"}]
  };
 
 // @kind function
@@ -20,7 +19,7 @@
 // @return {symbol} Partition fields of the database.
 // @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
 .db.getPartitionField:{
-  @[value; `.Q.pf; {' "RuntimeError: no partition"}]
+  @[value; `.Q.pf; {'"RuntimeError: no partition"}]
  };
 
 // @kind function
@@ -28,7 +27,7 @@
 // @return {symbol[]} Partitioned tables of the database.
 // @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
 .db.getPartitionedTables:{
-  @[value; `.Q.pt; {' "RuntimeError: no partition"}]
+  @[value; `.Q.pt; {'"RuntimeError: no partition"}]
  };
 
 // @kind function
@@ -36,7 +35,7 @@
 // @param table {table} A partitioned table.
 // @return {long[]} Counts of the partitioned table per partition.
 .db.countTablePerPartition:{[table]
-  @[.Q.cn; table; { ' "RuntimeError: not a partitioned table" }]
+  @[.Q.cn; table; {'"RuntimeError: not a partitioned table"}]
  };
 
 // @kind function
@@ -45,7 +44,7 @@
 .db.countTablesPerPartition:{
   partitionedTables:.db.getPartitionedTables[];
   .db.countTablePerPartition each get each partitionedTables;
-  @[value; `.Q.pn; { ' "RuntimeError: no partition" }]
+  @[value; `.Q.pn; {'"RuntimeError: no partition"}]
  };
 
 // @kind function
@@ -56,11 +55,11 @@
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.addColumn:{[tableName;column;defaultValue]
-  if[not .db._validateColumnName column; ' "NameError: invalid column name [",string[column],"]"];
+  if[not .db._validateColumnName column; '"NameError: invalid column name [",string[column],"]"];
   if[not tableName in .db.getPartitionedTables[];
-    if[-11h=type defaultValue; defaultValue:enlist defaultValue];   // enlist singleton symbol value
-    ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
-    :tableName
+     if[-11h=type defaultValue; defaultValue:enlist defaultValue];    // enlist singleton symbol value
+     ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
+     :tableName
     ];
   .db._addColumn[; tableName; column; .db._enumerate defaultValue] each .db.getPartitions[];
  };
@@ -83,9 +82,9 @@
 // @return {symbol} The table by name.
 .db.applyToColumn:{[tableName;column;function]
   if[not tableName in .db.getPartitionedTables[];
-    ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
-    :tableName
-   ];
+     ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
+     :tableName
+    ];
   .db._applyToColumn[; tableName; column; function] each .db.getPartitions[];
  };
 
@@ -98,7 +97,7 @@
 // @param columnName {symbol} A column name.
 // @return {boolean} `1b` if the column name is valid; `0b` otherwise.
 .db._validateColumnName:{[name]
-  (not name in `i,.Q.res,key`.q) and name=.Q.id name
+  (not name in `i,.Q.res,key `.q) and name=.Q.id name
  };
 
 // @kind function
@@ -116,7 +115,7 @@
 // @return {symbol} Paths of the table.
 .db._enumerate:{[val]
   if[11<>abs type val; :val];
-  .Q.dd[`:.;`sym]?val
+  .Q.dd[`:.; `sym]?val
  };
 
 // @kind function
@@ -127,7 +126,7 @@
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The path to the table in the partition.
 .db._addColumn:{[partition;tableName;column;defaultValue]
-  path:.Q.par[`:.;partition;tableName];
+  path:.Q.par[`:.; partition; tableName];
   allColumns:.db._getColumns[partition; tableName];
   if[column in allColumns; :path];
   countInPath:count get .Q.dd[path; first allColumns];
@@ -142,7 +141,7 @@
 // @param tableName {symbol} A table by name.
 // @return {symbol[]} Columns of the table in the partition.
 .db._getColumns:{[partition;tableName]
-  get .Q.dd[.Q.par[`:.;partition;tableName]; `.d]
+  get .Q.dd[.Q.par[`:.; partition; tableName]; `.d]
  };
 
 // @kind function
@@ -163,7 +162,7 @@
   newValue:function oldValue;
   newAttr:attr newValue;
   if[(not oldValue~newValue) or (not oldAttr~newAttr);
-    .[columnPath; (); :; newValue]
-   ];
+     .[columnPath; (); :; newValue]
+    ];
   tablePath
  };
