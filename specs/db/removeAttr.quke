@@ -1,0 +1,24 @@
+feature Remove attribute from a column.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb";
+    Table:([] c1:10b; c2:`p#1 2);
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:`p#1 2);
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should remove an attribute from a column of an in-memory table.
+    expect the attribute removed from the column.
+      .db.removeAttr[`InMemoryTable; `c1];
+      .qu.compare[(meta[InMemoryTable]`c1)`a; `]
+
+  should remove an attribute from a column of a partitioned table.
+    expect the attribute removed from the column.
+      .db.removeAttr[`Table; `c2];
+      system "l .";
+      .qu.compare[(meta[Table]`c2)`a; `]

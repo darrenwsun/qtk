@@ -65,16 +65,6 @@
  };
 
 // @kind function
-// @overview Cast the datatype of a column.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} New column to be added.
-// @param newType {symbol | char} Name or char code of the new type.
-// @return {symbol} The table by name.
-.db.castColumn:{[tableName;column;newType]
-  .db.applyToColumn[tableName; column; newType$]
- };
-
-// @kind function
 // @overview Apply a function to a column.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} New column to be added.
@@ -86,6 +76,39 @@
      :tableName
     ];
   .db._applyToColumn[; tableName; column; function] each .db.getPartitions[];
+ };
+
+// @kind function
+// @overview Cast the datatype of a column.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} New column to be added.
+// @param newType {symbol | char} Name or char code of the new type.
+// @return {symbol} The table by name.
+.db.castColumn:{[tableName;column;newType]
+  .db.applyToColumn[tableName; column; newType$]
+ };
+
+// @kind function
+// @overview Add attribute to a column.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column of the table.
+// @param newAttr {symbol} Attribute to be added to the column.
+// @return {symbol} The table by name.
+.db.addAttr:{[tableName;column;newAttr]
+  if[not tableName in .db.getPartitionedTables[];
+     ![tableName; (); 0b; enlist[column]!enlist[(#; enlist newAttr; column)]];
+     :tableName
+    ];
+  .db._applyToColumn[; tableName; column; newAttr#] each .db.getPartitions[];
+ };
+
+// @kind function
+// @overview remove attribute from a column.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column of the table.
+// @return {symbol} The table by name.
+.db.removeAttr:{[tableName;column]
+  .db.addAttr[tableName; column; `]
  };
 
 /////////////////////////////////////////////
