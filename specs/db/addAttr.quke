@@ -2,7 +2,7 @@ feature Add attribute to a column.
 
   before
     import "db";
-    .qutils.hdbRoot:"/tmp/hdb";
+    .qutils.hdbRoot:"/tmp/hdb_addAttr";
     Table:([] c1:10b; c2:1 2);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;

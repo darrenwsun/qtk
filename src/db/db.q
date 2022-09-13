@@ -1,4 +1,5 @@
 import "os";
+import "qdate.q_";
 
 // @kind function
 // @overview Get all partitions.
@@ -34,10 +35,16 @@ import "os";
 
 // @kind function
 // @overview Count table per partition.
-// @param table {table} A partitioned table.
+// @param tableName {symbol} A partitioned table by name.
 // @return {long[]} Counts of the partitioned table per partition.
-.db.countTablePerPartition:{[table]
-  @[.Q.cn; table; {'"RuntimeError: not a partitioned table"}]
+// @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
+.db.countTablePerPartition:{[tableName]
+  @[.Q.cn get@;
+    tableName;
+    {[msg;tableName]
+      '"RuntimeError: not a partitioned table [",string[tableName],"]"
+    }[; tableName]
+   ]
  };
 
 // @kind function
@@ -45,7 +52,7 @@ import "os";
 // @return {dict} A dictionary between tables and their counts per partition.
 .db.countTablesPerPartition:{
   partitionedTables:.db.getPartitionedTables[];
-  .db.countTablePerPartition each get each partitionedTables;
+  .db.countTablePerPartition each partitionedTables;
   @[value; `.Q.pn; {'"RuntimeError: no partition"}]
  };
 
@@ -138,12 +145,27 @@ import "os";
  };
 
 // @kind function
-// @overview remove attribute from a column.
+// @overview Remove attribute from a column.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} A column of the table.
 // @return {symbol} The table by name.
 .db.removeAttr:{[tableName;column]
   .db.addAttr[tableName; column; `]
+ };
+
+// @kind function
+// @overview Fix table based on a good partition.
+// @param tableName {symbol} A table by name.
+// @param refPartition {date | month | int} A partition to which the other partitions refer.
+// @return {symbol} The table by name.
+// @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
+.db.fixTable:{[tableName;refPartition]
+  if[not tableName in .db.getPartitionedTables[]; '"RuntimeError: not a partitioned table [",string[tableName],"]"];
+  refTablePath:.Q.par[`:.; refPartition; tableName];
+  refColumns:.db._getColumns[refPartition; tableName];
+  defaultValues:.db._defaultValue[refTablePath; ] each refColumns;
+  .db._fixTable[; tableName; refColumns!defaultValues] each .db.getPartitions[] except refPartition;
+  tableName
  };
 
 /////////////////////////////////////////////
@@ -184,13 +206,21 @@ import "os";
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The path to the table in the partition.
 .db._addColumn:{[partition;tableName;column;defaultValue]
-  path:.Q.par[`:.; partition; tableName];
+  tablePath:.Q.par[`:.; partition; tableName];
   allColumns:.db._getColumns[partition; tableName];
-  if[column in allColumns; :path];
-  countInPath:count get .Q.dd[path; first allColumns];
-  .[.Q.dd[path; column]; (); :; countInPath#defaultValue];
-  @[path; `.d; ,; column];
-  path
+
+  if[column in allColumns; :tablePath];
+
+  countInPath:count get .Q.dd[tablePath; first allColumns];
+  columnPath:.Q.dd[tablePath; column];
+
+  // rename the column file if it exists, although the column itself was is not declared in .d file
+  if[.os.path.isFile columnPath; .os.move[columnPath; string[columnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
+
+  .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue];
+  @[tablePath; `.d; ,; column];
+
+  tablePath
  };
 
 // @kind function
@@ -268,4 +298,59 @@ import "os";
      .[columnPath; (); :; newValue]
     ];
   tablePath
+ };
+
+// @kind function
+// @overview Fix table in a partition based on a mapping between columns and their default values.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param columnDefaults {dict} A mapping between columns and their default values.
+// @return {symbol} The path to the table in the partition.
+.db._fixTable:{[partition;tableName;columnDefaults]
+  tablePath:.Q.par[`:.; partition; tableName];
+  filesInPartition:.os.listDir tablePath;
+  expectedColumns:key columnDefaults;
+
+  if[not `.d in filesInPartition; .Q.dd[tablePath; `.d] set expectedColumns];
+
+  // add missing columns
+  allColumns:.db._getColumns[partition; tableName];
+  if[count missingColumns:expectedColumns except allColumns;
+     addColumnProjection:.db._addColumn[partition; tableName; ;];
+     addColumnProjection'[missingColumns; columnDefaults missingColumns]];
+
+  allColumns:.db._getColumns[partition; tableName];
+  if[not allColumns~expectedColumns;
+    .db._reorderColumn[partition; tableName; expectedColumns]];
+  tablePath
+ };
+
+// @kind function
+// @overview Reorder columns of a table in a partition using specified first columns.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param firstColumns {dict} First columns after reordering.
+// @return {symbol} The path to the table in the partition.
+// @throws {RuntimeError: } The path to the table in the partition.
+.db._reorderColumn:{[partition;tableName;firstColumns]
+  tablePath:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns[partition; tableName];
+  if[count extraColumns:firstColumns except allColumns;
+     '"RuntimeError: columns [",("," sv string extraColumns),"] not in table [",string[tableName],"]"];
+  @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
+  tablePath
+ };
+
+// @kind function
+// @overview Get default value based on a path to a partitioned table and a column. The default value is type-specific
+// null if it's a simple column, an empty typed list if it's a compound column, or an empty general list.
+// @param tablePath {symbol} A file symbol to a partitioned table.
+// @param column {symbol} A column of the table.
+// @return {symbol} The table by name.
+.db._defaultValue:{[tablePath;column]
+  columnValue:tablePath column;
+  columnType:.Q.ty columnValue;
+  $[columnType in .Q.a; first 0#columnValue;
+    columnType in .Q.A; lower[columnType]$();
+    ()]
  };

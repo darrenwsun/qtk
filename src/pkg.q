@@ -1,33 +1,39 @@
-
-// get q package root from command-line argument or environment variable
-.pkg._getRootDir:{
+// get q package directories from command-line argument or environment variable
+.pkg._getQpkgdir:{
   args:.Q.opt .z.x;
-  $[`qpr in key args;
-    raze system "realpath ",raze args`qpr;
-    not ""~qpr:getenv `qpr;
-    qpr;
-    ' "Unknown q package root"
-   ]
+  qpkgdir:$[
+           `qpkgdir in key args; {raze system "realpath ",x} each args`qpkgdir;
+           not ""~envar:getenv `qpkgdir; ";" vs envar;
+           '"EnvironmentError: qpkgdir undefined either via environmental variable or command-line argument"
+           ];
+  {if[()~key x; '"NotADirectoryError: ",x]} each qpkgdir;
+  {hsym `$x} qpkgdir
  };
 
-if[()~key `.pkg.rootDir;
-   .pkg.rootDir:.pkg._getRootDir[];
- ];
+if[()~key `.pkg.directories;
+   .pkg.directories:.pkg._getQpkgdir[];
+  ];
 if[()~key `.pkg.imported;
    .pkg.imported:`u#();
- ];
+  ];
 
 .q.import:{[lib]
-  if[10h<>type lib; ' "TypeError: expect string for lib"];
-  libPath:hsym `$.pkg.rootDir,"/",lib;
+  if[10h<>type lib; '"TypeError: expect string for lib"];
+  libPath:.pkg.search lib;
+  if[null libPath; '"ModuleNotFoundError: ",lib];
   subLibs:key libPath;
-  $[()~subLibs; ' "FileNotFoundError: ",lib;
-    11h=type subLibs; .q.import each (lib,"/") ,/: string subLibs;
+  $[11h=type subLibs;
+    .q.import each (lib,"/"),/:string subLibs;
     [
       libSym:`$lib;
-      if[libSym in .pkg.imported; : 1b];
-      system "l ",.pkg.rootDir,"/",lib;
+      if[libSym in .pkg.imported; :(::)];
+      system "l ", 1_ string[libPath];
       .pkg.imported,:libSym;
-    ]
+      ]
    ];
+ };
+
+.pkg.search:{[lib]
+  found:{not ()~key .Q.dd[x; `$y]}[; lib] each .pkg.directories;
+  $[any found; .Q.dd[.pkg.directories[found?1b]; `$lib]; `]
  };

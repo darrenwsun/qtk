@@ -2,7 +2,7 @@ feature Get all partitions, subject to modification by .Q.view.
 
   before
     import "db";
-    .qutils.hdbRoot:"/tmp/hdb";
+    .qutils.hdbRoot:"/tmp/hdb_getModifiedPartitions";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;

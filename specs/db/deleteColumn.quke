@@ -2,7 +2,7 @@ feature Delete a column from a table.
 
   before
     import "db";
-    .qutils.hdbRoot:"/tmp/hdb";
+    .qutils.hdbRoot:"/tmp/hdb_deleteColumn";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;

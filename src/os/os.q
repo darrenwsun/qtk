@@ -38,6 +38,17 @@
  };
 
 // @kind function
+// @overview Move a file from a source to a target.
+// @param source {symbol | string} Source file path, of either symbol, file symbol, or string format.
+// @param target {symbol | string} Target file path, of either symbol, file symbol, or string format.
+.os.move:{[source;target]
+  sourcePath:.os.getPath source;
+  targetPath:.os.getPath target;
+  moveCmd:$[.os.isWindows; "move"; "mv"];
+  system moveCmd," ",sourcePath," ",targetPath;
+ };
+
+// @kind function
 // @overview remove a file.
 // @param file {symbol | string} file path, of either symbol, file symbol, or string format.
 .os.remove:{[file]
