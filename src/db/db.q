@@ -251,11 +251,7 @@ import "qdate.q_";
   allColumns:.db._getColumns[partition; tableName];
   if[(not column in allColumns) and (not column in .os.listDir tablePath); :tablePath];
   columnPath:.Q.dd[tablePath; column];
-  .os.remove columnPath;
-  if[.os.path.isFile dataFile:`$string[columnPath],"#";
-    .os.remove dataFile];
-  if[.os.path.isFile dataFile:`$string[columnPath],"##";
-     .os.remove dataFile];
+  .db._deleteColumnOnDisk columnPath;
 
   @[tablePath; `.d; :; allColumns except column];
   tablePath
@@ -287,11 +283,7 @@ import "qdate.q_";
 
   oldColumnPath:.Q.dd[tablePath; oldName];
   newColumnPath:.Q.dd[tablePath; newName];
-  .os.move[oldColumnPath; newColumnPath];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .os.move[dataFile; `$string[newColumnPath],"#"]];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .os.move[dataFile; `$string[newColumnPath],"##"]];
+  .db._renameColumnOnDisk[oldColumnPath; newColumnPath];
 
   newColumns:@[allColumns; first where allColumns=oldName; :; newName];
   @[tablePath; `.d; :; newColumns];
@@ -310,13 +302,9 @@ import "qdate.q_";
   allColumns:.db._getColumns[partition; tableName];
   if[(not sourceColumn in allColumns) or (targetColumn in allColumns); :path];
 
-  sourceFilePath:.Q.dd[.Q.par[`:.; partition; tableName]; sourceColumn];
-  targetFilePath:.Q.dd[.Q.par[`:.; partition; tableName]; targetColumn];
-  .os.copy[sourceFilePath; targetFilePath];
-  if[.os.path.isFile dataFile:`$string[sourceFilePath],"#";
-    .os.copy[dataFile; `$string[targetFilePath],"#"]];
-  if[.os.path.isFile dataFile:`$string[sourceFilePath],"##";
-     .os.copy[dataFile; `$string[targetFilePath],"##"]];
+  sourceColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; sourceColumn];
+  targetColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; targetColumn];
+  .db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
 
   @[path; `.d; ,; targetColumn];
   path
@@ -407,4 +395,43 @@ import "qdate.q_";
   $[columnType in .Q.a; first 0#columnValue;
     columnType in .Q.A; lower[columnType]$();
     ()]
+ };
+
+// @kind function
+// @overview Copy a column on disk.
+// @param oldColumnPath {symbol} A file symbol representing an existing column.
+// @param newColumnPath {symbol} A file symbol representing a new column.
+.db._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.os.path.isFile newColumnPath;
+     .db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
+  .os.copy[oldColumnPath; newColumnPath];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .os.copy[dataFile; `$string[newColumnPath],"#"]];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .os.copy[dataFile; `$string[newColumnPath],"##"]];
+ };
+
+// @kind function
+// @overview Rename a column on disk.
+// @param oldColumnPath {symbol} A file symbol representing an existing column.
+// @param newColumnPath {symbol} A file symbol representing a new column.
+.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.os.path.isFile newColumnPath;
+     .db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
+  .os.move[oldColumnPath; newColumnPath];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .os.move[dataFile; `$string[newColumnPath],"#"]];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .os.move[dataFile; `$string[newColumnPath],"##"]];
+ };
+
+// @kind function
+// @overview Delete a column on disk.
+// @param columnPath {symbol} A file symbol representing an existing column.
+.db._deleteColumnOnDisk:{[columnPath]
+  .os.remove columnPath;
+  if[.os.path.isFile dataFile:`$string[columnPath],"#";
+     .os.remove dataFile];
+  if[.os.path.isFile dataFile:`$string[columnPath],"##";
+     .os.remove dataFile];
  };
