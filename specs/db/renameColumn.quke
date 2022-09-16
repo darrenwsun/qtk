@@ -1,0 +1,30 @@
+feature Rename column(s) of a table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_addColumn";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2; c2:10b);
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should rename columns of an in-memory table.
+    expect the columns renamed in the table.
+      .db.renameColumn[`InMemoryTable; `c1`c2!`c11`c12];
+      .qu.compare[cols InMemoryTable; `c11`c12]
+
+  should rename columns of a partitioned table.
+    expect the columns renamed in the table.
+      .db.renameColumn[`Table;`c1`c2!`c11`c12];
+      system "l .";
+      .qu.compare[cols Table; `date`c11`c12]
+
+  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
+    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+      .qu.compare[
+        @[.db.renameColumn[`Table; ]; `c1`c2!`c11`53; {x}];
+        "NameError: invalid column name [53]"]

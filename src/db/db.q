@@ -64,7 +64,7 @@ import "qdate.q_";
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.addColumn:{[tableName;column;defaultValue]
-  if[not .db._validateColumnName column; '"NameError: invalid column name [",string[column],"]"];
+  .db._validateColumnName column;
   if[not tableName in .db.getPartitionedTables[];
      if[-11h=type defaultValue; defaultValue:enlist defaultValue];    // enlist singleton symbol value
      ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
@@ -89,6 +89,22 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Rename column(s) from a table.
+// @param tableName {symbol} A table by name.
+// @param nameDict {dict} A dictionary from old name(s) to new name(s).
+// @return {symbol} The table by name.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
+.db.renameColumn:{[tableName;nameDict]
+  .db._validateColumnName each value nameDict;
+  if[not tableName in .db.getPartitionedTables[];
+     tableName set nameDict xcol get tableName;
+     :tableName
+    ];
+  .db._renameColumn[; tableName; nameDict] each .db.getPartitions[];
+  tableName
+ };
+
+// @kind function
 // @overview Copy an existing column to a new column.
 // @param tableName {symbol} A table by name.
 // @param sourceColumn {symbol} Source column.
@@ -96,7 +112,7 @@ import "qdate.q_";
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.copyColumn:{[tableName;sourceColumn;targetColumn]
-  if[not .db._validateColumnName targetColumn; '"NameError: invalid column name [",string[targetColumn],"]"];
+  .db._validateColumnName targetColumn;
   $[not tableName in .db.getPartitionedTables[];
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     .db._copyColumn[; tableName; sourceColumn; targetColumn] each .db.getPartitions[]
@@ -175,9 +191,10 @@ import "qdate.q_";
 // @kind function
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
-// @return {boolean} `1b` if the column name is valid; `0b` otherwise.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db._validateColumnName:{[name]
-  (not name in `i,.Q.res,key `.q) and name=.Q.id name
+  if[(name in `i,.Q.res,key `.q) or name<>.Q.id name;
+     '"NameError: invalid column name [",string[name],"]"]
  };
 
 // @kind function
@@ -241,7 +258,44 @@ import "qdate.q_";
      .os.remove dataFile];
 
   @[tablePath; `.d; :; allColumns except column];
-  tableName
+  tablePath
+ };
+
+// @kind function
+// @overview Rename column(s) of a table in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param nameDict {dict} A dictionary from old name(s) to new name(s).
+// @return {symbol} The path to the table in the partition.
+.db._renameColumn:{[partition;tableName;nameDict]
+  renameOneColumn:.db_renameOneColumn[partition; tableName; ;];
+  renameOneColumn'[key nameDict; value nameDict];
+ };
+
+// @kind function
+// @overview Rename a column of a table in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param oldName {symbol} A column of the table.
+// @param newName {symbol} New column name.
+// @return {symbol} The path to the table in the partition.
+.db_renameOneColumn:{[partition;tableName;oldName;newName]
+  tablePath:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns[partition; tableName];
+
+  if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
+
+  oldColumnPath:.Q.dd[tablePath; oldName];
+  newColumnPath:.Q.dd[tablePath; newName];
+  .os.move[oldColumnPath; newColumnPath];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .os.move[dataFile; `$string[newColumnPath],"#"]];
+  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .os.move[dataFile; `$string[newColumnPath],"##"]];
+
+  newColumns:@[allColumns; first where allColumns=oldName; :; newName];
+  @[tablePath; `.d; :; newColumns];
+  tablePath
  };
 
 // @kind function
