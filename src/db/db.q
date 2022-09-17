@@ -94,13 +94,28 @@ import "qdate.q_";
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
-.db.renameColumn:{[tableName;nameDict]
+.db.renameColumns:{[tableName;nameDict]
   .db._validateColumnName each value nameDict;
   if[not tableName in .db.getPartitionedTables[];
      tableName set nameDict xcol get tableName;
      :tableName
     ];
-  .db._renameColumn[; tableName; nameDict] each .db.getPartitions[];
+  .db._renameColumns[; tableName; nameDict] each .db.getPartitions[];
+  tableName
+ };
+
+// @kind function
+// @overview Reorder columns of a table.
+// @param tableName {symbol} A table by name.
+// @param firstColumns {dict} First columns after reordering.
+// @return {symbol} The table by name.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
+.db.reorderColumns:{[tableName;firstColumns]
+  if[not tableName in .db.getPartitionedTables[];
+     tableName set firstColumns xcols get tableName;
+     :tableName
+    ];
+  .db._reorderColumns[; tableName; firstColumns] each .db.getPartitions[];
   tableName
  };
 
@@ -263,7 +278,7 @@ import "qdate.q_";
 // @param tableName {symbol} A table by name.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {symbol} The path to the table in the partition.
-.db._renameColumn:{[partition;tableName;nameDict]
+.db._renameColumns:{[partition;tableName;nameDict]
   renameOneColumn:.db_renameOneColumn[partition; tableName; ;];
   renameOneColumn'[key nameDict; value nameDict];
  };
@@ -363,7 +378,7 @@ import "qdate.q_";
 
   allColumns:.db._getColumns[partition; tableName];
   if[not allColumns~expectedColumns;
-    .db._reorderColumn[partition; tableName; expectedColumns]];
+    .db._reorderColumns[partition; tableName; expectedColumns]];
   tablePath
  };
 
@@ -374,7 +389,7 @@ import "qdate.q_";
 // @param firstColumns {dict} First columns after reordering.
 // @return {symbol} The path to the table in the partition.
 // @throws {RuntimeError: } The path to the table in the partition.
-.db._reorderColumn:{[partition;tableName;firstColumns]
+.db._reorderColumns:{[partition;tableName;firstColumns]
   tablePath:.Q.par[`:.; partition; tableName];
   allColumns:.db._getColumns[partition; tableName];
   if[count extraColumns:firstColumns except allColumns;
