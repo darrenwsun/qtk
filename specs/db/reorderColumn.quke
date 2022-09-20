@@ -2,7 +2,7 @@ feature Reorder columns of a table.
 
   before
     import "db";
-    .qutils.hdbRoot:"/tmp/hdb_addColumn";
+    .qutils.hdbRoot:"/tmp/hdb_reorderColumns";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;

@@ -14,6 +14,15 @@
  };
 
 // @kind function
+// @overview Create directory.
+// @param dir {symbol} A file symbol representing a directory.
+.os.mkdir:{[dir]
+  sourcePath:.os.getPath dir;
+  cmd:$[.os.isWindows; "mkdir"; "mkdir -p"];
+  system cmd," ",sourcePath;
+ };
+
+// @kind function
 // @overview List files and directories under a path.
 // @param dir {symbol} A file symbol representing a directory.
 // @return {symbol[]} Items under the directory in ascending order.
@@ -50,9 +59,18 @@
 
 // @kind function
 // @overview remove a file.
-// @param file {symbol | string} file path, of either symbol, file symbol, or string format.
+// @param file {symbol | string} File path, of either symbol, file symbol, or string format.
 .os.remove:{[file]
   filePath:.os.getPath file;
   removeCmd:$[.os.isWindows; "del /q /f"; "rm -f"];
+  system removeCmd," ",filePath;
+ };
+
+// @kind function
+// @overview remove a directory and all nested items within it.
+// @param dir {symbol | string} Directory path, of either symbol, file symbol, or string format.
+.os.rmtree:{[dir]
+  filePath:.os.getPath dir;
+  removeCmd:$[.os.isWindows; "rmdir /s"; "rm -rf"];
   system removeCmd," ",filePath;
  };

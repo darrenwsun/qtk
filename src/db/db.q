@@ -57,6 +57,22 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Add a new table.
+// @param tableName {symbol} A table by name.
+// @param prototype {table} Prototype where column names and types of the new table refers to.
+// @param tableType {symbol} In-memory, Splayed, or Partitioned.
+// @return {symbol} The table by name.
+// @throws {RuntimeError: invalid table type [*]} If the table type is not valid.
+.db.addTable:{[tableName;prototype;tableType]
+  $[tableType=`$"In-memory"; tableName set 0#prototype;
+    tableType=`Splayed; (` sv (`:.; tableName; `)) set .Q.en[`:.; 0#prototype];
+    tableType=`Partitioned; .db._addTable[; tableName; prototype] each .db.getPartitions[];
+    '"RuntimeError: invalid table type [",string[tableType],"]"
+   ];
+  tableName
+ };
+
+// @kind function
 // @overview Add a column to a table.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} New column to be added.
@@ -228,6 +244,18 @@ import "qdate.q_";
 .db._enumerate:{[val]
   if[11<>abs type val; :val];
   .Q.dd[`:.; `sym]?val
+ };
+
+// @kind function
+// @overview Add a table to a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param prototype {table} Prototype where column names and types of the new table refers to.
+// @return {symbol} Paths of the table.
+.db._addTable:{[partition;tableName;prototype]
+  tablePath:.Q.par[`:.; partition; tableName];
+  @[tablePath; `; :; .Q.en[`:.; 0#prototype]];
+  tablePath
  };
 
 // @kind function
