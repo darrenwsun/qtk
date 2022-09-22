@@ -3,26 +3,26 @@ import "qdate.q_";
 
 // @kind function
 // @overview Get all partitions.
-// @return {date[] | month[] | int[]} Partitions of the database.
-// @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
+// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
+// if the database is not a partitioned database.
 .db.getPartitions:{
-  @[value; `.Q.PV; {'"RuntimeError: no partition"}]
+  @[value; `.Q.PV; ()]
  };
 
 // @kind function
 // @overview Get all partitions, subject to modification by .Q.view.
-// @return {date[] | month[] | int[]} Partitions of the database, subject to modification by .Q.view.
-// @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
+// @return {date[] | month[] | int[] | ()} Partitions of the database, subject to modification by .Q.view,
+// or an empty general list if the database is not a partitioned database.
 .db.getModifiedPartitions:{
-  @[value; `.Q.pv; {'"RuntimeError: no partition"}]
+  @[value; `.Q.pv; ()]
  };
 
 // @kind function
 // @overview Get partition field.
-// @return {symbol} Partition fields of the database.
-// @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
+// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty general list
+// if the database is not a partitioned database.
 .db.getPartitionField:{
-  @[value; `.Q.pf; {'"RuntimeError: no partition"}]
+  @[value; `.Q.pf; `]
  };
 
 // @kind function

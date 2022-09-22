@@ -1,0 +1,16 @@
+feature Get all partitions of int.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getPartitions_int";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/1/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give all int partitions of a partitioned database.
+    expect int partitions of the current database.
+      .qu.compare[.db.getPartitions[]; 1 2]

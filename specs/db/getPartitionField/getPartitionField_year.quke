@@ -1,0 +1,16 @@
+feature Get partition field of year.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getPartitionField_year";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give partition field of a partitioned database.
+    expect partition field of the current database.
+      .qu.compare[.db.getPartitionField[]; `year]

@@ -1,0 +1,17 @@
+feature Get all partitions of dates.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getPartitions_date";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give all date partitions of a partitioned database.
+    expect date partitions of the current database.
+      .qu.compare[.db.getPartitions[]; 2022.01.01 2022.01.02]
+

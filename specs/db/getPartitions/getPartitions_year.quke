@@ -1,0 +1,16 @@
+feature Get all partitions of year.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getPartitions_year";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2021/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should give all month partitions of a partitioned database.
+    expect month partitions of the current database.
+      .qu.compare[.db.getPartitions[]; 2021 2022]

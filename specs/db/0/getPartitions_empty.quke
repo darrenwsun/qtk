@@ -1,0 +1,8 @@
+feature Get all partitions.
+
+  before
+    import "db";
+
+  should give empty general list if the database is not a partitioned database.
+    expect empty general list if the database is not a partitioned database.
+      .qu.compare[.db.getPartitions[]; ()]

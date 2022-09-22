@@ -1,11 +1,11 @@
-feature Get partition field.
+feature Get partition field of month.
 
   before
     import "db";
-    .qutils.hdbRoot:"/tmp/hdb_getPartitionField";
+    .qutils.hdbRoot:"/tmp/hdb_getPartitionField_month";
     Table:([] c1:`boolean$(); c2:`long$());
-    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
-    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
 
   after
@@ -13,5 +13,4 @@ feature Get partition field.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.db.getPartitionField[]; `date]
-
+      .qu.compare[.db.getPartitionField[]; `month]
