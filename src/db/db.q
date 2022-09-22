@@ -73,6 +73,21 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Rename a table.
+// @param tableName {symbol} A table by name.
+// @param newName {symbol} New name of the table.
+// @return {symbol} New table name.
+.db.renameTable:{[tableName;newName]
+  if[not tableName in .db.getPartitionedTables[];
+     newName set get tableName;
+     ![`.; (); 0b; enlist tableName];
+     :tableName
+    ];
+  .db._renameTable[; tableName; newName] each .db.getPartitions[];
+  tableName
+ };
+
+// @kind function
 // @overview Add a column to a table.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} New column to be added.
@@ -251,11 +266,24 @@ import "qdate.q_";
 // @param partition {date | month | int} A partition.
 // @param tableName {symbol} A table by name.
 // @param prototype {table} Prototype where column names and types of the new table refers to.
-// @return {symbol} Paths of the table.
+// @return {symbol} The path to the table in the partition.
 .db._addTable:{[partition;tableName;prototype]
   tablePath:.Q.par[`:.; partition; tableName];
   @[tablePath; `; :; .Q.en[`:.; 0#prototype]];
   tablePath
+ };
+
+// @kind function
+// @overview Rename a table in a particular partition.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param newName {symbol} New name of the table.
+// @return {symbol} The path to the table in the partition.
+.db._renameTable:{[partition;tableName;newName]
+  tablePath:.Q.par[`:.; partition; tableName];
+  newTablePath:.Q.par[`:.; partition; newName];
+  .os.move[tablePath; newTablePath];
+  newTablePath
  };
 
 // @kind function

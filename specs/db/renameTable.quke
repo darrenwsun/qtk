@@ -1,0 +1,24 @@
+feature Rename a table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_renameTable";
+    Table:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+    `InMemoryTable set ([] c1:1 2; c2:10b);
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should rename an in-memory table.
+    expect the table to be renamed.
+      .db.renameTable[`InMemoryTable; `MyTable];
+      .qu.compare[MyTable; ([] c1:1 2; c2:10b)] and .qu.compare[key `InMemoryTable; ()]
+
+  should rename a partitioned table.
+    expect the table to be renamed.
+      .db.renameTable[`Table; `NewTable];
+      system "l .";
+      .qu.compare[select from NewTable; ([] date:`date$(); c1:`boolean$(); c2:`long$())]
