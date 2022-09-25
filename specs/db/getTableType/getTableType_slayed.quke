@@ -1,0 +1,18 @@
+feature Get table type of Splayed.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getTableType_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should return `Splayed` for a splayed table.
+    expect `Splayed` for a splayed table passed by value.
+      .qu.compare[.db.getTableType SplayedTable; `Splayed]
+
+    expect `Splayed` for a splayed table passed by name.
+      .qu.compare[.db.getTableType `SplayedTable; `Splayed]

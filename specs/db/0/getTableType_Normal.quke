@@ -1,0 +1,15 @@
+feature Get table type of Normal.
+
+  before
+    import "db";
+
+  after
+    delete T from `.;
+
+  should return `Normal` for an in-memory table.
+    expect `Normal` for an in-memory table passed by value.
+      .qu.compare[.db.getTableType ([] c1:1 2); `Normal]
+
+    expect `Normal` for an in-memory table passed by name.
+      `T set ([] c1:1 2);
+      .qu.compare[.db.getTableType `T; `Normal]

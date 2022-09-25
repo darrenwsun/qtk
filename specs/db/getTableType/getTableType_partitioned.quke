@@ -1,0 +1,19 @@
+feature Get table type of Partitioned.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getTableType_partitioned";
+    PartitionedTable:([] c1:`boolean$(); c2:`long$());
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set PartitionedTable;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set PartitionedTable;
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should return `Partitioned` for a partitioned table.
+    expect `Partitioned` for a partitioned table passed by value.
+      .qu.compare[.db.getTableType PartitionedTable; `Partitioned]
+
+    expect `Partitioned` for a partitioned table passed by name.
+      .qu.compare[.db.getTableType `PartitionedTable; `Partitioned]

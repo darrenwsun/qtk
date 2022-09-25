@@ -2,6 +2,18 @@ import "os";
 import "qdate.q_";
 
 // @kind function
+// @param t {symbol | table} A table by name or value.
+// @overview Get table type.
+// @return {symbol} Table type: Normal, Splayed, or Partitioned.
+.db.getTableType:{[t]
+  table:$[-11h=type t; get t; t];
+  isPartitioned:.Q.qp table;
+  $[isPartitioned~1b; `Partitioned;
+    isPartitioned~0b; `Splayed;
+    `Normal]
+ };
+
+// @kind function
 // @overview Get all partitions.
 // @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
 // if the database is not a partitioned database.
@@ -27,10 +39,9 @@ import "qdate.q_";
 
 // @kind function
 // @overview Get partitioned tables.
-// @return {symbol[]} Partitioned tables of the database.
-// @throws {RuntimeError: no partition} If it's not a partitioned or segmented database.
+// @return {symbol[]} Partitioned tables of the database, or empty symbol vector if it's not a partitioned database.
 .db.getPartitionedTables:{
-  @[value; `.Q.pt; {'"RuntimeError: no partition"}]
+  @[value; `.Q.pt; enlist`]
  };
 
 // @kind function
@@ -60,13 +71,22 @@ import "qdate.q_";
 // @overview Add a new table.
 // @param tableName {symbol} A table by name.
 // @param prototype {table} Prototype where column names and types of the new table refers to.
-// @param tableType {symbol} In-memory, Splayed, or Partitioned.
+// @param tableType {symbol} Normal, Splayed, or Partitioned.
 // @return {symbol} The table by name.
 // @throws {RuntimeError: invalid table type [*]} If the table type is not valid.
 .db.addTable:{[tableName;prototype;tableType]
-  $[tableType=`$"In-memory"; tableName set 0#prototype;
-    tableType=`Splayed; (` sv (`:.; tableName; `)) set .Q.en[`:.; 0#prototype];
-    tableType=`Partitioned; .db._addTable[; tableName; prototype] each .db.getPartitions[];
+  $[tableType=`Normal;
+    tableName set 0#prototype;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._addTable[tablePath; .Q.en[`:.; 0#prototype]];
+    ];
+    tableType=`Partitioned;
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._addTable[; .Q.en[`:.; 0#prototype]] each tablePaths;
+    ];
     '"RuntimeError: invalid table type [",string[tableType],"]"
    ];
   tableName
@@ -96,12 +116,22 @@ import "qdate.q_";
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.addColumn:{[tableName;column;defaultValue]
   .db._validateColumnName column;
-  if[not tableName in .db.getPartitionedTables[];
-     if[-11h=type defaultValue; defaultValue:enlist defaultValue];    // enlist singleton symbol value
-     ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
-     :tableName
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    [
+      if[-11h=type defaultValue; defaultValue:enlist defaultValue];    // enlist singleton symbol value
+      ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
     ];
-  .db._addColumn[; tableName; column; .db._enumerate defaultValue] each .db.getPartitions[];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._addColumn[tablePath; column; .db._enumerate defaultValue];
+    ];
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._addColumn[; column; .db._enumerate defaultValue] each tablePaths;
+    ]
+   ];
   tableName
  };
 
@@ -223,9 +253,9 @@ import "qdate.q_";
 // @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
 .db.fixTable:{[tableName;refPartition]
   if[not tableName in .db.getPartitionedTables[]; '"RuntimeError: not a partitioned table [",string[tableName],"]"];
-  refTablePath:.Q.par[`:.; refPartition; tableName];
-  refColumns:.db._getColumns[refPartition; tableName];
-  defaultValues:.db._defaultValue[refTablePath; ] each refColumns;
+  tablePath:.Q.par[`:.; refPartition; tableName];
+  refColumns:.db._getColumns tablePath;
+  defaultValues:.db._defaultValue[tablePath;] each refColumns;
   .db._fixTable[; tableName; refColumns!defaultValues] each .db.getPartitions[] except refPartition;
   tableName
  };
@@ -255,20 +285,18 @@ import "qdate.q_";
 // @kind function
 // @overview Enumerate a value against sym.
 // @param val {*} A value.
-// @return {symbol} Paths of the table.
+// @return {enum} Enumerated value against sym if the value is a symbol or a symbol vector; otherwise the same value as-is.
 .db._enumerate:{[val]
   if[11<>abs type val; :val];
   .Q.dd[`:.; `sym]?val
  };
 
 // @kind function
-// @overview Add a table to a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @overview Add a table to a path.
+// @param tablePath {hsym} Path to a table.
 // @param prototype {table} Prototype where column names and types of the new table refers to.
 // @return {symbol} The path to the table in the partition.
-.db._addTable:{[partition;tableName;prototype]
-  tablePath:.Q.par[`:.; partition; tableName];
+.db._addTable:{[tablePath;prototype]
   @[tablePath; `; :; .Q.en[`:.; 0#prototype]];
   tablePath
  };
@@ -287,15 +315,13 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Add a column to a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @overview Add a column to a table specified by a path.
+// @param tablePath {hsym} Path to a table.
 // @param column {symbol} New column to be added.
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The path to the table in the partition.
-.db._addColumn:{[partition;tableName;column;defaultValue]
-  tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
+.db._addColumn:{[tablePath;column;defaultValue]
+  allColumns:.db._getColumns tablePath;
 
   if[column in allColumns; :tablePath];
 
@@ -319,7 +345,7 @@ import "qdate.q_";
 // @return {symbol} The path to the table in the partition.
 .db._deleteColumn:{[partition;tableName;column]
   tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
   if[(not column in allColumns) and (not column in .os.listDir tablePath); :tablePath];
   columnPath:.Q.dd[tablePath; column];
   .db._deleteColumnOnDisk columnPath;
@@ -348,7 +374,7 @@ import "qdate.q_";
 // @return {symbol} The path to the table in the partition.
 .db_renameOneColumn:{[partition;tableName;oldName;newName]
   tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
 
   if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
 
@@ -369,25 +395,24 @@ import "qdate.q_";
 // @param targetColumn {symbol} Target column.
 // @return {symbol} The path to the table in the partition.
 .db._copyColumn:{[partition;tableName;sourceColumn;targetColumn]
-  path:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
-  if[(not sourceColumn in allColumns) or (targetColumn in allColumns); :path];
+  tablePath:.Q.par[`:.; partition; tableName];
+  allColumns:.db._getColumns tablePath;
+  if[(not sourceColumn in allColumns) or (targetColumn in allColumns); :tablePath];
 
   sourceColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; sourceColumn];
   targetColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; targetColumn];
   .db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
 
-  @[path; `.d; ,; targetColumn];
-  path
+  @[tablePath; `.d; ,; targetColumn];
+  tablePath
  };
 
 // @kind function
-// @overview Get all columns of a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
-// @return {symbol[]} Columns of the table in the partition.
-.db._getColumns:{[partition;tableName]
-  get .Q.dd[.Q.par[`:.; partition; tableName]; `.d]
+// @overview Get all columns of an on-disk table.
+// @param tablePath {hsym} Path to a splayed/partitioned table.
+// @return {symbol[]} Columns of the table.
+.db._getColumns:{[tablePath]
+  get .Q.dd[tablePath; `.d]
  };
 
 // @kind function
@@ -399,7 +424,7 @@ import "qdate.q_";
 // @return {symbol} The path to the table in the partition.
 .db._applyToColumn:{[partition;tableName;column;function]
   tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
   if[not column in allColumns; :tablePath];  // the column doesn't exist in the current partition, ignore
 
   columnPath:.Q.dd[tablePath; column];
@@ -427,12 +452,12 @@ import "qdate.q_";
   if[not `.d in filesInPartition; .Q.dd[tablePath; `.d] set expectedColumns];
 
   // add missing columns
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
   if[count missingColumns:expectedColumns except allColumns;
-     addColumnProjection:.db._addColumn[partition; tableName; ;];
+     addColumnProjection:.db._addColumn[tablePath; ;];
      addColumnProjection'[missingColumns; columnDefaults missingColumns]];
 
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
   if[not allColumns~expectedColumns;
     .db._reorderColumns[partition; tableName; expectedColumns]];
   tablePath
@@ -447,7 +472,7 @@ import "qdate.q_";
 // @throws {RuntimeError: } The path to the table in the partition.
 .db._reorderColumns:{[partition;tableName;firstColumns]
   tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns[partition; tableName];
+  allColumns:.db._getColumns tablePath;
   if[count extraColumns:firstColumns except allColumns;
      '"RuntimeError: columns [",("," sv string extraColumns),"] not in table [",string[tableName],"]"];
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];

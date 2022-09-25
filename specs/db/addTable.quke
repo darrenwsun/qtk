@@ -13,7 +13,7 @@ feature Add a table.
 
   should add an in-memory table.
     expect the table added.
-      .db.addTable[`InMemoryTable; ([] c1:1 0; c2:10b); `$"In-memory"];
+      .db.addTable[`InMemoryTable; ([] c1:1 0; c2:10b); `Normal];
       .qu.compare[InMemoryTable; ([] c1:`long$(); c2:`boolean$())] and .qu.compare[.Q.qp InMemoryTable; 0]
 
   should add a partitioned table.
