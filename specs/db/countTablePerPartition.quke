@@ -11,9 +11,9 @@ feature Count table per partition.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should return table count per partition.
-    expect table count per partition.
-      .qu.compare[.db.countTablePerPartition[`Table]; 0 0]
+  should return a dictionary from partitions to row count of the table in each partition.
+    expect a dictionary from partitions to row count of the table in each partition.
+      .qu.compare[.db.countTablePerPartition[`Table]; 2022.01.01 2022.01.02!0 0]
 
   should raise error "RuntimeError: not a partitioned table [*]" if the table is not a partitioned table.
     expect error "RuntimeError: not a partitioned table [*]"

@@ -47,24 +47,28 @@ import "qdate.q_";
 // @kind function
 // @overview Count table per partition.
 // @param tableName {symbol} A partitioned table by name.
-// @return {long[]} Counts of the partitioned table per partition.
+// @return {dict} A dictionary from partitions to row count of the table in each partition.
 // @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
 .db.countTablePerPartition:{[tableName]
-  @[.Q.cn get@;
+  rowCounts:@[.Q.cn get@;
     tableName;
     {[msg;tableName]
       '"RuntimeError: not a partitioned table [",string[tableName],"]"
     }[; tableName]
-   ]
+   ];
+  .db.getModifiedPartitions[]!rowCounts
  };
 
 // @kind function
 // @overview Count tables per partition.
-// @return {dict} A dictionary between tables and their counts per partition.
+// @return {dict} A table keyed by partition and each column is row count of a table in each partition.
+// @throws {RuntimeError: no partition} If there is no partition.
 .db.countTablesPerPartition:{
   partitionedTables:.db.getPartitionedTables[];
   .db.countTablePerPartition each partitionedTables;
-  @[value; `.Q.pn; {'"RuntimeError: no partition"}]
+  rowCountsByTable:@[value; `.Q.pn; {'"RuntimeError: no partition"}];
+  rowCountsByTable[`partition]:.db.getModifiedPartitions[];
+  `partition xkey flip rowCountsByTable
  };
 
 // @kind function

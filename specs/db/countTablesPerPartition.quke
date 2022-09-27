@@ -13,4 +13,4 @@ feature Count tables per partition.
 
   should return a dictionary between tables and their counts per partition.
     expect a dictionary between tables and their counts per partition.
-      .qu.compare[.db.countTablesPerPartition[]; (enlist`Table)!(enlist 0 0)]
+      .qu.compare[.db.countTablesPerPartition[]; ([partition:2022.01.01 2022.01.02] Table:0 0)]
