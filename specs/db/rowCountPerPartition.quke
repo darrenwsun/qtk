@@ -1,4 +1,4 @@
-feature Count table per partition.
+feature Row count of a table per partition.
 
   before
     import "db";
@@ -13,12 +13,12 @@ feature Count table per partition.
 
   should return a dictionary from partitions to row count of the table in each partition.
     expect a dictionary from partitions to row count of the table in each partition.
-      .qu.compare[.db.countTablePerPartition[`Table]; 2022.01.01 2022.01.02!0 0]
+      .qu.compare[.db.rowCountPerPartition[`Table]; 2022.01.01 2022.01.02!0 0]
 
   should raise error "RuntimeError: not a partitioned table [*]" if the table is not a partitioned table.
     expect error "RuntimeError: not a partitioned table [*]"
       Table2:([] c1:`boolean$());
       .qu.compare[
-        @[.db.countTablePerPartition; `Table2; {x}];
+        @[.db.rowCountPerPartition; `Table2; {x}];
         "RuntimeError: not a partitioned table [Table2]"
        ]

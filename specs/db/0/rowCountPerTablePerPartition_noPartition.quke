@@ -1,0 +1,11 @@
+feature Row count of each partitioned table per partition.
+
+  before
+    import "db";
+
+  should raise error "RuntimeError: no partition" if the database has no partition.
+    expect error "RuntimeError: no partition"
+      .qu.compare[
+        @[.db.rowCountPerTablePerPartition; ::; {x}];
+        "RuntimeError: no partition"
+       ]
