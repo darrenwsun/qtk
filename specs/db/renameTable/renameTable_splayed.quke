@@ -1,0 +1,17 @@
+feature Rename a table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_renameTable_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should rename a splayed table.
+    expect the table to be renamed.
+      .db.renameTable[`SplayedTable; `MyTable];
+      system "l ",.qutils.hdbRoot;
+      .qu.compare[select from MyTable; ([] c1:1 0; c2:10b)]

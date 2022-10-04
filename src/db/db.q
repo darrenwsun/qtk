@@ -74,22 +74,22 @@ import "qdate.q_";
 // @kind function
 // @overview Add a new table.
 // @param tableName {symbol} A table by name.
-// @param prototype {table} Prototype where column names and types of the new table refers to.
+// @param data {table} Table data.
 // @param tableType {symbol} Normal, Splayed, or Partitioned.
 // @return {symbol} The table by name.
 // @throws {RuntimeError: invalid table type [*]} If the table type is not valid.
-.db.addTable:{[tableName;prototype;tableType]
+.db.addTable:{[tableName;data;tableType]
   $[tableType=`Normal;
-    tableName set 0#prototype;
+    tableName set data;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._addTable[tablePath; .Q.en[`:.; 0#prototype]];
+      .db._addTable[tablePath; data];
     ];
     tableType=`Partitioned;
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._addTable[; .Q.en[`:.; 0#prototype]] each tablePaths;
+      .db._addTable[; data] each tablePaths;
     ];
     '"RuntimeError: invalid table type [",string[tableType],"]"
    ];
@@ -102,13 +102,24 @@ import "qdate.q_";
 // @param newName {symbol} New name of the table.
 // @return {symbol} New table name.
 .db.renameTable:{[tableName;newName]
-  if[not tableName in .db.getPartitionedTables[];
-     newName set get tableName;
-     ![`.; (); 0b; enlist tableName];
-     :tableName
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    [
+      newName set get tableName;
+      ![`.; (); 0b; enlist tableName];
     ];
-  .db._renameTable[; tableName; newName] each .db.getPartitions[];
-  tableName
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._renameTable[tablePath; newName];
+    ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._renameTable[; newName] each tablePaths;
+    ]
+   ];
+  newName
  };
 
 // @kind function
@@ -131,6 +142,7 @@ import "qdate.q_";
       tablePath:.Q.dd[`:.; tableName];
       .db._addColumn[tablePath; column; .db._enumerate defaultValue];
     ];
+    // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._addColumn[; column; .db._enumerate defaultValue] each tablePaths;
@@ -298,22 +310,20 @@ import "qdate.q_";
 // @kind function
 // @overview Add a table to a path.
 // @param tablePath {hsym} Path to a table.
-// @param prototype {table} Prototype where column names and types of the new table refers to.
+// @param data {table} Table data.
 // @return {symbol} The path to the table in the partition.
-.db._addTable:{[tablePath;prototype]
-  @[tablePath; `; :; .Q.en[`:.; 0#prototype]];
+.db._addTable:{[tablePath;data]
+  @[tablePath; `; :; .Q.en[`:.; data]];
   tablePath
  };
 
 // @kind function
 // @overview Rename a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
-// @param newName {symbol} New name of the table.
-// @return {symbol} The path to the table in the partition.
-.db._renameTable:{[partition;tableName;newName]
-  tablePath:.Q.par[`:.; partition; tableName];
-  newTablePath:.Q.par[`:.; partition; newName];
+// @param tablePath {hsym} Path to a table in a partition.
+// @param newName {hsym} New table name.
+// @return {hsym} Path to the renamed table in the partition.
+.db._renameTable:{[tablePath;newName]
+  newTablePath:.Q.dd[first[` vs tablePath]; newName];
   .os.move[tablePath; newTablePath];
   newTablePath
  };

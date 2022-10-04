@@ -1,4 +1,4 @@
-feature Add a table.
+feature Add a splayed table.
 
   before each
     import "db";
@@ -12,4 +12,5 @@ feature Add a table.
 
   should add a splayed table.
     expect the table added.
-      .qu.compare[select from SplayedTable; ([] c1:`long$(); c2:`boolean$())] and .qu.compare[.Q.qp SplayedTable; 0b]
+      .qu.compare[select from SplayedTable; ([] c1:1 0; c2:10b)] and
+        .qu.compare[.db.getTableType `SplayedTable; `Splayed]
