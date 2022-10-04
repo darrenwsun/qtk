@@ -157,11 +157,20 @@ import "qdate.q_";
 // @param column {symbol} A column to be deleted.
 // @return {symbol} The table by name.
 .db.deleteColumn:{[tableName;column]
-  if[not tableName in .db.getPartitionedTables[];
-     ![tableName; (); 0b; enlist[column]];
-     :tableName
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    ![tableName; (); 0b; enlist[column]];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._deleteColumn[tablePath; column];
     ];
-  .db._deleteColumn[; tableName; column] each .db.getPartitions[];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._deleteColumn[; column] each tablePaths;
+    ]
+   ];
   tableName
  };
 
@@ -309,7 +318,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Add a table to a path.
-// @param tablePath {hsym} Path to a table.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param data {table} Table data.
 // @return {symbol} The path to the table in the partition.
 .db._addTable:{[tablePath;data]
@@ -330,7 +339,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Add a column to a table specified by a path.
-// @param tablePath {hsym} Path to a table.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} New column to be added.
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The path to the table in the partition.
@@ -353,14 +362,12 @@ import "qdate.q_";
 
 // @kind function
 // @overview Delete a column of a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} New column to be added.
+// @param tablePath {hsym} Path to a table in a partition.
+// @param column {symbol} A column to be deleted.
 // @return {symbol} The path to the table in the partition.
-.db._deleteColumn:{[partition;tableName;column]
-  tablePath:.Q.par[`:.; partition; tableName];
+.db._deleteColumn:{[tablePath;column]
   allColumns:.db._getColumns tablePath;
-  if[(not column in allColumns) and (not column in .os.listDir tablePath); :tablePath];
+  if[not column in allColumns; :tablePath];
   columnPath:.Q.dd[tablePath; column];
   .db._deleteColumnOnDisk columnPath;
 

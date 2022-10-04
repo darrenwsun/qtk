@@ -1,0 +1,17 @@
+feature Delete a column from a splayed table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_deleteColumn_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should delete a column from a splayed table.
+    expect the column deleted from the table.
+      .db.deleteColumn[`SplayedTable;`c2];
+      system "l .";
+      .qu.compare[cols SplayedTable; enlist `c1]

@@ -13,5 +13,5 @@ feature Rename a table.
   should rename a splayed table.
     expect the table to be renamed.
       .db.renameTable[`SplayedTable; `MyTable];
-      system "l ",.qutils.hdbRoot;
+      system "l .";
       .qu.compare[select from MyTable; ([] c1:1 0; c2:10b)]
