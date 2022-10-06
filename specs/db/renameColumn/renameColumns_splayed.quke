@@ -1,0 +1,17 @@
+feature Rename column(s) of a splayed table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_renameColumns_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should rename columns of a splayed table.
+    expect the columns renamed in the table.
+      .db.renameColumns[`SplayedTable; `c1`c2!`c11`c12];
+      system "l .";
+      .qu.compare[cols SplayedTable; `c11`c12]

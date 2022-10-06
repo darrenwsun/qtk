@@ -182,11 +182,20 @@ import "qdate.q_";
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db.renameColumns:{[tableName;nameDict]
   .db._validateColumnName each value nameDict;
-  if[not tableName in .db.getPartitionedTables[];
-     tableName set nameDict xcol get tableName;
-     :tableName
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    tableName set nameDict xcol get tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._renameColumns[tablePath; nameDict];
     ];
-  .db._renameColumns[; tableName; nameDict] each .db.getPartitions[];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._renameColumns[; nameDict] each tablePaths;
+    ]
+   ];
   tableName
  };
 
@@ -377,24 +386,22 @@ import "qdate.q_";
 
 // @kind function
 // @overview Rename column(s) of a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {symbol} The path to the table in the partition.
-.db._renameColumns:{[partition;tableName;nameDict]
-  renameOneColumn:.db_renameOneColumn[partition; tableName; ;];
+.db._renameColumns:{[tablePath;nameDict]
+  renameOneColumn:.db_renameOneColumn[tablePath; ;];
   renameOneColumn'[key nameDict; value nameDict];
+  tablePath
  };
 
 // @kind function
 // @overview Rename a column of a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param oldName {symbol} A column of the table.
 // @param newName {symbol} New column name.
 // @return {symbol} The path to the table in the partition.
-.db_renameOneColumn:{[partition;tableName;oldName;newName]
-  tablePath:.Q.par[`:.; partition; tableName];
+.db_renameOneColumn:{[tablePath;oldName;newName]
   allColumns:.db._getColumns tablePath;
 
   if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
