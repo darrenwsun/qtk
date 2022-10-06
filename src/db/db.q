@@ -204,13 +204,26 @@ import "qdate.q_";
 // @param tableName {symbol} A table by name.
 // @param firstColumns {dict} First columns after reordering.
 // @return {symbol} The table by name.
-// @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {RuntimeError: columns [*] not in table [*]} If some columns in `firstColumns` don't exist.
 .db.reorderColumns:{[tableName;firstColumns]
-  if[not tableName in .db.getPartitionedTables[];
-     tableName set firstColumns xcols get tableName;
-     :tableName
+  allColumns:cols tableName;
+  if[count extraColumns:firstColumns except allColumns;
+     '"RuntimeError: columns [",("," sv string extraColumns),"] not in table [",string[tableName],"]"];
+
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    tableName set firstColumns xcols get tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._reorderColumns[tablePath; firstColumns];
     ];
-  .db._reorderColumns[; tableName; firstColumns] each .db.getPartitions[];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._reorderColumns[; firstColumns] each tablePaths;
+    ]
+   ];
   tableName
  };
 
@@ -487,22 +500,17 @@ import "qdate.q_";
 
   allColumns:.db._getColumns tablePath;
   if[not allColumns~expectedColumns;
-    .db._reorderColumns[partition; tableName; expectedColumns]];
+    .db._reorderColumns[tablePath; expectedColumns]];
   tablePath
  };
 
 // @kind function
-// @overview Reorder columns of a table in a partition using specified first columns.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @overview Reorder columns of a table in a partition with specified first columns.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param firstColumns {dict} First columns after reordering.
 // @return {symbol} The path to the table in the partition.
-// @throws {RuntimeError: } The path to the table in the partition.
-.db._reorderColumns:{[partition;tableName;firstColumns]
-  tablePath:.Q.par[`:.; partition; tableName];
+.db._reorderColumns:{[tablePath;firstColumns]
   allColumns:.db._getColumns tablePath;
-  if[count extraColumns:firstColumns except allColumns;
-     '"RuntimeError: columns [",("," sv string extraColumns),"] not in table [",string[tableName],"]"];
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
   tablePath
  };
