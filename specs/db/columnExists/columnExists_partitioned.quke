@@ -30,6 +30,6 @@ feature Check if a column exists in a partitioned table.
   should return `0b` if a column doesn't exist in the filesystem in some partition.
     expect `0b`.
       columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `PartitionedTable]; `c1];
-      .db._deleteColumnOnDisk columnPath;
+      .db._deleteColumnData columnPath;
       system "l .";
       .qu.compare[.db.columnExists[`PartitionedTable; `c1]; 0b]

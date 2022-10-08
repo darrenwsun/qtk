@@ -324,17 +324,19 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Fix table based on a good partition.
+// @overview Fix table based on a good partition. See `.db._fixTable` for fixable issues.
 // @param tableName {symbol} A table by name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
 // @return {symbol} The table by name.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
+// @see .db._fixTable
 .db.fixTable:{[tableName;refPartition]
   if[not tableName in .db.getPartitionedTables[]; '"TableTypeError: not a partitioned table [",string[tableName],"]"];
   tablePath:.Q.par[`:.; refPartition; tableName];
   refColumns:.db._getColumns tablePath;
   defaultValues:.db._defaultValue[tablePath;] each refColumns;
-  .db._fixTable[; tableName; refColumns!defaultValues] each .db.getPartitions[] except refPartition;
+  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[] except refPartition;
+  .db._fixTable[; refColumns!defaultValues] each tablePaths;
   tableName
  };
 
@@ -428,41 +430,63 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Add a column to a table specified by a path.
+// @overview Add a column to a table specified by a path, using a default value unless
+// a length- and type-compliant column data file exists.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} New column to be added.
 // @param defaultValue {*} Value to be set on the new column.
 // @return {hsym} The path to the table in the partition.
 .db._addColumn:{[tablePath;column;defaultValue]
   allColumns:.db._getColumns tablePath;
-
-  if[column in allColumns; :tablePath];
-
   countInPath:count get .Q.dd[tablePath; first allColumns];
   columnPath:.Q.dd[tablePath; column];
 
-  // rename the column file if it exists, although the column itself was is not declared in .d file
-  if[.os.path.isFile columnPath; .os.move[columnPath; string[columnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
-
-  .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue];
-  @[tablePath; `.d; ,; column];
+  // if the column file exists and it's type- and length-compliant, use it as-is;
+  // otherwise create the file using defaultValue
+  $[.os.path.isFile columnPath;
+    if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.db._defaultValue[tablePath; column]]);
+       .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
+      ];
+    .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
+   ];
+  @[tablePath; `.d; :; distinct allColumns,column];
 
   tablePath
  };
 
 // @kind function
-// @overview Delete a column of a table in a particular partition.
+// @overview Delete a column of a table and its data in a particular partition.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} A column to be deleted.
 // @return {hsym} The path to the table in the partition.
 .db._deleteColumn:{[tablePath;column]
-  allColumns:.db._getColumns tablePath;
-  if[not column in allColumns; :tablePath];
   columnPath:.Q.dd[tablePath; column];
-  .db._deleteColumnOnDisk columnPath;
+  .db._deleteColumnData columnPath;
+  .db._deleteColumnHeader[tablePath; column];
+  tablePath
+ };
 
+// @kind function
+// @overview Delete a column header of a table in a particular partition.
+// @param tablePath {hsym} Path to a table in a partition.
+// @param column {symbol} A column to be deleted.
+// @return {hsym} The path to the table in the partition.
+.db._deleteColumnHeader:{[tablePath;column]
+  allColumns:.db._getColumns tablePath;
   @[tablePath; `.d; :; allColumns except column];
   tablePath
+ };
+
+// @kind function
+// @overview Delete a column on disk.
+// @param columnPath {symbol} A file symbol representing an existing column.
+.db._deleteColumnData:{[columnPath]
+  if[.os.path.isFile columnPath;
+     .os.remove columnPath];
+  if[.os.path.isFile dataFile:`$string[columnPath],"#";
+     .os.remove dataFile];
+  if[.os.path.isFile dataFile:`$string[columnPath],"##";
+     .os.remove dataFile];
  };
 
 // @kind function
@@ -537,14 +561,18 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Fix table in a partition based on a mapping between columns and their default values.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @overview Fix a table in a partition based on a mapping between columns and their default values. Fixable issues include:
+//   - create `.d` file if missing
+//   - add missing columns to `.d` file
+//   - add missing data files to disk
+//   - remove excessive columns from `.d` file but leave data files untouched
+//   - put columns in the right order
+// @param tablePath {hsym} Path to a table in a partition.
 // @param columnDefaults {dict} A mapping between columns and their default values.
 // @return {hsym} The path to the table in the partition.
-.db._fixTable:{[partition;tableName;columnDefaults]
-  tablePath:.Q.par[`:.; partition; tableName];
+.db._fixTable:{[tablePath;columnDefaults]
   filesInPartition:.os.listDir tablePath;
+  addColumnProjection:.db._addColumn[tablePath; ;];
   expectedColumns:key columnDefaults;
 
   if[not `.d in filesInPartition; .Q.dd[tablePath; `.d] set expectedColumns];
@@ -552,12 +580,24 @@ import "qdate.q_";
   // add missing columns
   allColumns:.db._getColumns tablePath;
   if[count missingColumns:expectedColumns except allColumns;
-     addColumnProjection:.db._addColumn[tablePath; ;];
-     addColumnProjection'[missingColumns; columnDefaults missingColumns]];
+     addColumnProjection'[missingColumns; columnDefaults missingColumns]
+    ];
 
+  // add missing data files
+  allColumns:.db._getColumns tablePath;
+  if[count missingDataColumns:allColumns except filesInPartition;
+     addColumnProjection'[missingDataColumns; columnDefaults missingDataColumns]];
+
+  // remove excessive columns
+  allColumns:.db._getColumns tablePath;
+  if[count excessiveColumns:allColumns except expectedColumns;
+     .db._deleteColumnHeader[tablePath; ] each excessiveColumns;];
+
+  // fix column order
   allColumns:.db._getColumns tablePath;
   if[not allColumns~expectedColumns;
     .db._reorderColumns[tablePath; expectedColumns]];
+
   tablePath
  };
 
@@ -625,15 +665,4 @@ import "qdate.q_";
      .os.move[dataFile; `$string[newColumnPath],"#"]];
   if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
      .os.move[dataFile; `$string[newColumnPath],"##"]];
- };
-
-// @kind function
-// @overview Delete a column on disk.
-// @param columnPath {symbol} A file symbol representing an existing column.
-.db._deleteColumnOnDisk:{[columnPath]
-  .os.remove columnPath;
-  if[.os.path.isFile dataFile:`$string[columnPath],"#";
-     .os.remove dataFile];
-  if[.os.path.isFile dataFile:`$string[columnPath],"##";
-     .os.remove dataFile];
  };

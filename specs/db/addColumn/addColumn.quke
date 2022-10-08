@@ -1,15 +1,15 @@
 feature Add a column to a table.
 
-  before
+  before each
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_addColumn";
-    Table:([] c1:`boolean$(); c2:`long$());
+    Table:([] c1:10b; c2:1 2);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
     `InMemoryTable set ([] c1:1 2);
 
-  after
+  after each
     system "rm -rf ",.qutils.hdbRoot;
 
   should add a column to an in-memory table with a default value.
@@ -22,6 +22,27 @@ feature Add a column to a table.
       .db.addColumn[`Table;`c3;`test];
       system "l .";
       .qu.compare[cols Table; `date`c1`c2`c3]
+
+  should add a column to a partitioned table using an existing data file if it's length- and typed-compliant.
+    expect the column added to the table.
+      tablePaths:.Q.par[`:.; ; `Table] each .db.getPartitions[];
+      .db._deleteColumnHeader[; `c2] each tablePaths;
+      system "l .";
+
+      .db.addColumn[`Table; `c2; 0];
+      system "l .";
+      .qu.compare[select c2 from Table; ([] c2:1 2 1 2)]
+
+  should add a column to a partitioned table using default value, if a data file exists but it's not compliant.
+    expect the column added to the table.
+      tablePaths:.Q.par[`:.; ; `Table] each .db.getPartitions[];
+      .db._deleteColumnHeader[; `c2] each tablePaths;
+      @[; `c2; :; enlist 1] each tablePaths;
+      system "l .";
+
+      .db.addColumn[`Table; `c2; 0];
+      system "l .";
+      .qu.compare[select c2 from Table; ([] c2:4#0)]
 
   should raise error "NameError: invalid column name [*]" if the colum name is not valid.
     expect error "NameError: invalid column name [*]" if the colum name is not valid.
