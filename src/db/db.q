@@ -273,11 +273,21 @@ import "qdate.q_";
 .db.applyToColumn:{[tableName;column;function]
   .db._validateColumnExists[tableName; column];
 
-  if[not tableName in .db.getPartitionedTables[];
-     ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
-     :tableName
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._applyToColumn[tablePath; column; function];
     ];
-  .db._applyToColumn[; tableName; column; function] each .db.getPartitions[];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._applyToColumn[; column; function] each tablePaths;
+    ]
+   ];
+
   tableName
  };
 
@@ -289,8 +299,6 @@ import "qdate.q_";
 // @return {symbol} The table by name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.castColumn:{[tableName;column;newType]
-  .db._validateColumnExists[tableName; column];
-
   .db.applyToColumn[tableName; column; newType$]
  };
 
@@ -302,14 +310,7 @@ import "qdate.q_";
 // @return {symbol} The table by name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.addAttr:{[tableName;column;newAttr]
-  .db._validateColumnExists[tableName; column];
-
-  if[not tableName in .db.getPartitionedTables[];
-     ![tableName; (); 0b; enlist[column]!enlist[(#; enlist newAttr; column)]];
-     :tableName
-    ];
-  .db._applyToColumn[; tableName; column; newAttr#] each .db.getPartitions[];
-  tableName
+  .db.applyToColumn[tableName; column; newAttr#]
  };
 
 // @kind function
@@ -319,8 +320,6 @@ import "qdate.q_";
 // @return {symbol} The table by name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.removeAttr:{[tableName;column]
-  .db._validateColumnExists[tableName; column];
-
   .db.addAttr[tableName; column; `]
  };
 
@@ -411,7 +410,7 @@ import "qdate.q_";
 // @overview Add a table to a path.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param data {table} Table data.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._addTable:{[tablePath;data]
   @[tablePath; `; :; .Q.en[`:.; data]];
   tablePath
@@ -433,7 +432,7 @@ import "qdate.q_";
 // @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} New column to be added.
 // @param defaultValue {*} Value to be set on the new column.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._addColumn:{[tablePath;column;defaultValue]
   allColumns:.db._getColumns tablePath;
 
@@ -455,7 +454,7 @@ import "qdate.q_";
 // @overview Delete a column of a table in a particular partition.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} A column to be deleted.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._deleteColumn:{[tablePath;column]
   allColumns:.db._getColumns tablePath;
   if[not column in allColumns; :tablePath];
@@ -470,7 +469,7 @@ import "qdate.q_";
 // @overview Rename column(s) of a table in a particular partition.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._renameColumns:{[tablePath;nameDict]
   renameOneColumn:.db_renameOneColumn[tablePath; ;];
   renameOneColumn'[key nameDict; value nameDict];
@@ -482,7 +481,7 @@ import "qdate.q_";
 // @param tablePath {hsym} Path to a table in a partition.
 // @param oldName {symbol} A column of the table.
 // @param newName {symbol} New column name.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db_renameOneColumn:{[tablePath;oldName;newName]
   allColumns:.db._getColumns tablePath;
 
@@ -502,7 +501,7 @@ import "qdate.q_";
 // @param tablePath {hsym} Path to a table in a partition.
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._copyColumn:{[tablePath;sourceColumn;targetColumn]
   sourceColumnPath:.Q.dd[tablePath; sourceColumn];
   targetColumnPath:.Q.dd[tablePath; targetColumn];
@@ -521,16 +520,11 @@ import "qdate.q_";
 
 // @kind function
 // @overview Apply a function to a column of a table in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param column {symbol} A column of the table.
 // @param function {function} Function to be applied to the column.
-// @return {symbol} The path to the table in the partition.
-.db._applyToColumn:{[partition;tableName;column;function]
-  tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns tablePath;
-  if[not column in allColumns; :tablePath];  // the column doesn't exist in the current partition, ignore
-
+// @return {hsym} The path to the table in the partition.
+.db._applyToColumn:{[tablePath;column;function]
   columnPath:.Q.dd[tablePath; column];
   oldValue:get columnPath;
   oldAttr:attr oldValue;
@@ -547,7 +541,7 @@ import "qdate.q_";
 // @param partition {date | month | int} A partition.
 // @param tableName {symbol} A table by name.
 // @param columnDefaults {dict} A mapping between columns and their default values.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._fixTable:{[partition;tableName;columnDefaults]
   tablePath:.Q.par[`:.; partition; tableName];
   filesInPartition:.os.listDir tablePath;
@@ -571,7 +565,7 @@ import "qdate.q_";
 // @overview Reorder columns of a table in a partition with specified first columns.
 // @param tablePath {hsym} Path to a table in a partition.
 // @param firstColumns {dict} First columns after reordering.
-// @return {symbol} The path to the table in the partition.
+// @return {hsym} The path to the table in the partition.
 .db._reorderColumns:{[tablePath;firstColumns]
   allColumns:.db._getColumns tablePath;
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
@@ -596,7 +590,7 @@ import "qdate.q_";
 // null if it's a simple column, an empty typed list if it's a compound column, or an empty general list.
 // @param tablePath {symbol} A file symbol to a partitioned table.
 // @param column {symbol} A column of the table.
-// @return {symbol} The table by name.
+// @return {*} Default value of the column.
 .db._defaultValue:{[tablePath;column]
   columnValue:tablePath column;
   columnType:.Q.ty columnValue;
