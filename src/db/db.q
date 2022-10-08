@@ -151,6 +151,7 @@ import "qdate.q_";
       .db._addColumn[; column; .db._enumerate defaultValue] each tablePaths;
     ]
    ];
+
   tableName
  };
 
@@ -341,22 +342,35 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Check if a column exists in a table.
+// @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
+// appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
+// partitions.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 .db.columnExists:{[tableName;column]
   tableType:.db.getTableType tableName;
-  if[tableType in `Normal`Splayed; :column in cols tableName];
-  // tableType=`Partitioned
-  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-  partitionCount:count tablePaths;
-  i:0;
-  while[i<partitionCount;
-        if[not .db._columnExists[tablePaths[i]; column]; :0b];
-        i+:1
-       ];
-  1b
+  $[tableType=`Normal;
+    column in cols tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._columnExists[tablePath; column]
+    ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      // Can make the following part simpler by `all .db._columnExists[...]` at the cost of performance, due to inability
+      // to return early
+      partitionCount:count tablePaths;
+      i:0;
+      while[i<partitionCount;
+            if[not .db._columnExists[tablePaths[i]; column]; :0b];
+            i+:1
+           ];
+      1b
+    ]
+   ]
  };
 
 /////////////////////////////////////////////
@@ -373,7 +387,7 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Validate that a column exists.
+// @overview Validate that a column exists, including header and data.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
@@ -382,7 +396,7 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Validate that a column doesn't exist.
+// @overview Validate that a column doesn't exist, either header or data or neither.
 // @param tableName {symbol} A table by name.
 // @param column {symbol} A column name.
 // @throws {ColumnExistsError: [*]} If the column exists.
