@@ -48,12 +48,12 @@ import "qdate.q_";
 // @overview Row count of a table per partition.
 // @param tableName {symbol} A partitioned table by name.
 // @return {dict} A dictionary from partitions to row count of the table in each partition.
-// @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
+// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 .db.rowCountPerPartition:{[tableName]
   rowCounts:@[.Q.cn get@;
     tableName;
     {[msg;tableName]
-      '"RuntimeError: not a partitioned table [",string[tableName],"]"
+      '"TableTypeError: not a partitioned table [",string[tableName],"]"
     }[; tableName]
    ];
   .db.getModifiedPartitions[]!rowCounts
@@ -328,9 +328,9 @@ import "qdate.q_";
 // @param tableName {symbol} A table by name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
 // @return {symbol} The table by name.
-// @throws {RuntimeError: not a partitioned table [*]} If the table is not a partitioned table.
+// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 .db.fixTable:{[tableName;refPartition]
-  if[not tableName in .db.getPartitionedTables[]; '"RuntimeError: not a partitioned table [",string[tableName],"]"];
+  if[not tableName in .db.getPartitionedTables[]; '"TableTypeError: not a partitioned table [",string[tableName],"]"];
   tablePath:.Q.par[`:.; refPartition; tableName];
   refColumns:.db._getColumns tablePath;
   defaultValues:.db._defaultValue[tablePath;] each refColumns;
