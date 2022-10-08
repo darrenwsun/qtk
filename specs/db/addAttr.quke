@@ -22,3 +22,9 @@ feature Add attribute to a column.
       .db.addAttr[`Table; `c2; `p];
       system "l .";
       .qu.compare[(meta[Table]`c2)`a; `p]
+
+  should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+      .qu.compare[
+        @[.db.addAttr[`InMemoryTable; ; `p]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]

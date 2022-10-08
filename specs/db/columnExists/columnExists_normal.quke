@@ -1,0 +1,16 @@
+feature Check if a column exists in a normal table.
+
+  before
+    import "db";
+    `NormalTable set ([] c1:1 0; c2:10b);
+
+  after
+    delete NormalTable from `.;
+
+  should return `1b` if a column exists.
+    expect `1b`.
+      .qu.compare[.db.columnExists[`NormalTable; `c1]; 1b]
+
+  should return `0b` if a column doesn't exist.
+    expect `0b`.
+      .qu.compare[.db.columnExists[`NormalTable; `c3]; 0b]

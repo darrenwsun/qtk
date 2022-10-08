@@ -23,3 +23,9 @@ feature Apply a function to a column.
       system "l .";
       columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `Table]; `c1];
       .qu.compare[get columnPath; 01b]
+
+  should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+      .qu.compare[
+        @[.db.applyToColumn[`InMemoryTable; ; 1+]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]

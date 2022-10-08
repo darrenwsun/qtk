@@ -1,6 +1,6 @@
 feature Rename column(s) of a table.
 
-  before
+  before each
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_renameColumns";
     Table:([] c1:`boolean$(); c2:`long$());
@@ -9,7 +9,7 @@ feature Rename column(s) of a table.
     system "l ",.qutils.hdbRoot;
     `InMemoryTable set ([] c1:1 2; c2:10b);
 
-  after
+  after each
     system "rm -rf ",.qutils.hdbRoot;
 
   should rename columns of an in-memory table.
@@ -28,3 +28,9 @@ feature Rename column(s) of a table.
       .qu.compare[
         @[.db.renameColumns[`Table; ]; `c1`c2!`c11`53; {x}];
         "NameError: invalid column name [53]"]
+
+  should raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
+      .qu.compare[
+        @[.db.renameColumns[`Table; ]; `c1`c3!`c11`c33; {x}];
+        "ColumnNotFoundError: [c3]"]

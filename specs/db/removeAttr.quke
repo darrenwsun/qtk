@@ -22,3 +22,9 @@ feature Remove attribute from a column.
       .db.removeAttr[`Table; `c2];
       system "l .";
       .qu.compare[(meta[Table]`c2)`a; `]
+
+  should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+      .qu.compare[
+        @[.db.removeAttr[`InMemoryTable; ]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]

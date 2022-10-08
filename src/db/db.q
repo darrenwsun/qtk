@@ -129,8 +129,11 @@ import "qdate.q_";
 // @param defaultValue {*} Value to be set on the new column.
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {ColumnExistsError: [*]} If the column exists.
 .db.addColumn:{[tableName;column;defaultValue]
   .db._validateColumnName column;
+  .db._validateColumnNotExists[tableName; column];
+
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
     [
@@ -177,11 +180,14 @@ import "qdate.q_";
 // @kind function
 // @overview Rename column(s) from a table.
 // @param tableName {symbol} A table by name.
-// @param nameDict {dict} A dictionary from old name(s) to new name(s).
+// @param nameDict {dict} A dictionary from existing name(s) to new name(s).
 // @return {symbol} The table by name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
 .db.renameColumns:{[tableName;nameDict]
   .db._validateColumnName each value nameDict;
+  .db._validateColumnExists[tableName; ] each key nameDict;
+
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
     tableName set nameDict xcol get tableName;
@@ -204,11 +210,9 @@ import "qdate.q_";
 // @param tableName {symbol} A table by name.
 // @param firstColumns {dict} First columns after reordering.
 // @return {symbol} The table by name.
-// @throws {RuntimeError: columns [*] not in table [*]} If some columns in `firstColumns` don't exist.
+// @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
 .db.reorderColumns:{[tableName;firstColumns]
-  allColumns:cols tableName;
-  if[count extraColumns:firstColumns except allColumns;
-     '"RuntimeError: columns [",("," sv string extraColumns),"] not in table [",string[tableName],"]"];
+  .db._validateColumnExists[tableName; ] each firstColumns;
 
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
@@ -233,9 +237,12 @@ import "qdate.q_";
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
 // @return {symbol} The table by name.
-// @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
+// @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
 .db.copyColumn:{[tableName;sourceColumn;targetColumn]
+  .db._validateColumnExists[tableName; sourceColumn];
   .db._validateColumnName targetColumn;
+
   $[not tableName in .db.getPartitionedTables[];
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     .db._copyColumn[; tableName; sourceColumn; targetColumn] each .db.getPartitions[]
@@ -249,7 +256,10 @@ import "qdate.q_";
 // @param column {symbol} New column to be added.
 // @param function {function} Function to be applied.
 // @return {symbol} The table by name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.applyToColumn:{[tableName;column;function]
+  .db._validateColumnExists[tableName; column];
+
   if[not tableName in .db.getPartitionedTables[];
      ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
      :tableName
@@ -264,7 +274,10 @@ import "qdate.q_";
 // @param column {symbol} New column to be added.
 // @param newType {symbol | char} Name or char code of the new type.
 // @return {symbol} The table by name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.castColumn:{[tableName;column;newType]
+  .db._validateColumnExists[tableName; column];
+
   .db.applyToColumn[tableName; column; newType$]
  };
 
@@ -274,7 +287,10 @@ import "qdate.q_";
 // @param column {symbol} A column of the table.
 // @param newAttr {symbol} Attribute to be added to the column.
 // @return {symbol} The table by name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.addAttr:{[tableName;column;newAttr]
+  .db._validateColumnExists[tableName; column];
+
   if[not tableName in .db.getPartitionedTables[];
      ![tableName; (); 0b; enlist[column]!enlist[(#; enlist newAttr; column)]];
      :tableName
@@ -288,7 +304,10 @@ import "qdate.q_";
 // @param tableName {symbol} A table by name.
 // @param column {symbol} A column of the table.
 // @return {symbol} The table by name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.removeAttr:{[tableName;column]
+  .db._validateColumnExists[tableName; column];
+
   .db.addAttr[tableName; column; `]
  };
 
@@ -307,6 +326,25 @@ import "qdate.q_";
   tableName
  };
 
+// @kind function
+// @overview Check if a column exists in a table.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column name.
+// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
+.db.columnExists:{[tableName;column]
+  tableType:.db.getTableType tableName;
+  if[tableType in `Normal`Splayed; :column in cols tableName];
+  // tableType=`Partitioned
+  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+  partitionCount:count tablePaths;
+  i:0;
+  while[i<partitionCount;
+        if[not .db._columnExists[tablePaths[i]; column]; :0b];
+        i+:1
+       ];
+  1b
+ };
+
 /////////////////////////////////////////////
 // private functions
 /////////////////////////////////////////////
@@ -315,9 +353,27 @@ import "qdate.q_";
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
-.db._validateColumnName:{[name]
-  if[(name in `i,.Q.res,key `.q) or name<>.Q.id name;
-     '"NameError: invalid column name [",string[name],"]"]
+.db._validateColumnName:{[columnName]
+  if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
+     '"NameError: invalid column name [",string[columnName],"]"]
+ };
+
+// @kind function
+// @overview Validate that a column exists.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column name.
+// @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
+.db._validateColumnExists:{[tableName;column]
+  if[not .db.columnExists[tableName; column]; '"ColumnNotFoundError: [",string[column],"]"];
+ };
+
+// @kind function
+// @overview Validate that a column doesn't exist.
+// @param tableName {symbol} A table by name.
+// @param column {symbol} A column name.
+// @throws {ColumnExistsError: [*]} If the column exists.
+.db._validateColumnNotExists:{[tableName;column]
+  if[.db.columnExists[tableName; column]; '"ColumnExistsError: [",string[column],"]"];
  };
 
 // @kind function
@@ -513,6 +569,19 @@ import "qdate.q_";
   allColumns:.db._getColumns tablePath;
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
   tablePath
+ };
+
+// @kind function
+// @overview Check if a column exists in a table in a partition. A column exists if it's listed in .d file and
+// there is a file of the same name in the table path.
+// @param tablePath {hsym} Path to a table in a partition.
+// @param column {symbol} A column name.
+// @return {boolean} `1b` if the column exists in the table in a partition; `0b` otherwise.
+.db._columnExists:{[tablePath;column]
+  allColumns:.db._getColumns tablePath;
+  if[not column in allColumns; :0b];
+  columnPath:.Q.dd[tablePath; column];
+  .os.path.isFile columnPath
  };
 
 // @kind function

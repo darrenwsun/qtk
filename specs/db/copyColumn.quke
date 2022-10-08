@@ -1,6 +1,6 @@
 feature Copy an existing column to a new column.
 
-  before
+  before each
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_copyColumn";
     Table:([] c1:10b; c2:1 2);
@@ -9,7 +9,7 @@ feature Copy an existing column to a new column.
     system "l ",.qutils.hdbRoot;
     `InMemoryTable set ([] c1:1 2);
 
-  after
+  after each
     system "rm -rf ",.qutils.hdbRoot;
 
   should copy a column of an in-memory table to a new column.
@@ -29,3 +29,8 @@ feature Copy an existing column to a new column.
         @[.db.copyColumn[`Table; `c2; ]; `$"53"; {x}];
         "NameError: invalid column name [53]"]
 
+  should raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
+      .qu.compare[
+        @[.db.copyColumn[`Table; ; `c4]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]
