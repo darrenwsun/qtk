@@ -34,3 +34,9 @@ feature Copy an existing column to a new column.
       .qu.compare[
         @[.db.copyColumn[`Table; ; `c4]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]
+
+  should raise error "ColumnExistsError: [*]" if `targetColumn` exists.
+    expect raise error "ColumnExistsError: [*]" if `targetColumn` exists.
+      .qu.compare[
+        @[.db.copyColumn[`Table; `c1; ]; `c2; {x}];
+        "ColumnExistsError: [c2]"]

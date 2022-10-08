@@ -1,0 +1,17 @@
+feature Copy an existing column to a new column for a splayed table.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should copy a column of a splayed table to a new column.
+    expect the new column have the same value as the specified column.
+      .db.copyColumn[`SplayedTable; `c2; `c3];
+      system "l .";
+      .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]

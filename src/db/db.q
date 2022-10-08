@@ -238,15 +238,28 @@ import "qdate.q_";
 // @param targetColumn {symbol} Target column.
 // @return {symbol} The table by name.
 // @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
+// @throws {ColumnExistsError: [*]} If `targetColumn` exists.
 // @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
 .db.copyColumn:{[tableName;sourceColumn;targetColumn]
   .db._validateColumnExists[tableName; sourceColumn];
+  .db._validateColumnNotExists[tableName; targetColumn];
   .db._validateColumnName targetColumn;
 
-  $[not tableName in .db.getPartitionedTables[];
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
-    .db._copyColumn[; tableName; sourceColumn; targetColumn] each .db.getPartitions[]
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._copyColumn[tablePath; sourceColumn; targetColumn];
+    ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
+      .db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
+    ]
    ];
+
   tableName
  };
 
@@ -486,20 +499,14 @@ import "qdate.q_";
 
 // @kind function
 // @overview Copy an existing column to a new column in a particular partition.
-// @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @param tablePath {hsym} Path to a table in a partition.
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
 // @return {symbol} The path to the table in the partition.
-.db._copyColumn:{[partition;tableName;sourceColumn;targetColumn]
-  tablePath:.Q.par[`:.; partition; tableName];
-  allColumns:.db._getColumns tablePath;
-  if[(not sourceColumn in allColumns) or (targetColumn in allColumns); :tablePath];
-
-  sourceColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; sourceColumn];
-  targetColumnPath:.Q.dd[.Q.par[`:.; partition; tableName]; targetColumn];
+.db._copyColumn:{[tablePath;sourceColumn;targetColumn]
+  sourceColumnPath:.Q.dd[tablePath; sourceColumn];
+  targetColumnPath:.Q.dd[tablePath; targetColumn];
   .db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
-
   @[tablePath; `.d; ,; targetColumn];
   tablePath
  };
