@@ -342,6 +342,15 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Fill all tables missing in some partitions, using the most recent partition as a template.
+// See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
+// @return {*[]} Partitions that are filled with missing tables.
+// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
+.db.fillTables:{
+  .Q.chk[`:.]
+ };
+
+// @kind function
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
 // appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
 // partitions.

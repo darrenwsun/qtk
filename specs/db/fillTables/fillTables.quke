@@ -1,0 +1,19 @@
+feature Fill all tables missing in some partitions.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_fillTables";
+    Table:([] c1:10b; c2:1 2);
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/T1/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/T1/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/T2/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should fill tables missing in some partitions.
+    expect tables missing in some partitions filled.
+      .db.fillTables[];
+      system "l .";
+      .qu.compare[select c1, c2 from T2 where date=2022.01.01; ([] c1:`boolean$(); c2:`long$())]
