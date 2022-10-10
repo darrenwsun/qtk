@@ -15,7 +15,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Get all partitions.
-// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
+// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list.
 // if the database is not a partitioned database.
 .db.getPartitions:{
   @[value; `.Q.PV; ()]
@@ -31,7 +31,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Get partition field.
-// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty general list
+// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty general list.
 // if the database is not a partitioned database.
 .db.getPartitionField:{
   @[value; `.Q.pf; `]
@@ -69,6 +69,22 @@ import "qdate.q_";
   rowCountsByTable:@[value; `.Q.pn; {'"RuntimeError: no partition"}];
   rowCountsByTable[`partition]:.db.getModifiedPartitions[];
   `partition xkey flip rowCountsByTable
+ };
+
+// @kind function
+// @overview Get all segments.
+// @return {hsym[] | ()} Segments of the database, or an empty general list.
+// if the database is not a partitioned database.
+.db.getSegments:{
+  @[value; `.Q.P; ()]
+ };
+
+// @kind function
+// @overview Partitions per segment.
+// @return {dict} A dictionary from segments to partitions in each segment.
+// @throws {RuntimeError: no partition} If there is no partition.
+.db.partitionsPerSegment:{
+  .db.getSegments[]!@[value; `.Q.D; ()]
  };
 
 // @kind function

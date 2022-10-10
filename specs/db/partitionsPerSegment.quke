@@ -1,0 +1,19 @@
+feature Partitions per segment.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_partitionsPerSegment";
+    .qutils.segment1:"/tmp/hdb_segment1";
+    .qutils.segment2:"/tmp/hdb_segment2";
+    Table:([] c1:10b; c2:1 2);
+    (hsym `$.qutils.segment1,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.segment2,"/2022.01.02/Table/") set Table;
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2)
+
+  should partitions per segment.
+    expect a dictionary between segments and partitions in each segment.
+      .qu.compare[.db.partitionsPerSegment[]; (hsym `$(.qutils.segment1; .qutils.segment2))!(enlist 2022.01.01; enlist 2022.01.02)]
