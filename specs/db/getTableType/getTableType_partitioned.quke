@@ -1,4 +1,4 @@
-feature Get table type of Partitioned.
+feature Get table type of a partitioned table.
 
   before each
     import "db";

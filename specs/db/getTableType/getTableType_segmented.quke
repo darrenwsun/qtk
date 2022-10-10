@@ -1,0 +1,22 @@
+feature Get table type of a segmented table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getTableType_segmented";
+    .qutils.segment1:"/tmp/hdb_getTableType_segment1";
+    .qutils.segment2:"/tmp/hdb_getTableType_segment2";
+    SegmentedTable:([] c1:1 2 3);
+    (hsym `$.qutils.segment1,"/2022.01.01/SegmentedTable/") set SegmentedTable;
+    (hsym `$.qutils.segment2,"/2022.01.02/SegmentedTable/") set SegmentedTable;
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    system "l ",.qutils.hdbRoot;
+
+  after
+    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should return `Partitioned` for a segmented table.
+    expect `Partitioned` for a segmented table passed by value.
+      .qu.compare[.db.getTableType SegmentedTable; `Partitioned]
+
+    expect `Partitioned` for a segmented table passed by name.
+      .qu.compare[.db.getTableType `SegmentedTable; `Partitioned]

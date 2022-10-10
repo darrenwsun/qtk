@@ -2,8 +2,9 @@ import "os";
 import "qdate.q_";
 
 // @kind function
+// @overview Get table type: Normal, Splayed, or Partitioned. Note that tables in segmented database are classified
+// as Partitioned.
 // @param t {symbol | table} A table by name or value.
-// @overview Get table type.
 // @return {symbol} Table type: Normal, Splayed, or Partitioned.
 .db.getTableType:{[t]
   table:$[-11h=type t; get t; t];
@@ -31,7 +32,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Get partition field.
-// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty general list.
+// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty symbol
 // if the database is not a partitioned database.
 .db.getPartitionField:{
   @[value; `.Q.pf; `]
@@ -367,7 +368,7 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Get a slice of a table
+// @overview Get a slice of a table.
 // See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
 // @param tableName {symbol} A table by name.
 // @param startIndex {integer} Index of the first element in the slice.
@@ -381,6 +382,19 @@ import "qdate.q_";
     .Q.ind[get tableName; startIndex+til endIndex-startIndex]
    ]
  };
+
+// @kind function
+// @overview Save to partition.
+// See [`.Q.dpft`](https://code.kx.com/q/ref/dotq/#qdpft-save-table).
+// @param dir {hsym} A directory handle.
+// @param partition {date | month | int} A partition.
+// @param tableName {symbol} A table by name.
+// @param tableData {table} A table of data.
+// @param options {dict} A dictionary of options for persistence.
+// @param endIndex {integer} Index of the next element after the last element in the slice.
+// @return {hsym} The path to the table in the partition.
+// TODO
+.db.saveToPartition:{[dir;partition;tableName;tableData]}
 
 // @kind function
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
