@@ -1,0 +1,12 @@
+feature Slice a normal table.
+
+  before
+    import "db";
+    `NormalTable set ([] c1:1 2 3 4 5);
+
+  after
+    delete NormalTable from `.;
+
+  should slice a normal table by given start and end indices
+    expect a slice of the table within the given start and end indices
+      .qu.compare[.db.slice[`NormalTable; 2; 4]; ([] c1:3 4)]

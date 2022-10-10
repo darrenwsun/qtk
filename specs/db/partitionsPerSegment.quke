@@ -12,7 +12,7 @@ feature Partitions per segment.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2)
+    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should partitions per segment.
     expect a dictionary between segments and partitions in each segment.

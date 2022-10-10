@@ -367,6 +367,22 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Get a slice of a table
+// See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
+// @param tableName {symbol} A table by name.
+// @param startIndex {integer} Index of the first element in the slice.
+// @param endIndex {integer} Index of the next element after the last element in the slice.
+// @return {table} A slice of the table within the given range.
+.db.slice:{[tableName;startIndex;endIndex]
+  tableType:.db.getTableType tableName;
+  $[tableType in `Normal`Splayed;
+    (endIndex-startIndex)#startIndex _ get tableName;
+    // tableType=`Partitioned
+    .Q.ind[get tableName; startIndex+til endIndex-startIndex]
+   ]
+ };
+
+// @kind function
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
 // appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
 // partitions.

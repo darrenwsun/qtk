@@ -12,7 +12,7 @@ feature Get all segments.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2)
+    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should return all segments.
     expect all segments returned.

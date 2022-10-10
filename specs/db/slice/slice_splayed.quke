@@ -1,0 +1,15 @@
+feature Slice a splayed table.
+
+  before
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_slice_splayed";
+    system "cd ",.qutils.hdbRoot;
+    .db.addTable[`SplayedTable; ([] c1:1 2 3 4 5); `Splayed];
+    system "l ",.qutils.hdbRoot;
+
+  after
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should slice a splayed table by given start and end indices
+    expect a slice of the table within the given start and end indices
+      .qu.compare[.db.slice[`SplayedTable; 2; 4]; ([] c1:3 4)]
