@@ -384,17 +384,27 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Save to partition.
+// @overview Save table to a partition.
 // See [`.Q.dpft`](https://code.kx.com/q/ref/dotq/#qdpft-save-table).
 // @param dir {hsym} A directory handle.
 // @param partition {date | month | int} A partition.
 // @param tableName {symbol} A table by name.
 // @param tableData {table} A table of data.
-// @param options {dict} A dictionary of options for persistence.
-// @param endIndex {integer} Index of the next element after the last element in the slice.
 // @return {hsym} The path to the table in the partition.
-// TODO
-.db.saveToPartition:{[dir;partition;tableName;tableData]}
+// @throws {SchemaError: mismatch between actual columns [*] and expected ones [*]} If column names in the data table
+//   don't match those in the on-disk table (if exists).
+// @throws {SchemaError: mismatch between actual types [*] and expected ones [*]} If column types in the data table
+//   don't match those in the on-disk table (if exists).
+.db.saveTableToPartition:{[dir;partition;tableName;tableData]
+  tablePath:.Q.par[dir; partition; tableName];
+
+  .db._validateSchema[tablePath; tableData];
+
+  symbolCols:where 11h=type each flip tableData;
+  enumeratedData:@[tableData; symbolCols; :; .db._enumerate each tableData symbolCols];
+  .db._saveTable[tablePath; enumeratedData];
+  tablePath
+ };
 
 // @kind function
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
@@ -460,8 +470,48 @@ import "qdate.q_";
  };
 
 // @kind function
+// @overview Validate a table conforms to the schema of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param data {table} A table of data.
+// @throws {SchemaError: mismatch between actual columns [*] and expected ones [*]} If columns in the data table don't match
+//   those in the on-disk table (if exists).
+// @throws {SchemaError: mismatch between actual types [*] and expected ones [*]} If data types of the columns
+//   in the data table don't match those in the on-disk table (if exists).
+.db._validateSchema:{[tablePath;data]
+  if[not .os.path.exists tablePath; :(::)];
+  if[not .db._dotDExists tablePath; :(::)];
+
+  expectedCols:.db._getColumns tablePath;
+  actualCols:cols data;
+  if[not expectedCols~actualCols;
+     '"SchemaError: mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"
+    ];
+
+  if[not all .db._isTypeCompliant'[tablePath expectedCols; data actualCols];
+    '"SchemaError: mismatch between actual types [",(.Q.ty each data actualCols),
+     "] and expected ones [",(.Q.ty each tablePath expectedCols),"]"
+    ];
+ };
+
+// @kind function
+// @overview Check if a list is type-compliant to a target list. A list is type-compliant to another list when
+//   - their types as returned by `.Q.ty` are the same
+//   - target list is not a vector nor a compound list
+//   - target list is a compound list, and actual list is a generic empty list
+// @param target {*[]} Target list.
+// @param actual {*[]} Actual list.
+// @return `1b` if the actual list is type-compliant to the target list; `0b` otherwise.
+.db._isTypeCompliant:{[target;actual]
+  targetType:.Q.ty target;
+  actualType:.Q.ty actual;
+  if[(targetType=" ") or targetType=actualType; :1b];
+  if[(targetType in .Q.A) and (actualType~()); :1b];
+  0b
+ };
+
+// @kind function
 // @overview Locate partitioned or segmented table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @return {symbol} Paths of the table.
 .db._locateTable:{[tableName]
   partitions:.db.getPartitions[];
@@ -474,22 +524,22 @@ import "qdate.q_";
 // @return {enum} Enumerated value against sym if the value is a symbol or a symbol vector; otherwise the same value as-is.
 .db._enumerate:{[val]
   if[11<>abs type val; :val];
-  .Q.dd[`:.; `sym]?val
+  `:./sym ? val
  };
 
 // @kind function
 // @overview Add a table to a path.
-// @param tablePath {hsym} Path to a table in a partition.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._addTable:{[tablePath;data]
   @[tablePath; `; :; .Q.en[`:.; data]];
   tablePath
  };
 
 // @kind function
-// @overview Rename a table in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Rename an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param newName {hsym} New table name.
 // @return {hsym} Path to the renamed table in the partition.
 .db._renameTable:{[tablePath;newName]
@@ -501,10 +551,10 @@ import "qdate.q_";
 // @kind function
 // @overview Add a column to a table specified by a path, using a default value unless
 // a length- and type-compliant column data file exists.
-// @param tablePath {hsym} Path to a table in a partition.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} New column to be added.
 // @param defaultValue {*} Value to be set on the new column.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._addColumn:{[tablePath;column;defaultValue]
   allColumns:.db._getColumns tablePath;
   countInPath:count get .Q.dd[tablePath; first allColumns];
@@ -524,10 +574,10 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Delete a column of a table and its data in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Delete a column of an on-disk table and its data.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._deleteColumn:{[tablePath;column]
   columnPath:.Q.dd[tablePath; column];
   .db._deleteColumnData columnPath;
@@ -536,10 +586,10 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Delete a column header of a table in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Delete a column header of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._deleteColumnHeader:{[tablePath;column]
   allColumns:.db._getColumns tablePath;
   @[tablePath; `.d; :; allColumns except column];
@@ -559,10 +609,10 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Rename column(s) of a table in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Rename column(s) of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._renameColumns:{[tablePath;nameDict]
   renameOneColumn:.db_renameOneColumn[tablePath; ;];
   renameOneColumn'[key nameDict; value nameDict];
@@ -570,11 +620,11 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Rename a column of a table in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Rename a column of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param oldName {symbol} A column of the table.
 // @param newName {symbol} New column name.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db_renameOneColumn:{[tablePath;oldName;newName]
   allColumns:.db._getColumns tablePath;
 
@@ -590,11 +640,11 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Copy an existing column to a new column in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Copy an existing column of an on-disk table to a new column.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._copyColumn:{[tablePath;sourceColumn;targetColumn]
   sourceColumnPath:.Q.dd[tablePath; sourceColumn];
   targetColumnPath:.Q.dd[tablePath; targetColumn];
@@ -612,11 +662,11 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Apply a function to a column of a table in a particular partition.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Apply a function to a column of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column of the table.
 // @param function {function} Function to be applied to the column.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._applyToColumn:{[tablePath;column;function]
   columnPath:.Q.dd[tablePath; column];
   oldValue:get columnPath;
@@ -630,21 +680,21 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Fix a table in a partition based on a mapping between columns and their default values. Fixable issues include:
+// @overview Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
 //   - create `.d` file if missing
 //   - add missing columns to `.d` file
 //   - add missing data files to disk
 //   - remove excessive columns from `.d` file but leave data files untouched
 //   - put columns in the right order
-// @param tablePath {hsym} Path to a table in a partition.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param columnDefaults {dict} A mapping between columns and their default values.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._fixTable:{[tablePath;columnDefaults]
   filesInPartition:.os.listDir tablePath;
   addColumnProjection:.db._addColumn[tablePath; ;];
   expectedColumns:key columnDefaults;
 
-  if[not `.d in filesInPartition; .Q.dd[tablePath; `.d] set expectedColumns];
+  if[not .db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];
 
   // add missing columns
   allColumns:.db._getColumns tablePath;
@@ -671,10 +721,10 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Reorder columns of a table in a partition with specified first columns.
-// @param tablePath {hsym} Path to a table in a partition.
+// @overview Reorder columns of an on-disk table with specified first columns.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param firstColumns {dict} First columns after reordering.
-// @return {hsym} The path to the table in the partition.
+// @return {hsym} The path to the table.
 .db._reorderColumns:{[tablePath;firstColumns]
   allColumns:.db._getColumns tablePath;
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
@@ -682,16 +732,38 @@ import "qdate.q_";
  };
 
 // @kind function
-// @overview Check if a column exists in a table in a partition. A column exists if it's listed in .d file and
+// @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
 // there is a file of the same name in the table path.
-// @param tablePath {hsym} Path to a table in a partition.
+// @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column name.
-// @return {boolean} `1b` if the column exists in the table in a partition; `0b` otherwise.
+// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 .db._columnExists:{[tablePath;column]
   allColumns:.db._getColumns tablePath;
   if[not column in allColumns; :0b];
   columnPath:.Q.dd[tablePath; column];
   .os.path.isFile columnPath
+ };
+
+// @kind function
+// @overview Save a table of data to an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param tableData {table} A table of data.
+// @return {hsym} The path to the table.
+.db._saveTable:{[tablePath;tableData]
+  columns:cols tableData;
+  @[tablePath; columns; ,; tableData columns];
+  if[not .db._dotDExists tablePath; @[tablePath; `.d; :; columns]];
+  tablePath
+ };
+
+
+// @kind function
+// @overview Check if `.d` file exists in a path of a splayed/partitioned table.
+// @param tablePath {hsym} Path to an on-disk table..
+// @return {boolean} `1b` if `.d` exists; `0b` otherwise.
+.db._dotDExists:{[tablePath]
+  filesInPartition:.os.listDir tablePath;
+  `.d in filesInPartition
  };
 
 // @kind function

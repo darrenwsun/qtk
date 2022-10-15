@@ -1,0 +1,40 @@
+feature Save a table to a partition.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_saveTableToPartition";
+    Table:([] c1:10b; c2:1 2);
+    (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
+    (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should append to the table if it exists in the partition.
+    expect the table appended with new data.
+      .db.saveTableToPartition[`:.; 2022.01.01; `Table; ([] c1:10b; c2:3 4)];
+      system "l .";
+      .qu.compare[select c1, c2 from Table where date=2022.01.01; ([] c1:1010b; c2:1 2 3 4)]
+
+  should create the table with given data if it doesn't exist in the partition.
+    expect the table created with new data.
+      .db.saveTableToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:3 4)];
+      .db.saveTableToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:3 4)];
+      system "l .";
+      .qu.compare[select c1, c2 from Table2 where date=2022.01.01; ([] c1:`sym$`a`b; c2:3 4)] and
+        .qu.compare[select c1, c2 from Table2 where date=2022.01.02; ([] c1:`sym$`c`d; c2:3 4)]
+
+  should raise error "SchemaError: mismatch between actual columns [*] and expected ones [*]" if column names don't match.
+    expect error "SchemaError: mismatch between actual columns [*] and expected ones [*]"
+      .qu.compare[
+        .[.db.saveTableToPartition; (`:.; 2022.01.01; `Table; ([] c3:10b; c2:3 4)); {x}];
+        "SchemaError: mismatch between actual columns [`c3`c2] and expected ones [`c1`c2]"
+      ]
+
+  should raise error "SchemaError: mismatch between actual types [*] and expected ones [*]" if column types don't match.
+    expect error "SchemaError: mismatch between actual types [*] and expected ones [*]"
+      .qu.compare[
+        .[.db.saveTableToPartition; (`:.; 2022.01.01; `Table; ([] c1:"10"; c2:3 4)); {x}];
+        "SchemaError: mismatch between actual types [cj] and expected ones [bj]"
+      ]
