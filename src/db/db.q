@@ -82,8 +82,8 @@ import "qdate.q_";
 
 // @kind function
 // @overview Partitions per segment.
-// @return {dict} A dictionary from segments to partitions in each segment.
-// @throws {RuntimeError: no partition} If there is no partition.
+// @return {dict} A dictionary from segments to partitions in each segment. It's empty iff the database doesn't load
+// any segment.
 .db.partitionsPerSegment:{
   .db.getSegments[]!@[value; `.Q.D; ()]
  };
