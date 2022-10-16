@@ -82,7 +82,7 @@ import "qdate.q_";
 
 // @kind function
 // @overview Partitions per segment.
-// @return {dict} A dictionary from segments to partitions in each segment. It's empty iff the database doesn't load
+// @return {dict} A dictionary from segments to partitions in each segment. It's empty if the database doesn't load
 // any segment.
 .db.partitionsPerSegment:{
   .db.getSegments[]!@[value; `.Q.D; ()]
@@ -390,18 +390,28 @@ import "qdate.q_";
 // @param partition {date | month | int} A partition.
 // @param tableName {symbol} A table by name.
 // @param tableData {table} A table of data.
+// @param options {dict (enum: dict | symbol)} Saving options.
+//   - enum: a single domain for all symbol columns, or a dictionary between column names and their respective domains where the default domain is sym
 // @return {hsym} The path to the table in the partition.
 // @throws {SchemaError: mismatch between actual columns [*] and expected ones [*]} If column names in the data table
 //   don't match those in the on-disk table (if exists).
 // @throws {SchemaError: mismatch between actual types [*] and expected ones [*]} If column types in the data table
 //   don't match those in the on-disk table (if exists).
-.db.saveTableToPartition:{[dir;partition;tableName;tableData]
+.db.saveTableToPartition:{[dir;partition;tableName;tableData;options]
   tablePath:.Q.par[dir; partition; tableName];
 
   .db._validateSchema[tablePath; tableData];
 
+  // enumerate symbol columns
+  enumDomain:$[`enum in key options; options`enum; ()!()];
+  if[-11h=type enumDomain;
+     enumDomain:(enlist`)!(enlist enumDomain)];
+  if[not ` in key enumDomain; enumDomain[`]:`sym];  // value to null symbol key denotes default domain
+
   symbolCols:where 11h=type each flip tableData;
-  enumeratedData:@[tableData; symbolCols; :; .db._enumerate each tableData symbolCols];
+  enumFunc:.db._enumerateAgainst[dir; ; ];
+  enumeratedData:@[tableData; symbolCols; :; enumFunc'[(enumDomain `)^enumDomain symbolCols; tableData symbolCols]];
+
   .db._saveTable[tablePath; enumeratedData];
   tablePath
  };
@@ -521,10 +531,22 @@ import "qdate.q_";
 // @kind function
 // @overview Enumerate a value against sym.
 // @param val {*} A value.
-// @return {enum} Enumerated value against sym if the value is a symbol or a symbol vector; otherwise the same value as-is.
+// @return {enum} Enumerated value against sym file in the current directory if the value is a symbol or a symbol vector;
+//   otherwise the same value as-is.
 .db._enumerate:{[val]
+  .db._enumerateAgainst[`:.; `sym; val]
+ };
+
+// @kind function
+// @overview Enumerate a value against a domain.
+// @param dir {hsym} Handle to a directory.
+// @param val {*} A value.
+// @param domain {symbol} Name of domain.
+// @return {enum} Enumerated value against the domain in the directory if the value is a symbol or a symbol vector;
+//   otherwise the same value as-is.
+.db._enumerateAgainst:{[dir;domain;val]
   if[11<>abs type val; :val];
-  `:./sym ? val
+  .Q.dd[dir; domain] ? val
  };
 
 // @kind function
