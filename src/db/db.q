@@ -1,5 +1,7 @@
-import "os";
 import "qdate.q_";
+
+import "os";
+import "err";
 
 // @kind function
 // @overview Get table type: Normal, Splayed, or Partitioned. Note that tables in segmented database are classified
@@ -54,7 +56,7 @@ import "qdate.q_";
   rowCounts:@[.Q.cn get@;
     tableName;
     {[msg;tableName]
-      '"TableTypeError: not a partitioned table [",string[tableName],"]"
+      ' .err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
     }[; tableName]
    ];
   .db.getModifiedPartitions[]!rowCounts
@@ -67,7 +69,8 @@ import "qdate.q_";
 .db.rowCountPerTablePerPartition:{
   partitionedTables:.db.getPartitionedTables[];
   .db.rowCountPerPartition each partitionedTables;
-  rowCountsByTable:@[value; `.Q.pn; {'"RuntimeError: no partition"}];
+  rowCountsByTable:@[value; `.Q.pn;
+                     {' .err.compose[`RuntimeError; "no partition"]}];
   rowCountsByTable[`partition]:.db.getModifiedPartitions[];
   `partition xkey flip rowCountsByTable
  };
@@ -94,7 +97,7 @@ import "qdate.q_";
 // @param data {table} Table data.
 // @param tableType {symbol} Normal, Splayed, or Partitioned.
 // @return {symbol} The table by name.
-// @throws {RuntimeError: invalid table type [*]} If the table type is not valid.
+// @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
 .db.addTable:{[tableName;data;tableType]
   $[tableType=`Normal;
     tableName set data;
@@ -108,7 +111,7 @@ import "qdate.q_";
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._addTable[; data] each tablePaths;
     ];
-    '"RuntimeError: invalid table type [",string[tableType],"]"
+    ' .err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
   tableName
  };
@@ -349,7 +352,8 @@ import "qdate.q_";
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 // @see .db._fixTable
 .db.fixTable:{[tableName;refPartition]
-  if[not tableName in .db.getPartitionedTables[]; '"TableTypeError: not a partitioned table [",string[tableName],"]"];
+  if[not tableName in .db.getPartitionedTables[];
+     ' .err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]];
   tablePath:.Q.par[`:.; refPartition; tableName];
   refColumns:.db._getColumns tablePath;
   defaultValues:.db._defaultValue[tablePath;] each refColumns;
@@ -458,7 +462,7 @@ import "qdate.q_";
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
-     '"NameError: invalid column name [",string[columnName],"]"]
+     ' .err.compose[`NameError; "invalid column name [",string[columnName],"]"]];
  };
 
 // @kind function
@@ -467,7 +471,8 @@ import "qdate.q_";
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
 .db._validateColumnExists:{[tableName;column]
-  if[not .db.columnExists[tableName; column]; '"ColumnNotFoundError: [",string[column],"]"];
+  if[not .db.columnExists[tableName; column];
+     ' .err.compose[`ColumnNotFoundError; "[",string[column],"]"]];
  };
 
 // @kind function
@@ -476,7 +481,8 @@ import "qdate.q_";
 // @param column {symbol} A column name.
 // @throws {ColumnExistsError: [*]} If the column exists.
 .db._validateColumnNotExists:{[tableName;column]
-  if[.db.columnExists[tableName; column]; '"ColumnExistsError: [",string[column],"]"];
+  if[.db.columnExists[tableName; column];
+     ' .err.compose[`ColumnExistsError; "[",string[column],"]"]];
  };
 
 // @kind function
@@ -494,12 +500,13 @@ import "qdate.q_";
   expectedCols:.db._getColumns tablePath;
   actualCols:cols data;
   if[not expectedCols~actualCols;
-     '"SchemaError: mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"
+     ' .err.compose[`SchemaError; "mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"]
     ];
 
   if[not all .db._isTypeCompliant'[tablePath expectedCols; data actualCols];
-    '"SchemaError: mismatch between actual types [",(.Q.ty each data actualCols),
-     "] and expected ones [",(.Q.ty each tablePath expectedCols),"]"
+     ' .err.compose[`SchemaError;
+                "mismatch between actual types [",(.Q.ty each data actualCols),"] and expected ones [",
+                  (.Q.ty each tablePath expectedCols),"]"]
     ];
  };
 

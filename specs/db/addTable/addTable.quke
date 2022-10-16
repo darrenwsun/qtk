@@ -23,8 +23,8 @@ feature Add a table.
       .qu.compare[select from PartitionedTable; ([] date:2022.01.01 2022.01.02) cross ([] c1:1 0; c2:10b)]
         and .qu.compare[.Q.qp PartitionedTable; 1b]
 
-  should raise error "RuntimeError: invalid table type [*]" if the table type is not valid.
-    expect error "RuntimeError: invalid table type [*]" if the table type is not valid.
+  should raise error "TableTypeError: invalid table type [*]" if the table type is not valid.
+    expect error "TableTypeError: invalid table type [*]" if the table type is not valid.
       .qu.compare[
         @[.db.addTable[`PartitionedTable; ([] c1:1 0; c2:10b); ]; `InvalidTableType; {x}];
-        "RuntimeError: invalid table type [InvalidTableType]"]
+        "TableTypeError: invalid table type [InvalidTableType]"]
