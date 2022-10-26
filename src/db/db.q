@@ -6,7 +6,7 @@ import "err";
 // @kind function
 // @overview Get table type: Normal, Splayed, or Partitioned. Note that tables in segmented database are classified
 // as Partitioned.
-// @param t {symbol | table} A table by name or value.
+// @param t {symbol | table} Table name or value.
 // @return {symbol} Table type: Normal, Splayed, or Partitioned.
 .db.getTableType:{[t]
   table:$[-11h=type t; get t; t];
@@ -93,10 +93,10 @@ import "err";
 
 // @kind function
 // @overview Add a new table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param data {table} Table data.
 // @param tableType {symbol} Normal, Splayed, or Partitioned.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
 .db.addTable:{[tableName;data;tableType]
   $[tableType=`Normal;
@@ -118,7 +118,7 @@ import "err";
 
 // @kind function
 // @overview Rename a table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param newName {symbol} New name of the table.
 // @return {symbol} New table name.
 .db.renameTable:{[tableName;newName]
@@ -144,31 +144,31 @@ import "err";
 
 // @kind function
 // @overview Add a column to a table.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} New column to be added.
-// @param defaultValue {*} Value to be set on the new column.
-// @return {symbol} The table by name.
-// @throws {NameError: invalid column name [*]} If the column name is not valid.
-// @throws {ColumnExistsError: [*]} If the column exists.
-.db.addColumn:{[tableName;column;defaultValue]
+// @param tableName {symbol} Table name.
+// @param column {symbol} Name of new column to be added.
+// @param default {*} Value to be set on the new column.
+// @return {symbol} The table name.
+// @throws {NameError} If the column name is not valid.
+// @throws {ColumnExistsError} If the column exists.
+.db.addColumn:{[tableName;column;default]
   .db._validateColumnName column;
   .db._validateColumnNotExists[tableName; column];
 
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
     [
-      if[-11h=type defaultValue; defaultValue:enlist defaultValue];    // enlist singleton symbol value
-      ![tableName; (); 0b; enlist[column]!enlist[defaultValue]];
+      if[-11h=type default; default:enlist default];     // enlist singleton symbol value
+      ![tableName; (); 0b; enlist[column]!enlist[default]];
     ];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._addColumn[tablePath; column; .db._enumerate defaultValue];
+      .db._addColumn[tablePath; column; .db._enumerate default];
     ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._addColumn[; column; .db._enumerate defaultValue] each tablePaths;
+      .db._addColumn[; column; .db._enumerate default] each tablePaths;
     ]
    ];
 
@@ -177,9 +177,9 @@ import "err";
 
 // @kind function
 // @overview Delete a column from a table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 .db.deleteColumn:{[tableName;column]
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
@@ -200,9 +200,9 @@ import "err";
 
 // @kind function
 // @overview Rename column(s) from a table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param nameDict {dict} A dictionary from existing name(s) to new name(s).
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 // @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
 .db.renameColumns:{[tableName;nameDict]
@@ -228,9 +228,9 @@ import "err";
 
 // @kind function
 // @overview Reorder columns of a table.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param firstColumns {dict} First columns after reordering.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
 .db.reorderColumns:{[tableName;firstColumns]
   .db._validateColumnExists[tableName; ] each firstColumns;
@@ -254,10 +254,10 @@ import "err";
 
 // @kind function
 // @overview Copy an existing column to a new column.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
 // @throws {ColumnExistsError: [*]} If `targetColumn` exists.
 // @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
@@ -286,10 +286,10 @@ import "err";
 
 // @kind function
 // @overview Apply a function to a column.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} New column to be added.
+// @param tableName {symbol} Table name.
+// @param column {symbol} Name of new column to be added.
 // @param function {function} Function to be applied.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.applyToColumn:{[tableName;column;function]
   .db._validateColumnExists[tableName; column];
@@ -314,41 +314,41 @@ import "err";
 
 // @kind function
 // @overview Cast the datatype of a column.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} New column to be added.
+// @param tableName {symbol} Table name.
+// @param column {symbol} Name of new column to be added.
 // @param newType {symbol | char} Name or char code of the new type.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .db.castColumn:{[tableName;column;newType]
   .db.applyToColumn[tableName; column; newType$]
  };
 
 // @kind function
-// @overview Add attribute to a column.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} A column of the table.
+// @overview Add an attribute to a column.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column name of the table.
 // @param newAttr {symbol} Attribute to be added to the column.
-// @return {symbol} The table by name.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError} If `column` doesn't exist.
 .db.addAttr:{[tableName;column;newAttr]
   .db.applyToColumn[tableName; column; newAttr#]
  };
 
 // @kind function
 // @overview Remove attribute from a column.
-// @param tableName {symbol} A table by name.
-// @param column {symbol} A column of the table.
-// @return {symbol} The table by name.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column name of the table.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} where If `column` doesn't exist.
 .db.removeAttr:{[tableName;column]
   .db.addAttr[tableName; column; `]
  };
 
 // @kind function
 // @overview Fix table based on a good partition. See `.db._fixTable` for fixable issues.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
-// @return {symbol} The table by name.
+// @return {symbol} The table name.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 // @see .db._fixTable
 .db.fixTable:{[tableName;refPartition]
@@ -374,7 +374,7 @@ import "err";
 // @kind function
 // @overview Get a slice of a table.
 // See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param startIndex {integer} Index of the first element in the slice.
 // @param endIndex {integer} Index of the next element after the last element in the slice.
 // @return {table} A slice of the table within the given range.
@@ -392,7 +392,7 @@ import "err";
 // See [`.Q.dpft`](https://code.kx.com/q/ref/dotq/#qdpft-save-table).
 // @param dir {hsym} A directory handle.
 // @param partition {date | month | int} A partition.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param tableData {table} A table of data.
 // @param options {dict (enum: dict | symbol)} Saving options.
 //   - enum: a single domain for all symbol columns, or a dictionary between column names and their respective domains where the default domain is sym
@@ -424,7 +424,7 @@ import "err";
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
 // appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
 // partitions.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 .db.columnExists:{[tableName;column]
@@ -457,6 +457,7 @@ import "err";
 /////////////////////////////////////////////
 
 // @kind function
+// @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
@@ -466,8 +467,9 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Validate that a column exists, including header and data.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
 .db._validateColumnExists:{[tableName;column]
@@ -476,8 +478,9 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Validate that a column doesn't exist, either header or data or neither.
-// @param tableName {symbol} A table by name.
+// @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @throws {ColumnExistsError: [*]} If the column exists.
 .db._validateColumnNotExists:{[tableName;column]
@@ -486,6 +489,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Validate a table conforms to the schema of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} A table of data.
@@ -511,6 +515,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Check if a list is type-compliant to a target list. A list is type-compliant to another list when
 //   - their types as returned by `.Q.ty` are the same
 //   - target list is not a vector nor a compound list
@@ -527,6 +532,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Locate partitioned or segmented table.
 // @param tableName {symbol} Table name.
 // @return {symbol} Paths of the table.
@@ -536,6 +542,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Enumerate a value against sym.
 // @param val {*} A value.
 // @return {enum} Enumerated value against sym file in the current directory if the value is a symbol or a symbol vector;
@@ -545,6 +552,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Enumerate a value against a domain.
 // @param dir {hsym} Handle to a directory.
 // @param val {*} A value.
@@ -557,6 +565,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Add a table to a path.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
@@ -567,6 +576,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Rename an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param newName {hsym} New table name.
@@ -578,10 +588,11 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Add a column to a table specified by a path, using a default value unless
 // a length- and type-compliant column data file exists.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} New column to be added.
+// @param column {symbol} Name of new column to be added.
 // @param defaultValue {*} Value to be set on the new column.
 // @return {hsym} The path to the table.
 .db._addColumn:{[tablePath;column;defaultValue]
@@ -603,6 +614,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Delete a column of an on-disk table and its data.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
@@ -615,6 +627,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Delete a column header of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
@@ -626,6 +639,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Delete a column on disk.
 // @param columnPath {symbol} A file symbol representing an existing column.
 .db._deleteColumnData:{[columnPath]
@@ -638,23 +652,25 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Rename column(s) of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {hsym} The path to the table.
 .db._renameColumns:{[tablePath;nameDict]
-  renameOneColumn:.db_renameOneColumn[tablePath; ;];
+  renameOneColumn:.db._renameOneColumn[tablePath; ;];
   renameOneColumn'[key nameDict; value nameDict];
   tablePath
  };
 
 // @kind function
+// @private
 // @overview Rename a column of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param oldName {symbol} A column of the table.
+// @param oldName {symbol} A column name of the table.
 // @param newName {symbol} New column name.
 // @return {hsym} The path to the table.
-.db_renameOneColumn:{[tablePath;oldName;newName]
+.db._renameOneColumn:{[tablePath;oldName;newName]
   allColumns:.db._getColumns tablePath;
 
   if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
@@ -669,6 +685,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Copy an existing column of an on-disk table to a new column.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param sourceColumn {symbol} Source column.
@@ -683,6 +700,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Get all columns of an on-disk table.
 // @param tablePath {hsym} Path to a splayed/partitioned table.
 // @return {symbol[]} Columns of the table.
@@ -691,9 +709,10 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Apply a function to a column of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} A column of the table.
+// @param column {symbol} A column name of the table.
 // @param function {function} Function to be applied to the column.
 // @return {hsym} The path to the table.
 .db._applyToColumn:{[tablePath;column;function]
@@ -709,6 +728,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
 //   - create `.d` file if missing
 //   - add missing columns to `.d` file
@@ -750,6 +770,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Reorder columns of an on-disk table with specified first columns.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param firstColumns {dict} First columns after reordering.
@@ -761,6 +782,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
 // there is a file of the same name in the table path.
 // @param tablePath {hsym} Path to an on-disk table.
@@ -774,6 +796,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Save a table of data to an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param tableData {table} A table of data.
@@ -787,6 +810,7 @@ import "err";
 
 
 // @kind function
+// @private
 // @overview Check if `.d` file exists in a path of a splayed/partitioned table.
 // @param tablePath {hsym} Path to an on-disk table..
 // @return {boolean} `1b` if `.d` exists; `0b` otherwise.
@@ -796,10 +820,11 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Get default value based on a path to a partitioned table and a column. The default value is type-specific
 // null if it's a simple column, an empty typed list if it's a compound column, or an empty general list.
 // @param tablePath {symbol} A file symbol to a partitioned table.
-// @param column {symbol} A column of the table.
+// @param column {symbol} A column name of the table.
 // @return {*} Default value of the column.
 .db._defaultValue:{[tablePath;column]
   columnValue:tablePath column;
@@ -810,6 +835,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Copy a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
@@ -824,6 +850,7 @@ import "err";
  };
 
 // @kind function
+// @private
 // @overview Rename a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
