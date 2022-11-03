@@ -345,6 +345,46 @@ import "err";
  };
 
 // @kind function
+// @overview Update values in certain columns of a table, in a similar format to functional update.
+// @param table {symbol | table} Table name or value.
+// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
+// @param assignment {dict} A mapping from column names to values of parse-tree form
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
+.db.update:{[tableName;criteria;assignment]
+  .db._validateColumnExists[tableName;] each key assignment;
+
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    ![tableName; criteria; 0b; assignment];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._update[tablePath; criteria; assignment];
+      ];
+    // tableType=`Partitioned
+    [
+      partitionField:.db.getPartitionField[];
+      $[(first criteria)[1]~partitionField;
+        [
+          partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
+          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
+          .db._update[; 1_criteria; assignment] each tablePaths;
+          ];
+        [
+          partitions:.db.getPartitions[];
+          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
+          .db._update[; criteria; assignment] each tablePaths;
+          ]
+       ];
+      ]
+   ];
+
+  tableName
+ };
+
+
+// @kind function
 // @overview Fix table based on a good partition. See `.db._fixTable` for fixable issues.
 // @param tableName {symbol} Table name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
@@ -561,7 +601,7 @@ import "err";
 //   otherwise the same value as-is.
 .db._enumerateAgainst:{[dir;domain;val]
   if[11<>abs type val; :val];
-  .Q.dd[dir; domain] ? val
+  .Q.dd[dir; domain]?val
  };
 
 // @kind function
@@ -808,6 +848,49 @@ import "err";
   tablePath
  };
 
+// @kind function
+// @private
+// @overview Update values in certain columns of a table, in a similar format to functional update.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
+// @param assignment {dict} A mapping from column names to values
+// @return {hsym} The path to the table.
+// @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
+.db._update:{[tablePath;criteria;assignment]
+  updated:?[tablePath; criteria; 0b; assignment,((enlist`index)!(enlist`i))];
+  if[0=count updated; :tablePath];
+
+  i:0;
+  allColumns:.db._getColumns tablePath;
+  do[count assignment;
+    column:key[assignment][i];
+    columnVal:.db._enumerate updated column;
+    $[column in allColumns;
+      [
+        columnPath:.Q.dd[tablePath; column];
+        $[criteria~();
+          .[columnPath; (); :; columnVal];  // rewrite the whole column
+          .Q.ty[columnVal]=.Q.ty[get columnPath];
+          @[columnPath; updated `index; :; columnVal];  // update values at certain indices
+          '"type"
+         ];
+      ];
+      .db._addColumn[tablePath; column; columnVal]
+     ];
+    i+:1;
+    ];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Get row count of an on-disk table. Count of the first column is used.
+// @param tablePath {hsym} Path to an on-disk table.
+// @return {long} Row count of the table.
+.db._rowCount:{[tablePath]
+  allColumns:.db._getColumns tablePath;
+  count get .Q.dd[tablePath; first allColumns]
+ };
 
 // @kind function
 // @private

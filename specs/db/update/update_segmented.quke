@@ -1,0 +1,39 @@
+feature Update values in certain columns of a segmented table.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_update_segmented";
+    .qutils.segment1:"/tmp/hdb_update_segment1";
+    .qutils.segment2:"/tmp/hdb_update_segment2";
+    (hsym `$.qutils.segment1,"/2022.01.01/SegmentedTable/") set ([] c1:1 2 3 4 5);
+    (hsym `$.qutils.segment2,"/2022.01.02/SegmentedTable/") set ([] c1:1 2 3 4 5);
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should be able to change data type of a column.
+    expect data type of the column is updated.
+      .db.update[`SegmentedTable; (); (enlist`c1)!(enlist enlist`a)];
+      system "l .";
+      .qu.compare[select c1 from SegmentedTable; ([] c1:`sym$10#`a)]
+
+  should be able to change certain indices of a column.
+    expect certain indices of the column is updated.
+      .db.update[`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
+      system "l .";
+      .qu.compare[select c1 from SegmentedTable; ([] c1:1 2 3 8 10 1 2 3 8 10)]
+
+  should be able to change certain indices of a column.
+    expect certain indices of the column is updated.
+      .db.update[`SegmentedTable; ((=;`date;2022.01.01); (>;`c1;3)); (enlist`c1)!(enlist (*;`c1;2))];
+      system "l .";
+      .qu.compare[select c1 from SegmentedTable; ([] c1:1 2 3 8 10 1 2 3 4 5)]
+
+  should raise error "type" if it's a partial update and the new values are not type-compatible with existing values.
+    expect error "type"
+      .qu.compare[
+        .[.db.update; (`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
+        "type"
+      ]

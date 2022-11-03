@@ -1,0 +1,15 @@
+feature Update values in certain columns of a normal table.
+
+  before each
+    import "db";
+    `NormalTable set ([] c1:1 2 3 4 5);
+
+  after each
+    delete NormalTable from `.;
+
+  should raise error "ColumnNotFoundError: [*]" if a column doesn't exist
+    expect error "ColumnNotFoundError: [c2]"
+      .qu.compare[
+        .[.db.update; (`NormalTable; (); (enlist`c2)!(enlist 0N)); {x}];
+        "ColumnNotFoundError: [c2]"
+      ]
