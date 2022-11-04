@@ -13,7 +13,8 @@ import "err";
   isPartitioned:.Q.qp table;
   $[isPartitioned~1b; `Partitioned;
     isPartitioned~0b; `Splayed;
-    `Normal]
+    `Normal
+   ]
  };
 
 // @kind function
@@ -44,7 +45,7 @@ import "err";
 // @overview Get partitioned tables.
 // @return {symbol[]} Partitioned tables of the database, or empty symbol vector if it's not a partitioned database.
 .db.getPartitionedTables:{
-  @[value; `.Q.pt; enlist`]
+  @[value; `.Q.pt; enlist `]
  };
 
 // @kind function
@@ -53,12 +54,13 @@ import "err";
 // @return {dict} A dictionary from partitions to row count of the table in each partition.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 .db.rowCountPerPartition:{[tableName]
-  rowCounts:@[.Q.cn get@;
-    tableName;
-    {[msg;tableName]
-      ' .err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
-    }[; tableName]
-   ];
+  rowCounts:
+    @[.Q.cn get@;
+      tableName;
+      {[msg;tableName]
+        '.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
+      }[; tableName]
+     ];
   .db.getModifiedPartitions[]!rowCounts
  };
 
@@ -69,8 +71,10 @@ import "err";
 .db.rowCountPerTablePerPartition:{
   partitionedTables:.db.getPartitionedTables[];
   .db.rowCountPerPartition each partitionedTables;
-  rowCountsByTable:@[value; `.Q.pn;
-                     {' .err.compose[`RuntimeError; "no partition"]}];
+  rowCountsByTable:
+    @[value; `.Q.pn;
+      {'.err.compose[`RuntimeError; "no partition"]}
+     ];
   rowCountsByTable[`partition]:.db.getModifiedPartitions[];
   `partition xkey flip rowCountsByTable
  };
@@ -105,13 +109,13 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._addTable[tablePath; data];
-    ];
+      ];
     tableType=`Partitioned;
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._addTable[; data] each tablePaths;
-    ];
-    ' .err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+      ];
+    '.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
   tableName
  };
@@ -127,17 +131,17 @@ import "err";
     [
       newName set get tableName;
       ![`.; (); 0b; enlist tableName];
-    ];
+      ];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._renameTable[tablePath; newName];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._renameTable[; newName] each tablePaths;
-    ]
+      ]
    ];
   newName
  };
@@ -157,19 +161,19 @@ import "err";
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
     [
-      if[-11h=type default; default:enlist default];     // enlist singleton symbol value
+      if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
       ![tableName; (); 0b; enlist[column]!enlist[default]];
-    ];
+      ];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._addColumn[tablePath; column; .db._enumerate default];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._addColumn[; column; .db._enumerate default] each tablePaths;
-    ]
+      ]
    ];
 
   tableName
@@ -188,12 +192,12 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._deleteColumn[tablePath; column];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._deleteColumn[; column] each tablePaths;
-    ]
+      ]
    ];
   tableName
  };
@@ -207,7 +211,7 @@ import "err";
 // @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
 .db.renameColumns:{[tableName;nameDict]
   .db._validateColumnName each value nameDict;
-  .db._validateColumnExists[tableName; ] each key nameDict;
+  .db._validateColumnExists[tableName;] each key nameDict;
 
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
@@ -216,12 +220,12 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._renameColumns[tablePath; nameDict];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._renameColumns[; nameDict] each tablePaths;
-    ]
+      ]
    ];
   tableName
  };
@@ -233,7 +237,7 @@ import "err";
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
 .db.reorderColumns:{[tableName;firstColumns]
-  .db._validateColumnExists[tableName; ] each firstColumns;
+  .db._validateColumnExists[tableName;] each firstColumns;
 
   tableType:.db.getTableType tableName;
   $[tableType=`Normal;
@@ -242,12 +246,12 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._reorderColumns[tablePath; firstColumns];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._reorderColumns[; firstColumns] each tablePaths;
-    ]
+      ]
    ];
   tableName
  };
@@ -273,12 +277,12 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._copyColumn[tablePath; sourceColumn; targetColumn];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
-    ]
+      ]
    ];
 
   tableName
@@ -301,12 +305,12 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._applyToColumn[tablePath; column; function];
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
       .db._applyToColumn[; column; function] each tablePaths;
-    ]
+      ]
    ];
 
   tableName
@@ -383,6 +387,41 @@ import "err";
   tableName
  };
 
+// @kind function
+// @overview Delete rows of a table given certain criteria, in a similar format to functional delete.
+// @param table {symbol | table} Table name or value.
+// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
+// @return {symbol} The table name.
+.db.delete:{[tableName;criteria]
+  tableType:.db.getTableType tableName;
+  $[tableType=`Normal;
+    ![tableName; criteria; 0b; `$()];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .db._delete[tablePath; criteria];
+      ];
+    // tableType=`Partitioned
+    [
+      partitionField:.db.getPartitionField[];
+      $[(first criteria)[1]~partitionField;
+        [
+          partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
+          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
+          .db._delete[; 1_criteria] each tablePaths;
+          ];
+        [
+          partitions:.db.getPartitions[];
+          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
+          .db._delete[; criteria] each tablePaths;
+          ]
+       ];
+      ]
+   ];
+
+  tableName
+ };
+
 
 // @kind function
 // @overview Fix table based on a good partition. See `.db._fixTable` for fixable issues.
@@ -393,7 +432,8 @@ import "err";
 // @see .db._fixTable
 .db.fixTable:{[tableName;refPartition]
   if[not tableName in .db.getPartitionedTables[];
-     ' .err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]];
+     '.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
+   ];
   tablePath:.Q.par[`:.; refPartition; tableName];
   refColumns:.db._getColumns tablePath;
   defaultValues:.db._defaultValue[tablePath;] each refColumns;
@@ -421,7 +461,7 @@ import "err";
 .db.slice:{[tableName;startIndex;endIndex]
   tableType:.db.getTableType tableName;
   $[tableType in `Normal`Splayed;
-    (endIndex-startIndex)#startIndex _ get tableName;
+    (endIndex-startIndex)#startIndex _get tableName;
     // tableType=`Partitioned
     .Q.ind[get tableName; startIndex+til endIndex-startIndex]
    ]
@@ -449,12 +489,13 @@ import "err";
   // enumerate symbol columns
   enumDomain:$[`enum in key options; options`enum; ()!()];
   if[-11h=type enumDomain;
-     enumDomain:(enlist`)!(enlist enumDomain)];
+     enumDomain:(enlist `)!(enlist enumDomain)
+   ];
   if[not ` in key enumDomain; enumDomain[`]:`sym];  // value to null symbol key denotes default domain
 
   symbolCols:where 11h=type each flip tableData;
-  enumFunc:.db._enumerateAgainst[dir; ; ];
-  enumeratedData:@[tableData; symbolCols; :; enumFunc'[(enumDomain `)^enumDomain symbolCols; tableData symbolCols]];
+  enumFunc:.db._enumerateAgainst[dir; ;];
+  enumeratedData:@[tableData; symbolCols; :; enumFunc'[(enumDomain`)^enumDomain symbolCols; tableData symbolCols]];
 
   .db._saveTable[tablePath; enumeratedData];
   tablePath
@@ -475,7 +516,7 @@ import "err";
     [
       tablePath:.Q.dd[`:.; tableName];
       .db._columnExists[tablePath; column]
-    ];
+      ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
@@ -485,10 +526,10 @@ import "err";
       i:0;
       while[i<partitionCount;
             if[not .db._columnExists[tablePaths[i]; column]; :0b];
-            i+:1
-           ];
+            i +: 1
+       ];
       1b
-    ]
+      ]
    ]
  };
 
@@ -503,7 +544,8 @@ import "err";
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 .db._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
-     ' .err.compose[`NameError; "invalid column name [",string[columnName],"]"]];
+     '.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
+   ];
  };
 
 // @kind function
@@ -514,7 +556,8 @@ import "err";
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
 .db._validateColumnExists:{[tableName;column]
   if[not .db.columnExists[tableName; column];
-     ' .err.compose[`ColumnNotFoundError; "[",string[column],"]"]];
+     '.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
+   ];
  };
 
 // @kind function
@@ -525,7 +568,8 @@ import "err";
 // @throws {ColumnExistsError: [*]} If the column exists.
 .db._validateColumnNotExists:{[tableName;column]
   if[.db.columnExists[tableName; column];
-     ' .err.compose[`ColumnExistsError; "[",string[column],"]"]];
+     '.err.compose[`ColumnExistsError; "[",string[column],"]"]
+   ];
  };
 
 // @kind function
@@ -544,14 +588,15 @@ import "err";
   expectedCols:.db._getColumns tablePath;
   actualCols:cols data;
   if[not expectedCols~actualCols;
-     ' .err.compose[`SchemaError; "mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"]
-    ];
+     '.err.compose[`SchemaError; "mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"]
+   ];
 
   if[not all .db._isTypeCompliant'[tablePath expectedCols; data actualCols];
-     ' .err.compose[`SchemaError;
-                "mismatch between actual types [",(.Q.ty each data actualCols),"] and expected ones [",
-                  (.Q.ty each tablePath expectedCols),"]"]
-    ];
+     '.err.compose[`SchemaError;
+                   "mismatch between actual types [",(.Q.ty each data actualCols),"] and expected ones [",
+                   (.Q.ty each tablePath expectedCols),"]"
+       ]
+   ];
  };
 
 // @kind function
@@ -645,7 +690,7 @@ import "err";
   $[.os.path.isFile columnPath;
     if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.db._defaultValue[tablePath; column]]);
        .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
-      ];
+     ];
     .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
    ];
   @[tablePath; `.d; :; distinct allColumns,column];
@@ -684,11 +729,14 @@ import "err";
 // @param columnPath {symbol} A file symbol representing an existing column.
 .db._deleteColumnData:{[columnPath]
   if[.os.path.isFile columnPath;
-     .os.remove columnPath];
+     .os.remove columnPath
+   ];
   if[.os.path.isFile dataFile:`$string[columnPath],"#";
-     .os.remove dataFile];
+     .os.remove dataFile
+   ];
   if[.os.path.isFile dataFile:`$string[columnPath],"##";
-     .os.remove dataFile];
+     .os.remove dataFile
+   ];
  };
 
 // @kind function
@@ -763,7 +811,7 @@ import "err";
   newAttr:attr newValue;
   if[(not oldValue~newValue) or (not oldAttr~newAttr);
      .[columnPath; (); :; newValue]
-    ];
+   ];
   tablePath
  };
 
@@ -789,22 +837,25 @@ import "err";
   allColumns:.db._getColumns tablePath;
   if[count missingColumns:expectedColumns except allColumns;
      addColumnProjection'[missingColumns; columnDefaults missingColumns]
-    ];
+   ];
 
   // add missing data files
   allColumns:.db._getColumns tablePath;
   if[count missingDataColumns:allColumns except filesInPartition;
-     addColumnProjection'[missingDataColumns; columnDefaults missingDataColumns]];
+     addColumnProjection'[missingDataColumns; columnDefaults missingDataColumns]
+   ];
 
   // remove excessive columns
   allColumns:.db._getColumns tablePath;
   if[count excessiveColumns:allColumns except expectedColumns;
-     .db._deleteColumnHeader[tablePath; ] each excessiveColumns;];
+     .db._deleteColumnHeader[tablePath;] each excessiveColumns;
+   ];
 
   // fix column order
   allColumns:.db._getColumns tablePath;
   if[not allColumns~expectedColumns;
-    .db._reorderColumns[tablePath; expectedColumns]];
+     .db._reorderColumns[tablePath; expectedColumns]
+   ];
 
   tablePath
  };
@@ -850,35 +901,58 @@ import "err";
 
 // @kind function
 // @private
-// @overview Update values in certain columns of a table, in a similar format to functional update.
+// @overview Update values in certain columns of an on-disk table, in a similar format to functional update.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
 // @param assignment {dict} A mapping from column names to values
 // @return {hsym} The path to the table.
 // @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
 .db._update:{[tablePath;criteria;assignment]
-  updated:?[tablePath; criteria; 0b; assignment,((enlist`index)!(enlist`i))];
+  updated:?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
   if[0=count updated; :tablePath];
 
   i:0;
   allColumns:.db._getColumns tablePath;
   do[count assignment;
-    column:key[assignment][i];
-    columnVal:.db._enumerate updated column;
-    $[column in allColumns;
-      [
-        columnPath:.Q.dd[tablePath; column];
-        $[criteria~();
-          .[columnPath; (); :; columnVal];  // rewrite the whole column
-          .Q.ty[columnVal]=.Q.ty[get columnPath];
-          @[columnPath; updated `index; :; columnVal];  // update values at certain indices
-          '"type"
+     column:key[assignment] [i];
+     columnVal:.db._enumerate updated column;
+     $[column in allColumns;
+       [
+         columnPath:.Q.dd[tablePath; column];
+         $[criteria~();
+           .[columnPath; (); :; columnVal];                   // rewrite the whole column
+           .Q.ty[columnVal]=.Q.ty[get columnPath];
+           @[columnPath; updated`index; :; columnVal];                   // update values at certain indices
+           '"type"
+          ];
          ];
+       .db._addColumn[tablePath; column; columnVal]
       ];
-      .db._addColumn[tablePath; column; columnVal]
-     ];
-    i+:1;
-    ];
+     i +: 1;
+   ];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Delete rows of an on-disk table given certain criteria, in a similar format to functional delete.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
+// @return {hsym} The path to the table.
+.db._delete:{[tablePath;criteria]
+  indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
+  if[0=count indicesToDelete; :tablePath];
+
+  rowCount:.db._rowCount tablePath;
+  remainingIndices:(til rowCount) except indicesToDelete;
+
+  i:0;
+  allColumns:.db._getColumns tablePath;
+  do[count allColumns;
+     columnPath:.Q.dd[tablePath; allColumns[i]];
+     .[columnPath; (); :; get[columnPath] remainingIndices];
+     i +: 1;
+   ];
   tablePath
  };
 
@@ -914,7 +988,8 @@ import "err";
   columnType:.Q.ty columnValue;
   $[columnType in .Q.a; first 0#columnValue;
     columnType in .Q.A; lower[columnType]$();
-    ()]
+    ()
+   ]
  };
 
 // @kind function
@@ -924,12 +999,15 @@ import "err";
 // @param newColumnPath {symbol} A file symbol representing a new column.
 .db._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
   if[.os.path.isFile newColumnPath;
-     .db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
+     .db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+   ];
   .os.copy[oldColumnPath; newColumnPath];
   if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .os.copy[dataFile; `$string[newColumnPath],"#"]];
+     .os.copy[dataFile; `$string[newColumnPath],"#"]
+   ];
   if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .os.copy[dataFile; `$string[newColumnPath],"##"]];
+     .os.copy[dataFile; `$string[newColumnPath],"##"]
+   ];
  };
 
 // @kind function
@@ -939,10 +1017,13 @@ import "err";
 // @param newColumnPath {symbol} A file symbol representing a new column.
 .db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
   if[.os.path.isFile newColumnPath;
-     .db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]];
+     .db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+   ];
   .os.move[oldColumnPath; newColumnPath];
   if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .os.move[dataFile; `$string[newColumnPath],"#"]];
+     .os.move[dataFile; `$string[newColumnPath],"#"]
+   ];
   if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .os.move[dataFile; `$string[newColumnPath],"##"]];
+     .os.move[dataFile; `$string[newColumnPath],"##"]
+   ];
  };
