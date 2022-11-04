@@ -12,8 +12,8 @@ feature Get all segments.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should return all segments.
     expect all segments returned.
-      .qu.compare[.db.getSegments[]; {hsym `$x} each (.qutils.segment1; .qutils.segment2)]
+      .qu.compare[.qtk.db.getSegments[]; {hsym `$x} each (.qutils.segment1; .qutils.segment2)]

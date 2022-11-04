@@ -4,7 +4,7 @@ feature Add a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_addTable_splayed";
     system "cd ",.qutils.hdbRoot;
-    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -13,4 +13,4 @@ feature Add a splayed table.
   should add a splayed table.
     expect the table added.
       .qu.compare[select from SplayedTable; ([] c1:1 0; c2:10b)] and
-        .qu.compare[.db.getTableType `SplayedTable; `Splayed]
+        .qu.compare[.qtk.db.getTableType `SplayedTable; `Splayed]

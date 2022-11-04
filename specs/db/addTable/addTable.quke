@@ -13,12 +13,12 @@ feature Add a table.
 
   should add an in-memory table.
     expect the table added.
-      .db.addTable[`InMemoryTable; ([] c1:1 0; c2:10b); `Normal];
+      .qtk.db.addTable[`InMemoryTable; ([] c1:1 0; c2:10b); `Normal];
       .qu.compare[InMemoryTable; ([] c1:1 0; c2:10b)] and .qu.compare[.Q.qp InMemoryTable; 0]
 
   should add a partitioned table.
     expect the table added.
-      .db.addTable[`PartitionedTable; ([] c1:1 0; c2:10b); `Partitioned];
+      .qtk.db.addTable[`PartitionedTable; ([] c1:1 0; c2:10b); `Partitioned];
       system "l .";
       .qu.compare[select from PartitionedTable; ([] date:2022.01.01 2022.01.02) cross ([] c1:1 0; c2:10b)]
         and .qu.compare[.Q.qp PartitionedTable; 1b]
@@ -26,5 +26,5 @@ feature Add a table.
   should raise error "TableTypeError: invalid table type [*]" if the table type is not valid.
     expect error "TableTypeError: invalid table type [*]" if the table type is not valid.
       .qu.compare[
-        @[.db.addTable[`PartitionedTable; ([] c1:1 0; c2:10b); ]; `InvalidTableType; {x}];
+        @[.qtk.db.addTable[`PartitionedTable; ([] c1:1 0; c2:10b); ]; `InvalidTableType; {x}];
         "TableTypeError: invalid table type [InvalidTableType]"]

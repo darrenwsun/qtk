@@ -13,4 +13,4 @@ feature Get all partitions of month.
 
   should give all month partitions of a partitioned database.
     expect month partitions of the current database.
-      .qu.compare[.db.getPartitions[]; 2022.01 2022.02m]
+      .qu.compare[.qtk.db.getPartitions[]; 2022.01 2022.02m]

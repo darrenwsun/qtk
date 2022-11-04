@@ -9,4 +9,4 @@ feature Slice a normal table.
 
   should slice a normal table by given start and end indices
     expect a slice of the table within the given start and end indices
-      .qu.compare[.db.slice[`NormalTable; 2; 4]; ([] c1:3 4)]
+      .qu.compare[.qtk.db.slice[`NormalTable; 2; 4]; ([] c1:3 4)]

@@ -4,7 +4,7 @@ feature Reorder columns of a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_reorderColumns_splayed";
     system "cd ",.qutils.hdbRoot;
-    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after
@@ -12,6 +12,6 @@ feature Reorder columns of a splayed table.
 
   should reorder columns of a splayed table.
     expect the columns reordered in the table.
-      .db.reorderColumns[`SplayedTable; `c2`c1];
+      .qtk.db.reorderColumns[`SplayedTable; `c2`c1];
       system "l .";
       .qu.compare[cols SplayedTable; `c2`c1]

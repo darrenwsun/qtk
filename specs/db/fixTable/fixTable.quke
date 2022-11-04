@@ -14,41 +14,41 @@ feature Fix a table based on a good partition.
 
   should add `.d` file if it's missing.
     expect `.d` file added if it's missing.
-      .os.remove .qutils.hdbRoot,"/2022.01.02/Table/.d";
-      .db.fixTable[`Table; 2022.01.01];
+      .qtk.os.remove .qutils.hdbRoot,"/2022.01.02/Table/.d";
+      .qtk.db.fixTable[`Table; 2022.01.01];
       system "l .";
       .qu.compare[select c1, c2 from Table where date=2022.01.02; ([] c1:10b; c2:1 2)]
 
   should add missing columns in `.d` file while its data file doesn't exist
     expect missing columns added.
       tablePath:.Q.par[`:.; 2022.01.02; `Table];
-      .db._deleteColumn[tablePath; `c2];
+      .qtk.db._deleteColumn[tablePath; `c2];
       system "l .";
 
-      .db.fixTable[`Table; 2022.01.01];
+      .qtk.db.fixTable[`Table; 2022.01.01];
       system "l .";
       .qu.compare[select c2 from Table where date=2022.01.02; ([] c2:0N 0N)]
 
   should add missing columns in `.d` file while its data file exists and is compliant
     expect missing columns added.
       tablePath:.Q.par[`:.; 2022.01.02; `Table];
-      .db._deleteColumnHeader[tablePath; `c2];
+      .qtk.db._deleteColumnHeader[tablePath; `c2];
       system "l .";
 
-      .db.fixTable[`Table; 2022.01.01];
+      .qtk.db.fixTable[`Table; 2022.01.01];
       system "l .";
       .qu.compare[select c2 from Table where date=2022.01.02; ([] c2:1 2)]
 
   should remove excessive columns in `.d` file while keeping their data file
     expect excessive column headers removed.
       tablePath:.Q.par[`:.; 2022.01.02; `Table];
-      .db._addColumn[tablePath; `c3; 0];
+      .qtk.db._addColumn[tablePath; `c3; 0];
       system "l .";
 
-      .db.fixTable[`Table; 2022.01.01];
+      .qtk.db.fixTable[`Table; 2022.01.01];
       system "l .";
-      .qu.compare[.db._getColumns tablePath; `c1`c2] and
-        .qu.compare[.os.path.isFile .Q.dd[tablePath; `c3]; 1b]
+      .qu.compare[.qtk.db._getColumns tablePath; `c1`c2] and
+        .qu.compare[.qtk.os.path.isFile .Q.dd[tablePath; `c3]; 1b]
 
   should put columns in right order
     expect out-of-order columns to be reordered.
@@ -56,12 +56,12 @@ feature Fix a table based on a good partition.
       @[tablePath; `.d; :; reverse tablePath `.d];
       system "l .";
 
-      .db.fixTable[`Table; 2022.01.01];
+      .qtk.db.fixTable[`Table; 2022.01.01];
       system "l .";
-      .qu.compare[.db._getColumns[tablePath]; `c1`c2]
+      .qu.compare[.qtk.db._getColumns[tablePath]; `c1`c2]
 
   should raise error "TableTypeError: not a partitioned table [*]" if the table is not a partitioned table.
     expect error "TableTypeError: not a partitioned table [*]" if the table is not a partitioned table.
       .qu.compare[
-        @[.db.fixTable[`InMemoryTable; ]; 2022.01.01; {x}];
+        @[.qtk.db.fixTable[`InMemoryTable; ]; 2022.01.01; {x}];
         "TableTypeError: not a partitioned table [InMemoryTable]"]

@@ -4,7 +4,7 @@ feature Check if a column exists in a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_columnExists_splayed";
     system "cd ",.qutils.hdbRoot;
-    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after
@@ -12,8 +12,8 @@ feature Check if a column exists in a splayed table.
 
   should return `1b` if a column exists.
     expect `1b`.
-      .qu.compare[.db.columnExists[`SplayedTable; `c1]; 1b]
+      .qu.compare[.qtk.db.columnExists[`SplayedTable; `c1]; 1b]
 
   should return `0b` if a column doesn't exist.
     expect `0b`.
-      .qu.compare[.db.columnExists[`SplayedTable; `c3]; 0b]
+      .qu.compare[.qtk.db.columnExists[`SplayedTable; `c3]; 0b]

@@ -13,4 +13,4 @@ feature Get partition field of int.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.db.getPartitionField[]; `int]
+      .qu.compare[.qtk.db.getPartitionField[]; `int]

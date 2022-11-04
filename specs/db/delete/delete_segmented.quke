@@ -12,24 +12,24 @@ feature Delete rows of a partitioned table given certain criteria.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should delete all rows if the criteria is empty.
     expect all rows deleted.
-      .db.delete[`SegmentedTable; ()];
+      .qtk.db.delete[`SegmentedTable; ()];
       .qu.compare[select c1, c2 from SegmentedTable; .Q.en[`:.;] ([] c1:`long$(); c2:`$())]
 
   should delete some rows if they match the criteria, for the case that partition key is not used in the criteria.
     expect some rows deleted.
-      .db.delete[`SegmentedTable; enlist (>;`c1;2)];
+      .qtk.db.delete[`SegmentedTable; enlist (>;`c1;2)];
       .qu.compare[select c1, c2 from SegmentedTable; .Q.en[`:.;] ([] c1:1 2 1 2; c2:`a`b`a`b)]
 
   should delete some rows if they match the criteria, for the case that partition key is used in first criterion.
     expect some rows deleted.
-      .db.delete[`SegmentedTable; ((=;`date;2022.01.01); (>;`c1;2))];
+      .qtk.db.delete[`SegmentedTable; ((=;`date;2022.01.01); (>;`c1;2))];
       .qu.compare[select c1, c2 from SegmentedTable; .Q.en[`:.;] ([] c1:1 2 1 2 3; c2:`a`b`a`b`c)]
 
   should delete no row if none match the criteria.
     expect no row deleted.
-      .db.delete[`SegmentedTable; enlist (>;`c1;5)];
+      .qtk.db.delete[`SegmentedTable; enlist (>;`c1;5)];
       .qu.compare[select c1, c2 from SegmentedTable; .Q.en[`:.;] ([] c1:1 2 3 1 2 3; c2:`a`b`c`a`b`c)]

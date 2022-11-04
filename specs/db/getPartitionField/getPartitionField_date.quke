@@ -13,4 +13,4 @@ feature Get partition field of date.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.db.getPartitionField[]; `date]
+      .qu.compare[.qtk.db.getPartitionField[]; `date]

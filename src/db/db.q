@@ -8,7 +8,7 @@ import "err";
 // as Partitioned.
 // @param t {symbol | table} Table name or value.
 // @return {symbol} Table type: Normal, Splayed, or Partitioned.
-.db.getTableType:{[t]
+.qtk.db.getTableType:{[t]
   table:$[-11h=type t; get t; t];
   isPartitioned:.Q.qp table;
   $[isPartitioned~1b; `Partitioned;
@@ -21,7 +21,7 @@ import "err";
 // @overview Get all partitions.
 // @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list.
 // if the database is not a partitioned database.
-.db.getPartitions:{
+.qtk.db.getPartitions:{
   @[value; `.Q.PV; ()]
  };
 
@@ -29,7 +29,7 @@ import "err";
 // @overview Get all partitions, subject to modification by .Q.view.
 // @return {date[] | month[] | int[] | ()} Partitions of the database, subject to modification by .Q.view,
 // or an empty general list if the database is not a partitioned database.
-.db.getModifiedPartitions:{
+.qtk.db.getModifiedPartitions:{
   @[value; `.Q.pv; ()]
  };
 
@@ -37,14 +37,14 @@ import "err";
 // @overview Get partition field.
 // @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty symbol
 // if the database is not a partitioned database.
-.db.getPartitionField:{
+.qtk.db.getPartitionField:{
   @[value; `.Q.pf; `]
  };
 
 // @kind function
 // @overview Get partitioned tables.
 // @return {symbol[]} Partitioned tables of the database, or empty symbol vector if it's not a partitioned database.
-.db.getPartitionedTables:{
+.qtk.db.getPartitionedTables:{
   @[value; `.Q.pt; enlist `]
  };
 
@@ -53,29 +53,29 @@ import "err";
 // @param tableName {symbol} A partitioned table by name.
 // @return {dict} A dictionary from partitions to row count of the table in each partition.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
-.db.rowCountPerPartition:{[tableName]
+.qtk.db.rowCountPerPartition:{[tableName]
   rowCounts:
     @[.Q.cn get@;
       tableName;
       {[msg;tableName]
-        '.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
+        '.qtk.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
       }[; tableName]
      ];
-  .db.getModifiedPartitions[]!rowCounts
+  .qtk.db.getModifiedPartitions[]!rowCounts
  };
 
 // @kind function
 // @overview Row count of each partitioned table per partition.
 // @return {dict} A table keyed by partition and each column is row count of a partitioned table in each partition.
 // @throws {RuntimeError: no partition} If there is no partition.
-.db.rowCountPerTablePerPartition:{
-  partitionedTables:.db.getPartitionedTables[];
-  .db.rowCountPerPartition each partitionedTables;
+.qtk.db.rowCountPerTablePerPartition:{
+  partitionedTables:.qtk.db.getPartitionedTables[];
+  .qtk.db.rowCountPerPartition each partitionedTables;
   rowCountsByTable:
     @[value; `.Q.pn;
-      {'.err.compose[`RuntimeError; "no partition"]}
+      {'.qtk.err.compose[`RuntimeError; "no partition"]}
      ];
-  rowCountsByTable[`partition]:.db.getModifiedPartitions[];
+  rowCountsByTable[`partition]:.qtk.db.getModifiedPartitions[];
   `partition xkey flip rowCountsByTable
  };
 
@@ -83,7 +83,7 @@ import "err";
 // @overview Get all segments.
 // @return {hsym[] | ()} Segments of the database, or an empty general list.
 // if the database is not a partitioned database.
-.db.getSegments:{
+.qtk.db.getSegments:{
   @[value; `.Q.P; ()]
  };
 
@@ -91,8 +91,8 @@ import "err";
 // @overview Partitions per segment.
 // @return {dict} A dictionary from segments to partitions in each segment. It's empty if the database doesn't load
 // any segment.
-.db.partitionsPerSegment:{
-  .db.getSegments[]!@[value; `.Q.D; ()]
+.qtk.db.partitionsPerSegment:{
+  .qtk.db.getSegments[]!@[value; `.Q.D; ()]
  };
 
 // @kind function
@@ -102,20 +102,20 @@ import "err";
 // @param tableType {symbol} Normal, Splayed, or Partitioned.
 // @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
-.db.addTable:{[tableName;data;tableType]
+.qtk.db.addTable:{[tableName;data;tableType]
   $[tableType=`Normal;
     tableName set data;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._addTable[tablePath; data];
+      .qtk.db._addTable[tablePath; data];
       ];
     tableType=`Partitioned;
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._addTable[; data] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._addTable[; data] each tablePaths;
       ];
-    '.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
   tableName
  };
@@ -125,8 +125,8 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param newName {symbol} New name of the table.
 // @return {symbol} New table name.
-.db.renameTable:{[tableName;newName]
-  tableType:.db.getTableType tableName;
+.qtk.db.renameTable:{[tableName;newName]
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     [
       newName set get tableName;
@@ -135,12 +135,12 @@ import "err";
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._renameTable[tablePath; newName];
+      .qtk.db._renameTable[tablePath; newName];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._renameTable[; newName] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._renameTable[; newName] each tablePaths;
       ]
    ];
   newName
@@ -154,11 +154,11 @@ import "err";
 // @return {symbol} The table name.
 // @throws {NameError} If the column name is not valid.
 // @throws {ColumnExistsError} If the column exists.
-.db.addColumn:{[tableName;column;default]
-  .db._validateColumnName column;
-  .db._validateColumnNotExists[tableName; column];
+.qtk.db.addColumn:{[tableName;column;default]
+  .qtk.db._validateColumnName column;
+  .qtk.db._validateColumnNotExists[tableName; column];
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     [
       if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
@@ -167,12 +167,12 @@ import "err";
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._addColumn[tablePath; column; .db._enumerate default];
+      .qtk.db._addColumn[tablePath; column; .qtk.db._enumerate default];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._addColumn[; column; .db._enumerate default] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._addColumn[; column; .qtk.db._enumerate default] each tablePaths;
       ]
    ];
 
@@ -184,19 +184,19 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
 // @return {symbol} The table name.
-.db.deleteColumn:{[tableName;column]
-  tableType:.db.getTableType tableName;
+.qtk.db.deleteColumn:{[tableName;column]
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     ![tableName; (); 0b; enlist[column]];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._deleteColumn[tablePath; column];
+      .qtk.db._deleteColumn[tablePath; column];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._deleteColumn[; column] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._deleteColumn[; column] each tablePaths;
       ]
    ];
   tableName
@@ -209,22 +209,22 @@ import "err";
 // @return {symbol} The table name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
 // @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
-.db.renameColumns:{[tableName;nameDict]
-  .db._validateColumnName each value nameDict;
-  .db._validateColumnExists[tableName;] each key nameDict;
+.qtk.db.renameColumns:{[tableName;nameDict]
+  .qtk.db._validateColumnName each value nameDict;
+  .qtk.db._validateColumnExists[tableName;] each key nameDict;
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     tableName set nameDict xcol get tableName;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._renameColumns[tablePath; nameDict];
+      .qtk.db._renameColumns[tablePath; nameDict];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._renameColumns[; nameDict] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._renameColumns[; nameDict] each tablePaths;
       ]
    ];
   tableName
@@ -236,21 +236,21 @@ import "err";
 // @param firstColumns {dict} First columns after reordering.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
-.db.reorderColumns:{[tableName;firstColumns]
-  .db._validateColumnExists[tableName;] each firstColumns;
+.qtk.db.reorderColumns:{[tableName;firstColumns]
+  .qtk.db._validateColumnExists[tableName;] each firstColumns;
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     tableName set firstColumns xcols get tableName;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._reorderColumns[tablePath; firstColumns];
+      .qtk.db._reorderColumns[tablePath; firstColumns];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._reorderColumns[; firstColumns] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._reorderColumns[; firstColumns] each tablePaths;
       ]
    ];
   tableName
@@ -265,23 +265,23 @@ import "err";
 // @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
 // @throws {ColumnExistsError: [*]} If `targetColumn` exists.
 // @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
-.db.copyColumn:{[tableName;sourceColumn;targetColumn]
-  .db._validateColumnExists[tableName; sourceColumn];
-  .db._validateColumnNotExists[tableName; targetColumn];
-  .db._validateColumnName targetColumn;
+.qtk.db.copyColumn:{[tableName;sourceColumn;targetColumn]
+  .qtk.db._validateColumnExists[tableName; sourceColumn];
+  .qtk.db._validateColumnNotExists[tableName; targetColumn];
+  .qtk.db._validateColumnName targetColumn;
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._copyColumn[tablePath; sourceColumn; targetColumn];
+      .qtk.db._copyColumn[tablePath; sourceColumn; targetColumn];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
       ]
    ];
 
@@ -295,21 +295,21 @@ import "err";
 // @param function {function} Function to be applied.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
-.db.applyToColumn:{[tableName;column;function]
-  .db._validateColumnExists[tableName; column];
+.qtk.db.applyToColumn:{[tableName;column;function]
+  .qtk.db._validateColumnExists[tableName; column];
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._applyToColumn[tablePath; column; function];
+      .qtk.db._applyToColumn[tablePath; column; function];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      .db._applyToColumn[; column; function] each tablePaths;
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      .qtk.db._applyToColumn[; column; function] each tablePaths;
       ]
    ];
 
@@ -323,8 +323,8 @@ import "err";
 // @param newType {symbol | char} Name or char code of the new type.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
-.db.castColumn:{[tableName;column;newType]
-  .db.applyToColumn[tableName; column; newType$]
+.qtk.db.castColumn:{[tableName;column;newType]
+  .qtk.db.applyToColumn[tableName; column; newType$]
  };
 
 // @kind function
@@ -334,8 +334,8 @@ import "err";
 // @param newAttr {symbol} Attribute to be added to the column.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
-.db.addAttr:{[tableName;column;newAttr]
-  .db.applyToColumn[tableName; column; newAttr#]
+.qtk.db.addAttr:{[tableName;column;newAttr]
+  .qtk.db.applyToColumn[tableName; column; newAttr#]
  };
 
 // @kind function
@@ -344,8 +344,8 @@ import "err";
 // @param column {symbol} A column name of the table.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} where If `column` doesn't exist.
-.db.removeAttr:{[tableName;column]
-  .db.addAttr[tableName; column; `]
+.qtk.db.removeAttr:{[tableName;column]
+  .qtk.db.addAttr[tableName; column; `]
  };
 
 // @kind function
@@ -355,30 +355,30 @@ import "err";
 // @param assignment {dict} A mapping from column names to values of parse-tree form
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
-.db.update:{[tableName;criteria;assignment]
-  .db._validateColumnExists[tableName;] each key assignment;
+.qtk.db.update:{[tableName;criteria;assignment]
+  .qtk.db._validateColumnExists[tableName;] each key assignment;
 
-  tableType:.db.getTableType tableName;
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     ![tableName; criteria; 0b; assignment];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._update[tablePath; criteria; assignment];
+      .qtk.db._update[tablePath; criteria; assignment];
       ];
     // tableType=`Partitioned
     [
-      partitionField:.db.getPartitionField[];
+      partitionField:.qtk.db.getPartitionField[];
       $[(first criteria)[1]~partitionField;
         [
           partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
           tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .db._update[; 1_criteria; assignment] each tablePaths;
+          .qtk.db._update[; 1_criteria; assignment] each tablePaths;
           ];
         [
-          partitions:.db.getPartitions[];
+          partitions:.qtk.db.getPartitions[];
           tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .db._update[; criteria; assignment] each tablePaths;
+          .qtk.db._update[; criteria; assignment] each tablePaths;
           ]
        ];
       ]
@@ -392,28 +392,28 @@ import "err";
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
 // @return {symbol} The table name.
-.db.delete:{[tableName;criteria]
-  tableType:.db.getTableType tableName;
+.qtk.db.delete:{[tableName;criteria]
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     ![tableName; criteria; 0b; `$()];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._delete[tablePath; criteria];
+      .qtk.db._delete[tablePath; criteria];
       ];
     // tableType=`Partitioned
     [
-      partitionField:.db.getPartitionField[];
+      partitionField:.qtk.db.getPartitionField[];
       $[(first criteria)[1]~partitionField;
         [
           partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
           tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .db._delete[; 1_criteria] each tablePaths;
+          .qtk.db._delete[; 1_criteria] each tablePaths;
           ];
         [
-          partitions:.db.getPartitions[];
+          partitions:.qtk.db.getPartitions[];
           tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .db._delete[; criteria] each tablePaths;
+          .qtk.db._delete[; criteria] each tablePaths;
           ]
        ];
       ]
@@ -424,21 +424,21 @@ import "err";
 
 
 // @kind function
-// @overview Fix table based on a good partition. See `.db._fixTable` for fixable issues.
+// @overview Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.
 // @param tableName {symbol} Table name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
 // @return {symbol} The table name.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
-// @see .db._fixTable
-.db.fixTable:{[tableName;refPartition]
-  if[not tableName in .db.getPartitionedTables[];
-     '.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
+// @see .qtk.db._fixTable
+.qtk.db.fixTable:{[tableName;refPartition]
+  if[not tableName in .qtk.db.getPartitionedTables[];
+     '.qtk.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
    ];
   tablePath:.Q.par[`:.; refPartition; tableName];
-  refColumns:.db._getColumns tablePath;
-  defaultValues:.db._defaultValue[tablePath;] each refColumns;
-  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[] except refPartition;
-  .db._fixTable[; refColumns!defaultValues] each tablePaths;
+  refColumns:.qtk.db._getColumns tablePath;
+  defaultValues:.qtk.db._defaultValue[tablePath;] each refColumns;
+  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[] except refPartition;
+  .qtk.db._fixTable[; refColumns!defaultValues] each tablePaths;
   tableName
  };
 
@@ -447,7 +447,7 @@ import "err";
 // See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
 // @return {*[]} Partitions that are filled with missing tables.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
-.db.fillTables:{
+.qtk.db.fillTables:{
   .Q.chk[`:.]
  };
 
@@ -458,8 +458,8 @@ import "err";
 // @param startIndex {integer} Index of the first element in the slice.
 // @param endIndex {integer} Index of the next element after the last element in the slice.
 // @return {table} A slice of the table within the given range.
-.db.slice:{[tableName;startIndex;endIndex]
-  tableType:.db.getTableType tableName;
+.qtk.db.slice:{[tableName;startIndex;endIndex]
+  tableType:.qtk.db.getTableType tableName;
   $[tableType in `Normal`Splayed;
     (endIndex-startIndex)#startIndex _get tableName;
     // tableType=`Partitioned
@@ -481,10 +481,10 @@ import "err";
 //   don't match those in the on-disk table (if exists).
 // @throws {SchemaError: mismatch between actual types [*] and expected ones [*]} If column types in the data table
 //   don't match those in the on-disk table (if exists).
-.db.saveTableToPartition:{[dir;partition;tableName;tableData;options]
+.qtk.db.saveTableToPartition:{[dir;partition;tableName;tableData;options]
   tablePath:.Q.par[dir; partition; tableName];
 
-  .db._validateSchema[tablePath; tableData];
+  .qtk.db._validateSchema[tablePath; tableData];
 
   // enumerate symbol columns
   enumDomain:$[`enum in key options; options`enum; ()!()];
@@ -494,10 +494,10 @@ import "err";
   if[not ` in key enumDomain; enumDomain[`]:`sym];  // value to null symbol key denotes default domain
 
   symbolCols:where 11h=type each flip tableData;
-  enumFunc:.db._enumerateAgainst[dir; ;];
+  enumFunc:.qtk.db._enumerateAgainst[dir; ;];
   enumeratedData:@[tableData; symbolCols; :; enumFunc'[(enumDomain`)^enumDomain symbolCols; tableData symbolCols]];
 
-  .db._saveTable[tablePath; enumeratedData];
+  .qtk.db._saveTable[tablePath; enumeratedData];
   tablePath
  };
 
@@ -508,24 +508,24 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
-.db.columnExists:{[tableName;column]
-  tableType:.db.getTableType tableName;
+.qtk.db.columnExists:{[tableName;column]
+  tableType:.qtk.db.getTableType tableName;
   $[tableType=`Normal;
     column in cols tableName;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .db._columnExists[tablePath; column]
+      .qtk.db._columnExists[tablePath; column]
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .db.getPartitions[];
-      // Can make the following part simpler by `all .db._columnExists[...]` at the cost of performance, due to inability
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      // Can make the following part simpler by `all .qtk.db._columnExists[...]` at the cost of performance, due to inability
       // to return early
       partitionCount:count tablePaths;
       i:0;
       while[i<partitionCount;
-            if[not .db._columnExists[tablePaths[i]; column]; :0b];
+            if[not .qtk.db._columnExists[tablePaths[i]; column]; :0b];
             i +: 1
        ];
       1b
@@ -542,9 +542,9 @@ import "err";
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
 // @throws {NameError: invalid column name [*]} If the column name is not valid.
-.db._validateColumnName:{[columnName]
+.qtk.db._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
-     '.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
+     '.qtk.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
    ];
  };
 
@@ -554,9 +554,9 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
-.db._validateColumnExists:{[tableName;column]
-  if[not .db.columnExists[tableName; column];
-     '.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
+.qtk.db._validateColumnExists:{[tableName;column]
+  if[not .qtk.db.columnExists[tableName; column];
+     '.qtk.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
    ];
  };
 
@@ -566,9 +566,9 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @throws {ColumnExistsError: [*]} If the column exists.
-.db._validateColumnNotExists:{[tableName;column]
-  if[.db.columnExists[tableName; column];
-     '.err.compose[`ColumnExistsError; "[",string[column],"]"]
+.qtk.db._validateColumnNotExists:{[tableName;column]
+  if[.qtk.db.columnExists[tableName; column];
+     '.qtk.err.compose[`ColumnExistsError; "[",string[column],"]"]
    ];
  };
 
@@ -581,18 +581,18 @@ import "err";
 //   those in the on-disk table (if exists).
 // @throws {SchemaError: mismatch between actual types [*] and expected ones [*]} If data types of the columns
 //   in the data table don't match those in the on-disk table (if exists).
-.db._validateSchema:{[tablePath;data]
-  if[not .os.path.exists tablePath; :(::)];
-  if[not .db._dotDExists tablePath; :(::)];
+.qtk.db._validateSchema:{[tablePath;data]
+  if[not .qtk.os.path.exists tablePath; :(::)];
+  if[not .qtk.db._dotDExists tablePath; :(::)];
 
-  expectedCols:.db._getColumns tablePath;
+  expectedCols:.qtk.db._getColumns tablePath;
   actualCols:cols data;
   if[not expectedCols~actualCols;
-     '.err.compose[`SchemaError; "mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"]
+     '.qtk.err.compose[`SchemaError; "mismatch between actual columns [",.Q.s1[actualCols],"] and expected ones [",.Q.s1[expectedCols],"]"]
    ];
 
-  if[not all .db._isTypeCompliant'[tablePath expectedCols; data actualCols];
-     '.err.compose[`SchemaError;
+  if[not all .qtk.db._isTypeCompliant'[tablePath expectedCols; data actualCols];
+     '.qtk.err.compose[`SchemaError;
                    "mismatch between actual types [",(.Q.ty each data actualCols),"] and expected ones [",
                    (.Q.ty each tablePath expectedCols),"]"
        ]
@@ -608,7 +608,7 @@ import "err";
 // @param target {*[]} Target list.
 // @param actual {*[]} Actual list.
 // @return `1b` if the actual list is type-compliant to the target list; `0b` otherwise.
-.db._isTypeCompliant:{[target;actual]
+.qtk.db._isTypeCompliant:{[target;actual]
   targetType:.Q.ty target;
   actualType:.Q.ty actual;
   if[(targetType=" ") or targetType=actualType; :1b];
@@ -621,8 +621,8 @@ import "err";
 // @overview Locate partitioned or segmented table.
 // @param tableName {symbol} Table name.
 // @return {symbol} Paths of the table.
-.db._locateTable:{[tableName]
-  partitions:.db.getPartitions[];
+.qtk.db._locateTable:{[tableName]
+  partitions:.qtk.db.getPartitions[];
   .Q.par[`:.; ; tableName] each partitions
  };
 
@@ -632,8 +632,8 @@ import "err";
 // @param val {*} A value.
 // @return {enum} Enumerated value against sym file in the current directory if the value is a symbol or a symbol vector;
 //   otherwise the same value as-is.
-.db._enumerate:{[val]
-  .db._enumerateAgainst[`:.; `sym; val]
+.qtk.db._enumerate:{[val]
+  .qtk.db._enumerateAgainst[`:.; `sym; val]
  };
 
 // @kind function
@@ -644,7 +644,7 @@ import "err";
 // @param domain {symbol} Name of domain.
 // @return {enum} Enumerated value against the domain in the directory if the value is a symbol or a symbol vector;
 //   otherwise the same value as-is.
-.db._enumerateAgainst:{[dir;domain;val]
+.qtk.db._enumerateAgainst:{[dir;domain;val]
   if[11<>abs type val; :val];
   .Q.dd[dir; domain]?val
  };
@@ -655,7 +655,7 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
 // @return {hsym} The path to the table.
-.db._addTable:{[tablePath;data]
+.qtk.db._addTable:{[tablePath;data]
   @[tablePath; `; :; .Q.en[`:.; data]];
   tablePath
  };
@@ -666,9 +666,9 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param newName {hsym} New table name.
 // @return {hsym} Path to the renamed table in the partition.
-.db._renameTable:{[tablePath;newName]
+.qtk.db._renameTable:{[tablePath;newName]
   newTablePath:.Q.dd[first[` vs tablePath]; newName];
-  .os.move[tablePath; newTablePath];
+  .qtk.os.move[tablePath; newTablePath];
   newTablePath
  };
 
@@ -680,15 +680,15 @@ import "err";
 // @param column {symbol} Name of new column to be added.
 // @param defaultValue {*} Value to be set on the new column.
 // @return {hsym} The path to the table.
-.db._addColumn:{[tablePath;column;defaultValue]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._addColumn:{[tablePath;column;defaultValue]
+  allColumns:.qtk.db._getColumns tablePath;
   countInPath:count get .Q.dd[tablePath; first allColumns];
   columnPath:.Q.dd[tablePath; column];
 
   // if the column file exists and it's type- and length-compliant, use it as-is;
   // otherwise create the file using defaultValue
-  $[.os.path.isFile columnPath;
-    if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.db._defaultValue[tablePath; column]]);
+  $[.qtk.os.path.isFile columnPath;
+    if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.qtk.db._defaultValue[tablePath; column]]);
        .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
      ];
     .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
@@ -704,10 +704,10 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
 // @return {hsym} The path to the table.
-.db._deleteColumn:{[tablePath;column]
+.qtk.db._deleteColumn:{[tablePath;column]
   columnPath:.Q.dd[tablePath; column];
-  .db._deleteColumnData columnPath;
-  .db._deleteColumnHeader[tablePath; column];
+  .qtk.db._deleteColumnData columnPath;
+  .qtk.db._deleteColumnHeader[tablePath; column];
   tablePath
  };
 
@@ -717,8 +717,8 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
 // @return {hsym} The path to the table.
-.db._deleteColumnHeader:{[tablePath;column]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._deleteColumnHeader:{[tablePath;column]
+  allColumns:.qtk.db._getColumns tablePath;
   @[tablePath; `.d; :; allColumns except column];
   tablePath
  };
@@ -727,15 +727,15 @@ import "err";
 // @private
 // @overview Delete a column on disk.
 // @param columnPath {symbol} A file symbol representing an existing column.
-.db._deleteColumnData:{[columnPath]
-  if[.os.path.isFile columnPath;
-     .os.remove columnPath
+.qtk.db._deleteColumnData:{[columnPath]
+  if[.qtk.os.path.isFile columnPath;
+     .qtk.os.remove columnPath
    ];
-  if[.os.path.isFile dataFile:`$string[columnPath],"#";
-     .os.remove dataFile
+  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"#";
+     .qtk.os.remove dataFile
    ];
-  if[.os.path.isFile dataFile:`$string[columnPath],"##";
-     .os.remove dataFile
+  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"##";
+     .qtk.os.remove dataFile
    ];
  };
 
@@ -745,8 +745,8 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {hsym} The path to the table.
-.db._renameColumns:{[tablePath;nameDict]
-  renameOneColumn:.db._renameOneColumn[tablePath; ;];
+.qtk.db._renameColumns:{[tablePath;nameDict]
+  renameOneColumn:.qtk.db._renameOneColumn[tablePath; ;];
   renameOneColumn'[key nameDict; value nameDict];
   tablePath
  };
@@ -758,14 +758,14 @@ import "err";
 // @param oldName {symbol} A column name of the table.
 // @param newName {symbol} New column name.
 // @return {hsym} The path to the table.
-.db._renameOneColumn:{[tablePath;oldName;newName]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._renameOneColumn:{[tablePath;oldName;newName]
+  allColumns:.qtk.db._getColumns tablePath;
 
   if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
 
   oldColumnPath:.Q.dd[tablePath; oldName];
   newColumnPath:.Q.dd[tablePath; newName];
-  .db._renameColumnOnDisk[oldColumnPath; newColumnPath];
+  .qtk.db._renameColumnOnDisk[oldColumnPath; newColumnPath];
 
   newColumns:@[allColumns; first where allColumns=oldName; :; newName];
   @[tablePath; `.d; :; newColumns];
@@ -779,10 +779,10 @@ import "err";
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
 // @return {hsym} The path to the table.
-.db._copyColumn:{[tablePath;sourceColumn;targetColumn]
+.qtk.db._copyColumn:{[tablePath;sourceColumn;targetColumn]
   sourceColumnPath:.Q.dd[tablePath; sourceColumn];
   targetColumnPath:.Q.dd[tablePath; targetColumn];
-  .db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
+  .qtk.db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
   @[tablePath; `.d; ,; targetColumn];
   tablePath
  };
@@ -792,7 +792,7 @@ import "err";
 // @overview Get all columns of an on-disk table.
 // @param tablePath {hsym} Path to a splayed/partitioned table.
 // @return {symbol[]} Columns of the table.
-.db._getColumns:{[tablePath]
+.qtk.db._getColumns:{[tablePath]
   get .Q.dd[tablePath; `.d]
  };
 
@@ -803,7 +803,7 @@ import "err";
 // @param column {symbol} A column name of the table.
 // @param function {function} Function to be applied to the column.
 // @return {hsym} The path to the table.
-.db._applyToColumn:{[tablePath;column;function]
+.qtk.db._applyToColumn:{[tablePath;column;function]
   columnPath:.Q.dd[tablePath; column];
   oldValue:get columnPath;
   oldAttr:attr oldValue;
@@ -826,35 +826,35 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param columnDefaults {dict} A mapping between columns and their default values.
 // @return {hsym} The path to the table.
-.db._fixTable:{[tablePath;columnDefaults]
-  filesInPartition:.os.listDir tablePath;
-  addColumnProjection:.db._addColumn[tablePath; ;];
+.qtk.db._fixTable:{[tablePath;columnDefaults]
+  filesInPartition:.qtk.os.listDir tablePath;
+  addColumnProjection:.qtk.db._addColumn[tablePath; ;];
   expectedColumns:key columnDefaults;
 
-  if[not .db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];
+  if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];
 
   // add missing columns
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   if[count missingColumns:expectedColumns except allColumns;
      addColumnProjection'[missingColumns; columnDefaults missingColumns]
    ];
 
   // add missing data files
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   if[count missingDataColumns:allColumns except filesInPartition;
      addColumnProjection'[missingDataColumns; columnDefaults missingDataColumns]
    ];
 
   // remove excessive columns
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   if[count excessiveColumns:allColumns except expectedColumns;
-     .db._deleteColumnHeader[tablePath;] each excessiveColumns;
+     .qtk.db._deleteColumnHeader[tablePath;] each excessiveColumns;
    ];
 
   // fix column order
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   if[not allColumns~expectedColumns;
-     .db._reorderColumns[tablePath; expectedColumns]
+     .qtk.db._reorderColumns[tablePath; expectedColumns]
    ];
 
   tablePath
@@ -866,8 +866,8 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param firstColumns {dict} First columns after reordering.
 // @return {hsym} The path to the table.
-.db._reorderColumns:{[tablePath;firstColumns]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._reorderColumns:{[tablePath;firstColumns]
+  allColumns:.qtk.db._getColumns tablePath;
   @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
   tablePath
  };
@@ -879,11 +879,11 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
-.db._columnExists:{[tablePath;column]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._columnExists:{[tablePath;column]
+  allColumns:.qtk.db._getColumns tablePath;
   if[not column in allColumns; :0b];
   columnPath:.Q.dd[tablePath; column];
-  .os.path.isFile columnPath
+  .qtk.os.path.isFile columnPath
  };
 
 // @kind function
@@ -892,10 +892,10 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param tableData {table} A table of data.
 // @return {hsym} The path to the table.
-.db._saveTable:{[tablePath;tableData]
+.qtk.db._saveTable:{[tablePath;tableData]
   columns:cols tableData;
   @[tablePath; columns; ,; tableData columns];
-  if[not .db._dotDExists tablePath; @[tablePath; `.d; :; columns]];
+  if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; columns]];
   tablePath
  };
 
@@ -907,15 +907,15 @@ import "err";
 // @param assignment {dict} A mapping from column names to values
 // @return {hsym} The path to the table.
 // @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
-.db._update:{[tablePath;criteria;assignment]
+.qtk.db._update:{[tablePath;criteria;assignment]
   updated:?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
   if[0=count updated; :tablePath];
 
   i:0;
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   do[count assignment;
      column:key[assignment] [i];
-     columnVal:.db._enumerate updated column;
+     columnVal:.qtk.db._enumerate updated column;
      $[column in allColumns;
        [
          columnPath:.Q.dd[tablePath; column];
@@ -926,7 +926,7 @@ import "err";
            '"type"
           ];
          ];
-       .db._addColumn[tablePath; column; columnVal]
+       .qtk.db._addColumn[tablePath; column; columnVal]
       ];
      i +: 1;
    ];
@@ -939,15 +939,15 @@ import "err";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
 // @return {hsym} The path to the table.
-.db._delete:{[tablePath;criteria]
+.qtk.db._delete:{[tablePath;criteria]
   indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
   if[0=count indicesToDelete; :tablePath];
 
-  rowCount:.db._rowCount tablePath;
+  rowCount:.qtk.db._rowCount tablePath;
   remainingIndices:(til rowCount) except indicesToDelete;
 
   i:0;
-  allColumns:.db._getColumns tablePath;
+  allColumns:.qtk.db._getColumns tablePath;
   do[count allColumns;
      columnPath:.Q.dd[tablePath; allColumns[i]];
      .[columnPath; (); :; get[columnPath] remainingIndices];
@@ -961,8 +961,8 @@ import "err";
 // @overview Get row count of an on-disk table. Count of the first column is used.
 // @param tablePath {hsym} Path to an on-disk table.
 // @return {long} Row count of the table.
-.db._rowCount:{[tablePath]
-  allColumns:.db._getColumns tablePath;
+.qtk.db._rowCount:{[tablePath]
+  allColumns:.qtk.db._getColumns tablePath;
   count get .Q.dd[tablePath; first allColumns]
  };
 
@@ -971,8 +971,8 @@ import "err";
 // @overview Check if `.d` file exists in a path of a splayed/partitioned table.
 // @param tablePath {hsym} Path to an on-disk table..
 // @return {boolean} `1b` if `.d` exists; `0b` otherwise.
-.db._dotDExists:{[tablePath]
-  filesInPartition:.os.listDir tablePath;
+.qtk.db._dotDExists:{[tablePath]
+  filesInPartition:.qtk.os.listDir tablePath;
   `.d in filesInPartition
  };
 
@@ -983,7 +983,7 @@ import "err";
 // @param tablePath {symbol} A file symbol to a partitioned table.
 // @param column {symbol} A column name of the table.
 // @return {*} Default value of the column.
-.db._defaultValue:{[tablePath;column]
+.qtk.db._defaultValue:{[tablePath;column]
   columnValue:tablePath column;
   columnType:.Q.ty columnValue;
   $[columnType in .Q.a; first 0#columnValue;
@@ -997,16 +997,16 @@ import "err";
 // @overview Copy a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
-.db._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.os.path.isFile newColumnPath;
-     .db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+.qtk.db._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.qtk.os.path.isFile newColumnPath;
+     .qtk.db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
    ];
-  .os.copy[oldColumnPath; newColumnPath];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .os.copy[dataFile; `$string[newColumnPath],"#"]
+  .qtk.os.copy[oldColumnPath; newColumnPath];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .qtk.os.copy[dataFile; `$string[newColumnPath],"#"]
    ];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .os.copy[dataFile; `$string[newColumnPath],"##"]
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .qtk.os.copy[dataFile; `$string[newColumnPath],"##"]
    ];
  };
 
@@ -1015,15 +1015,15 @@ import "err";
 // @overview Rename a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
-.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.os.path.isFile newColumnPath;
-     .db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+.qtk.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.qtk.os.path.isFile newColumnPath;
+     .qtk.db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
    ];
-  .os.move[oldColumnPath; newColumnPath];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .os.move[dataFile; `$string[newColumnPath],"#"]
+  .qtk.os.move[oldColumnPath; newColumnPath];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .qtk.os.move[dataFile; `$string[newColumnPath],"#"]
    ];
-  if[.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .os.move[dataFile; `$string[newColumnPath],"##"]
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .qtk.os.move[dataFile; `$string[newColumnPath],"##"]
    ];
  };

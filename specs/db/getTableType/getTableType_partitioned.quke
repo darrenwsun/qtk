@@ -13,7 +13,7 @@ feature Get table type of a partitioned table.
 
   should return `Partitioned` for a partitioned table.
     expect `Partitioned` for a partitioned table passed by value.
-      .qu.compare[.db.getTableType PartitionedTable; `Partitioned]
+      .qu.compare[.qtk.db.getTableType PartitionedTable; `Partitioned]
 
     expect `Partitioned` for a partitioned table passed by name.
-      .qu.compare[.db.getTableType `PartitionedTable; `Partitioned]
+      .qu.compare[.qtk.db.getTableType `PartitionedTable; `Partitioned]

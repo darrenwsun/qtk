@@ -14,23 +14,23 @@ feature Rename column(s) of a table.
 
   should rename columns of an in-memory table.
     expect the columns renamed in the table.
-      .db.renameColumns[`InMemoryTable; `c1`c2!`c11`c12];
+      .qtk.db.renameColumns[`InMemoryTable; `c1`c2!`c11`c12];
       .qu.compare[cols InMemoryTable; `c11`c12]
 
   should rename columns of a partitioned table.
     expect the columns renamed in the table.
-      .db.renameColumns[`Table;`c1`c2!`c11`c12];
+      .qtk.db.renameColumns[`Table;`c1`c2!`c11`c12];
       system "l .";
       .qu.compare[cols Table; `date`c11`c12]
 
   should raise error "NameError: invalid column name [*]" if the colum name is not valid.
     expect error "NameError: invalid column name [*]" if the colum name is not valid.
       .qu.compare[
-        @[.db.renameColumns[`Table; ]; `c1`c2!`c11`53; {x}];
+        @[.qtk.db.renameColumns[`Table; ]; `c1`c2!`c11`53; {x}];
         "NameError: invalid column name [53]"]
 
   should raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
       .qu.compare[
-        @[.db.renameColumns[`Table; ]; `c1`c3!`c11`c33; {x}];
+        @[.qtk.db.renameColumns[`Table; ]; `c1`c3!`c11`c33; {x}];
         "ColumnNotFoundError: [c3]"]

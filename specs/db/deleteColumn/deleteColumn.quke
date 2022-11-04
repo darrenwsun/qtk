@@ -14,11 +14,11 @@ feature Delete a column from a table.
 
   should delete a column from an in-memory table.
     expect the column deleted from the table.
-      .db.deleteColumn[`InMemoryTable;`c2];
+      .qtk.db.deleteColumn[`InMemoryTable;`c2];
       .qu.compare[cols InMemoryTable; enlist `c1]
 
   should delete a column from a partitioned table.
     expect the column deleted from the table.
-      .db.deleteColumn[`Table;`c2];
+      .qtk.db.deleteColumn[`Table;`c2];
       system "l .";
       .qu.compare[cols Table; `date`c1]

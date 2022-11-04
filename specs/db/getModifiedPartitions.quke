@@ -14,4 +14,4 @@ feature Get all partitions, subject to modification by .Q.view.
 
   should give all modified partitions of a partitioned database.
     expect modified partitions of the current database.
-      .qu.compare[.db.getModifiedPartitions[]; enlist 2022.01.01]
+      .qu.compare[.qtk.db.getModifiedPartitions[]; enlist 2022.01.01]

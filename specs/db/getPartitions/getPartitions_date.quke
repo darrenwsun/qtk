@@ -13,5 +13,5 @@ feature Get all partitions of dates.
 
   should give all date partitions of a partitioned database.
     expect date partitions of the current database.
-      .qu.compare[.db.getPartitions[]; 2022.01.01 2022.01.02]
+      .qu.compare[.qtk.db.getPartitions[]; 2022.01.01 2022.01.02]
 

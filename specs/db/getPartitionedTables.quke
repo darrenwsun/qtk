@@ -13,5 +13,5 @@ feature Get partitioned tables.
 
   should give partitioned tables of a partitioned database.
     expect a vector of partitioned tables by name.
-      .qu.compare[.db.getPartitionedTables[]; enlist`Table]
+      .qu.compare[.qtk.db.getPartitionedTables[]; enlist`Table]
 

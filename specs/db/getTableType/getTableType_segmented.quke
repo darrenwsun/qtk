@@ -12,11 +12,11 @@ feature Get table type of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should return `Partitioned` for a segmented table.
     expect `Partitioned` for a segmented table passed by value.
-      .qu.compare[.db.getTableType SegmentedTable; `Partitioned]
+      .qu.compare[.qtk.db.getTableType SegmentedTable; `Partitioned]
 
     expect `Partitioned` for a segmented table passed by name.
-      .qu.compare[.db.getTableType `SegmentedTable; `Partitioned]
+      .qu.compare[.qtk.db.getTableType `SegmentedTable; `Partitioned]

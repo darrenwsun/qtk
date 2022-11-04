@@ -14,17 +14,17 @@ feature Reorder columns of a table.
 
   should reorder columns of an in-memory table.
     expect the columns reordered in the table.
-      .db.reorderColumns[`InMemoryTable; `c2`c1];
+      .qtk.db.reorderColumns[`InMemoryTable; `c2`c1];
       .qu.compare[cols InMemoryTable; `c2`c1]
 
   should reorder columns of a partitioned table.
     expect the columns reordered in the table.
-      .db.reorderColumns[`Table;`c2`c1];
+      .qtk.db.reorderColumns[`Table;`c2`c1];
       system "l .";
       .qu.compare[cols Table; `date`c2`c1]
 
   should raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
       .qu.compare[
-        @[.db.reorderColumns[`Table; ]; `c2`c3; {x}];
+        @[.qtk.db.reorderColumns[`Table; ]; `c2`c3; {x}];
         "ColumnNotFoundError: [c3]"]

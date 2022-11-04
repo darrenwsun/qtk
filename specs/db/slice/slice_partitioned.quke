@@ -13,4 +13,4 @@ feature Slice a splayed table.
 
   should slice a partitioned table by given start and end indices
     expect a slice of the table within the given start and end indices
-      .qu.compare[.db.slice[`PartitionedTable; 2; 4]; ([] date: 2022.01.01 2022.01.02; c1:3 1)]
+      .qu.compare[.qtk.db.slice[`PartitionedTable; 2; 4]; ([] date: 2022.01.01 2022.01.02; c1:3 1)]

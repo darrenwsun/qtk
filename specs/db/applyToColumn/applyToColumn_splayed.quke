@@ -4,7 +4,7 @@ feature Apply a function to a column of a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_applyToColumn_splayed";
     system "cd ",.qutils.hdbRoot;
-    .db.addTable[`SplayedTable; ([] c1:10b; c2:1 2); `Splayed];
+    .qtk.db.addTable[`SplayedTable; ([] c1:10b; c2:1 2); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after
@@ -12,7 +12,7 @@ feature Apply a function to a column of a splayed table.
 
   should apply a function to a column of a splayed table and save.
     expect the column has the function-applied values.
-      .db.applyToColumn[`SplayedTable; `c1; not];
+      .qtk.db.applyToColumn[`SplayedTable; `c1; not];
       system "l .";
       columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `Table]; `c1];
       .qu.compare[exec c1 from SplayedTable; 01b]

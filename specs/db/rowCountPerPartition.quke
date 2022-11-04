@@ -13,12 +13,12 @@ feature Row count of a table per partition.
 
   should return a dictionary from partitions to row count of the table in each partition.
     expect a dictionary from partitions to row count of the table in each partition.
-      .qu.compare[.db.rowCountPerPartition[`Table]; 2022.01.01 2022.01.02!0 0]
+      .qu.compare[.qtk.db.rowCountPerPartition[`Table]; 2022.01.01 2022.01.02!0 0]
 
   should raise error "TableTypeError: not a partitioned table [*]" if the table is not a partitioned table.
     expect error "TableTypeError: not a partitioned table [*]"
       Table2:([] c1:`boolean$());
       .qu.compare[
-        @[.db.rowCountPerPartition; `Table2; {x}];
+        @[.qtk.db.rowCountPerPartition; `Table2; {x}];
         "TableTypeError: not a partitioned table [Table2]"
        ]

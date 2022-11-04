@@ -14,29 +14,29 @@ feature Copy an existing column to a new column.
 
   should copy a column of an in-memory table to a new column.
     expect the new column have the same value as the specified column.
-      .db.copyColumn[`InMemoryTable;`c1;`c2];
+      .qtk.db.copyColumn[`InMemoryTable;`c1;`c2];
       .qu.compare[InMemoryTable`c2; InMemoryTable`c1]
 
   should copy a column of a partitioned table to a new column.
     expect the new column have the same value as the specified column.
-      .db.copyColumn[`Table;`c2;`c3];
+      .qtk.db.copyColumn[`Table;`c2;`c3];
       system "l .";
       .qu.compare[exec c3 from select c3 from Table; exec c2 from select c2 from Table]
 
   should raise error "NameError: invalid column name [*]" if the colum name is not valid.
     expect error "NameError: invalid column name [*]" if the colum name is not valid.
       .qu.compare[
-        @[.db.copyColumn[`Table; `c2; ]; `$"53"; {x}];
+        @[.qtk.db.copyColumn[`Table; `c2; ]; `$"53"; {x}];
         "NameError: invalid column name [53]"]
 
   should raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
       .qu.compare[
-        @[.db.copyColumn[`Table; ; `c4]; `c3; {x}];
+        @[.qtk.db.copyColumn[`Table; ; `c4]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]
 
   should raise error "ColumnExistsError: [*]" if `targetColumn` exists.
     expect raise error "ColumnExistsError: [*]" if `targetColumn` exists.
       .qu.compare[
-        @[.db.copyColumn[`Table; `c1; ]; `c2; {x}];
+        @[.qtk.db.copyColumn[`Table; `c1; ]; `c2; {x}];
         "ColumnExistsError: [c2]"]

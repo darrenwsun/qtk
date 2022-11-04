@@ -12,8 +12,8 @@ feature Partitions per segment.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should partitions per segment.
     expect a dictionary between segments and partitions in each segment.
-      .qu.compare[.db.partitionsPerSegment[]; (hsym `$(.qutils.segment1; .qutils.segment2))!(enlist 2022.01.01; enlist 2022.01.02)]
+      .qu.compare[.qtk.db.partitionsPerSegment[]; (hsym `$(.qutils.segment1; .qutils.segment2))!(enlist 2022.01.01; enlist 2022.01.02)]

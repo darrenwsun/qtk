@@ -13,4 +13,4 @@ feature Get all partitions of year.
 
   should give all month partitions of a partitioned database.
     expect month partitions of the current database.
-      .qu.compare[.db.getPartitions[]; 2021 2022]
+      .qu.compare[.qtk.db.getPartitions[]; 2021 2022]

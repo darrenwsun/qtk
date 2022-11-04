@@ -13,23 +13,23 @@ feature Check if a column exists in a partitioned table.
 
   should return `1b` if a column exists.
     expect `1b`.
-      .qu.compare[.db.columnExists[`PartitionedTable; `c1]; 1b]
+      .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c1]; 1b]
 
   should return `0b` if a column doesn't exist at all.
     expect `0b`.
-      .qu.compare[.db.columnExists[`PartitionedTable; `c3]; 0b]
+      .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c3]; 0b]
 
   should return `0b` if a column doesn't exist in `.d` file in some partition.
     expect `0b`.
       tablePath:.Q.par[`:.; 2022.01.01; `PartitionedTable];
-      allColumns:.db._getColumns tablePath;
+      allColumns:.qtk.db._getColumns tablePath;
       @[tablePath; `.d; :; allColumns except `c1];
       system "l .";
-      .qu.compare[.db.columnExists[`PartitionedTable; `c1]; 0b]
+      .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c1]; 0b]
 
   should return `0b` if a column doesn't exist in the filesystem in some partition.
     expect `0b`.
       columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `PartitionedTable]; `c1];
-      .db._deleteColumnData columnPath;
+      .qtk.db._deleteColumnData columnPath;
       system "l .";
-      .qu.compare[.db.columnExists[`PartitionedTable; `c1]; 0b]
+      .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c1]; 0b]

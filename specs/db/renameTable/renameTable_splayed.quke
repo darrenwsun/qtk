@@ -4,7 +4,7 @@ feature Rename a table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_renameTable_splayed";
     system "cd ",.qutils.hdbRoot;
-    .db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after
@@ -12,6 +12,6 @@ feature Rename a table.
 
   should rename a splayed table.
     expect the table to be renamed.
-      .db.renameTable[`SplayedTable; `MyTable];
+      .qtk.db.renameTable[`SplayedTable; `MyTable];
       system "l .";
       .qu.compare[select from MyTable; ([] c1:1 0; c2:10b)]
