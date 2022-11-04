@@ -4,16 +4,25 @@ import "os";
 import "err";
 
 // @kind function
-// @overview Get table type: Normal, Splayed, or Partitioned. Note that tables in segmented database are classified
-// as Partitioned.
+// @subcategory db
+// @overview Get table type: Plain (in-memory), Splayed, or Partitioned. Note that tables in segmented database are
+// classified as Partitioned.
 // @param t {symbol | table} Table name or value.
-// @return {symbol} Table type: Normal, Splayed, or Partitioned.
+// @return {symbol} Table type: Plain, Splayed, or Partitioned.
+// @doctest A plain table.
+// system "l qtk/pkg.q";
+// .pkg.add enlist "qtk";
+// .q.import "db";
+//
+// t:([]c1:til 3);
+// .qtk.db.addAttr[`t; `c1; `s];
+// `Plain=.qtk.db.getTableType t
 .qtk.db.getTableType:{[t]
   table:$[-11h=type t; get t; t];
   isPartitioned:.Q.qp table;
   $[isPartitioned~1b; `Partitioned;
     isPartitioned~0b; `Splayed;
-    `Normal
+    `Plain
    ]
  };
 
@@ -99,11 +108,11 @@ import "err";
 // @overview Add a new table.
 // @param tableName {symbol} Table name.
 // @param data {table} Table data.
-// @param tableType {symbol} Normal, Splayed, or Partitioned.
+// @param tableType {symbol} Plain, Splayed, or Partitioned.
 // @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
 .qtk.db.addTable:{[tableName;data;tableType]
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     tableName set data;
     tableType=`Splayed;
     [
@@ -127,7 +136,7 @@ import "err";
 // @return {symbol} New table name.
 .qtk.db.renameTable:{[tableName;newName]
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     [
       newName set get tableName;
       ![`.; (); 0b; enlist tableName];
@@ -159,7 +168,7 @@ import "err";
   .qtk.db._validateColumnNotExists[tableName; column];
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     [
       if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
       ![tableName; (); 0b; enlist[column]!enlist[default]];
@@ -186,7 +195,7 @@ import "err";
 // @return {symbol} The table name.
 .qtk.db.deleteColumn:{[tableName;column]
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     ![tableName; (); 0b; enlist[column]];
     tableType=`Splayed;
     [
@@ -214,7 +223,7 @@ import "err";
   .qtk.db._validateColumnExists[tableName;] each key nameDict;
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     tableName set nameDict xcol get tableName;
     tableType=`Splayed;
     [
@@ -240,7 +249,7 @@ import "err";
   .qtk.db._validateColumnExists[tableName;] each firstColumns;
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     tableName set firstColumns xcols get tableName;
     tableType=`Splayed;
     [
@@ -271,7 +280,7 @@ import "err";
   .qtk.db._validateColumnName targetColumn;
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     tableType=`Splayed;
     [
@@ -299,7 +308,7 @@ import "err";
   .qtk.db._validateColumnExists[tableName; column];
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
     tableType=`Splayed;
     [
@@ -339,6 +348,7 @@ import "err";
 // system "l qtk/pkg.q";
 // .pkg.add enlist "qtk";
 // .q.import "db";
+//
 // `t set ([]c1:til 3);
 // .qtk.db.addAttr[`t; `c1; `s];
 // `s=attr t`c1
@@ -367,7 +377,7 @@ import "err";
   .qtk.db._validateColumnExists[tableName;] each key assignment;
 
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     ![tableName; criteria; 0b; assignment];
     tableType=`Splayed;
     [
@@ -402,7 +412,7 @@ import "err";
 // @return {symbol} The table name.
 .qtk.db.delete:{[tableName;criteria]
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     ![tableName; criteria; 0b; `$()];
     tableType=`Splayed;
     [
@@ -468,7 +478,7 @@ import "err";
 // @return {table} A slice of the table within the given range.
 .qtk.db.slice:{[tableName;startIndex;endIndex]
   tableType:.qtk.db.getTableType tableName;
-  $[tableType in `Normal`Splayed;
+  $[tableType in `Plain`Splayed;
     (endIndex-startIndex)#startIndex _get tableName;
     // tableType=`Partitioned
     .Q.ind[get tableName; startIndex+til endIndex-startIndex]
@@ -518,7 +528,7 @@ import "err";
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 .qtk.db.columnExists:{[tableName;column]
   tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Normal;
+  $[tableType=`Plain;
     column in cols tableName;
     tableType=`Splayed;
     [

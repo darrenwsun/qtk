@@ -1,4 +1,4 @@
-feature Update values in certain columns of a normal table.
+feature Update values in certain columns of a plain table.
 
   before each
     import "db";

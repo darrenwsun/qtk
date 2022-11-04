@@ -1,4 +1,4 @@
-feature Slice a normal table.
+feature Slice a plain table.
 
   before
     import "db";
@@ -7,6 +7,6 @@ feature Slice a normal table.
   after
     delete NormalTable from `.;
 
-  should slice a normal table by given start and end indices
+  should slice a plain table by given start and end indices
     expect a slice of the table within the given start and end indices
       .qu.compare[.qtk.db.slice[`NormalTable; 2; 4]; ([] c1:3 4)]

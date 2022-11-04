@@ -1,4 +1,4 @@
-feature Get table type of Normal.
+feature Get table type of Plain.
 
   before
     import "db";
@@ -6,10 +6,10 @@ feature Get table type of Normal.
   after
     delete T from `.;
 
-  should return `Normal` for an in-memory table.
-    expect `Normal` for an in-memory table passed by value.
-      .qu.compare[.qtk.db.getTableType ([] c1:1 2); `Normal]
+  should return `Plain` for an in-memory table.
+    expect `Plain` for an in-memory table passed by value.
+      .qu.compare[.qtk.db.getTableType ([] c1:1 2); `Plain]
 
-    expect `Normal` for an in-memory table passed by name.
+    expect `Plain` for an in-memory table passed by name.
       `T set ([] c1:1 2);
-      .qu.compare[.qtk.db.getTableType `T; `Normal]
+      .qu.compare[.qtk.db.getTableType `T; `Plain]

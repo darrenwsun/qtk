@@ -1,4 +1,4 @@
-feature Check if a column exists in a normal table.
+feature Check if a column exists in a plain table.
 
   before
     import "db";
