@@ -328,12 +328,20 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Add an attribute to a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name of the table.
 // @param newAttr {symbol} Attribute to be added to the column.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
+// @doctest
+// system "l qtk/pkg.q";
+// .pkg.add enlist "qtk";
+// .q.import "db";
+// `t set ([]c1:til 3);
+// .qtk.db.addAttr[`t; `c1; `s];
+// `s=attr t`c1
 .qtk.db.addAttr:{[tableName;column;newAttr]
   .qtk.db.applyToColumn[tableName; column; newAttr#]
  };

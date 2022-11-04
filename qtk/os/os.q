@@ -1,24 +1,25 @@
 
 // @kind data
 // @overview `1b` if the underlying OS is Windows; `0b` otherwise.
-.os.isWindows:.z.o in `w32`w64;
+.qtk.os.isWindows:.z.o in `w32`w64;
 
 // @kind function
+// @subcategory os
 // @overview Get OS-compliant path of a file.
 // @param file {symbol | string} A file path, of either symbol, file symbol, or string format.
 // @return {string} OS-compliant path of the file.
-.os.getPath:{[file]
+.qtk.os.getPath:{[file]
   path:$[10h=type file; file; string file];
-  if[.os.isWindows; path:ssr[path; "/"; "\\"]];
+  if[.qtk.os.isWindows; path:ssr[path; "/"; "\\"]];
   (":"=first path) _ path
  };
 
 // @kind function
 // @overview Create directory.
 // @param dir {symbol} A file symbol representing a directory.
-.os.mkdir:{[dir]
-  sourcePath:.os.getPath dir;
-  cmd:$[.os.isWindows; "mkdir"; "mkdir -p"];
+.qtk.os.mkdir:{[dir]
+  sourcePath:.qtk.os.getPath dir;
+  cmd:$[.qtk.os.isWindows; "mkdir"; "mkdir -p"];
   system cmd," ",sourcePath;
  };
 
@@ -28,10 +29,10 @@
 // @return {symbol[]} Items under the directory in ascending order.
 // @throws {FileNotFoundError: *} If the directory doesn't exist.
 // @throws {NotADirectoryError: *} If the input argument is not a directory.
-.os.listDir:{[dir]
+.qtk.os.listDir:{[dir]
   files:key dir;
-  if[()~files; '"FileNotFoundError: ",.os.getPath dir];
-  if[dir~files; '"NotADirectoryError: ",.os.getPath dir];
+  if[()~files; '"FileNotFoundError: ",.qtk.os.getPath dir];
+  if[dir~files; '"NotADirectoryError: ",.qtk.os.getPath dir];
   files
  };
 
@@ -39,10 +40,10 @@
 // @overview Copy a file from a source to a target.
 // @param source {symbol | string} Source file path, of either symbol, file symbol, or string format.
 // @param target {symbol | string} Target file path, of either symbol, file symbol, or string format.
-.os.copy:{[source;target]
-  sourcePath:.os.getPath source;
-  targetPath:.os.getPath target;
-  copyCmd:$[.os.isWindows; "copy /v /z"; "cp"];
+.qtk.os.copy:{[source;target]
+  sourcePath:.qtk.os.getPath source;
+  targetPath:.qtk.os.getPath target;
+  copyCmd:$[.qtk.os.isWindows; "copy /v /z"; "cp"];
   system copyCmd," ",sourcePath," ",targetPath;
  };
 
@@ -50,27 +51,27 @@
 // @overview Move a file from a source to a target.
 // @param source {symbol | string} Source file path, of either symbol, file symbol, or string format.
 // @param target {symbol | string} Target file path, of either symbol, file symbol, or string format.
-.os.move:{[source;target]
-  sourcePath:.os.getPath source;
-  targetPath:.os.getPath target;
-  moveCmd:$[.os.isWindows; "move"; "mv"];
+.qtk.os.move:{[source;target]
+  sourcePath:.qtk.os.getPath source;
+  targetPath:.qtk.os.getPath target;
+  moveCmd:$[.qtk.os.isWindows; "move"; "mv"];
   system moveCmd," ",sourcePath," ",targetPath;
  };
 
 // @kind function
 // @overview remove a file.
 // @param file {symbol | string} File path, of either symbol, file symbol, or string format.
-.os.remove:{[file]
-  filePath:.os.getPath file;
-  removeCmd:$[.os.isWindows; "del /q /f"; "rm -f"];
+.qtk.os.remove:{[file]
+  filePath:.qtk.os.getPath file;
+  removeCmd:$[.qtk.os.isWindows; "del /q /f"; "rm -f"];
   system removeCmd," ",filePath;
  };
 
 // @kind function
 // @overview remove a directory and all nested items within it.
 // @param dir {symbol | string} Directory path, of either symbol, file symbol, or string format.
-.os.rmtree:{[dir]
-  filePath:.os.getPath dir;
-  removeCmd:$[.os.isWindows; "rmdir /s"; "rm -rf"];
+.qtk.os.rmtree:{[dir]
+  filePath:.qtk.os.getPath dir;
+  removeCmd:$[.qtk.os.isWindows; "rmdir /s"; "rm -rf"];
   system removeCmd," ",filePath;
  };

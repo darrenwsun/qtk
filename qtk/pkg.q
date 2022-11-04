@@ -4,10 +4,14 @@
   qpkgdir:$[
            `qpkgdir in key args; {raze system "realpath ",x} each args`qpkgdir;
            not ""~envar:getenv `qpkgdir; ";" vs envar;
-           '"EnvironmentError: qpkgdir undefined either via environmental variable or command-line argument"
+           enlist enlist"."
            ];
   {if[()~key x; '"NotADirectoryError: ",x]} each qpkgdir;
   {hsym `$x} qpkgdir
+ };
+
+.pkg.add:{[paths]
+  .pkg.directories:({hsym `$raze system "realpath ",x} each paths),.pkg.directories;
  };
 
 if[()~key `.pkg.directories;
