@@ -5,10 +5,12 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Get table type: Plain (in-memory), Splayed, or Partitioned. Note that tables in segmented database are
+// @overview Get table type, either of `` `Plain`Splayed`Partitioned ``. Note that tables in segmented database are
 // classified as Partitioned.
+//
+// See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
 // @param t {symbol | table} Table name or value.
-// @return {symbol} Table type: Plain, Splayed, or Partitioned.
+// @return {symbol} Table type.
 // @doctest A plain table.
 // system "l qtk/pkg.q";
 // .pkg.add enlist "qtk";
@@ -27,30 +29,42 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Get all partitions.
-// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list.
+//
+// See also [.Q.PV](https://code.kx.com/q/ref/dotq/#qpv-partition-values).
+// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
 // if the database is not a partitioned database.
+// @see .qtk.db.getModifiedPartitions
 .qtk.db.getPartitions:{
   @[value; `.Q.PV; ()]
  };
 
 // @kind function
-// @overview Get all partitions, subject to modification by .Q.view.
-// @return {date[] | month[] | int[] | ()} Partitions of the database, subject to modification by .Q.view,
+// @subcategory db
+// @overview Get all partitions, subject to modification by [`.Q.view`](https://code.kx.com/q/ref/dotq/#qview-subview).
+//
+// See also [.Q.pv](https://code.kx.com/q/ref/dotq/#qpv-modified-partition-values).
+// @return {date[] | month[] | int[] | ()} Partitions of the database subject to modification by `.Q.view`,
 // or an empty general list if the database is not a partitioned database.
+// @see .qtk.db.getPartitions
 .qtk.db.getModifiedPartitions:{
   @[value; `.Q.pv; ()]
  };
 
 // @kind function
+// @subcategory db
 // @overview Get partition field.
-// @return {symbol} Partition fields of the database, either of `date`month`year`int, or an empty symbol
+//
+// See also [.Q.pf](https://code.kx.com/q/ref/dotq/#qpf-partition-field).
+// @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
 // if the database is not a partitioned database.
 .qtk.db.getPartitionField:{
   @[value; `.Q.pf; `]
  };
 
 // @kind function
+// @subcategory db
 // @overview Get partitioned tables.
 // @return {symbol[]} Partitioned tables of the database, or empty symbol vector if it's not a partitioned database.
 .qtk.db.getPartitionedTables:{
@@ -58,6 +72,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Row count of a table per partition.
 // @param tableName {symbol} A partitioned table by name.
 // @return {dict} A dictionary from partitions to row count of the table in each partition.
@@ -74,6 +89,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Row count of each partitioned table per partition.
 // @return {dict} A table keyed by partition and each column is row count of a partitioned table in each partition.
 // @throws {RuntimeError: no partition} If there is no partition.
@@ -89,6 +105,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Get all segments.
 // @return {hsym[] | ()} Segments of the database, or an empty general list.
 // if the database is not a partitioned database.
@@ -97,6 +114,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Partitions per segment.
 // @return {dict} A dictionary from segments to partitions in each segment. It's empty if the database doesn't load
 // any segment.
@@ -105,6 +123,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Add a new table.
 // @param tableName {symbol} Table name.
 // @param data {table} Table data.
@@ -130,6 +149,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Rename a table.
 // @param tableName {symbol} Table name.
 // @param newName {symbol} New name of the table.
@@ -156,6 +176,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Add a column to a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -189,6 +210,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Delete a column from a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
@@ -212,6 +234,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Rename column(s) from a table.
 // @param tableName {symbol} Table name.
 // @param nameDict {dict} A dictionary from existing name(s) to new name(s).
@@ -240,6 +263,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Reorder columns of a table.
 // @param tableName {symbol} Table name.
 // @param firstColumns {dict} First columns after reordering.
@@ -266,6 +290,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Copy an existing column to a new column.
 // @param tableName {symbol} Table name.
 // @param sourceColumn {symbol} Source column.
@@ -298,6 +323,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Apply a function to a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -326,6 +352,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Cast the datatype of a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -357,6 +384,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Remove attribute from a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name of the table.
@@ -367,6 +395,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Update values in certain columns of a table, in a similar format to functional update.
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
@@ -406,6 +435,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Delete rows of a table given certain criteria, in a similar format to functional delete.
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
@@ -442,6 +472,7 @@ import "err";
 
 
 // @kind function
+// @subcategory db
 // @overview Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.
 // @param tableName {symbol} Table name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
@@ -461,6 +492,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Fill all tables missing in some partitions, using the most recent partition as a template.
 // See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
 // @return {*[]} Partitions that are filled with missing tables.
@@ -470,6 +502,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Get a slice of a table.
 // See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
 // @param tableName {symbol} Table name.
@@ -486,6 +519,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Save table to a partition.
 // See [`.Q.dpft`](https://code.kx.com/q/ref/dotq/#qdpft-save-table).
 // @param dir {hsym} A directory handle.
@@ -520,6 +554,7 @@ import "err";
  };
 
 // @kind function
+// @subcategory db
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
 // appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
 // partitions.
