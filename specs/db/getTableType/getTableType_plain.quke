@@ -1,0 +1,15 @@
+feature Get table type of a plain table.
+
+  before each
+    import "db";
+    `PlainTable set ([] c1:1 2 3; c2:`a`b`c);
+
+  after each
+    delete PlainTable from `.;
+
+  should return `Plain` for a plain table.
+    expect `Plain` for a plain table passed by value.
+      .qu.compare[.qtk.db.getTableType PlainTable; `Plain]
+
+    expect `Splayed` for a splayed table passed by name.
+      .qu.compare[.qtk.db.getTableType `PlainTable; `Plain]

@@ -2,22 +2,22 @@ feature Delete rows of a plain table given certain criteria.
 
   before each
     import "db";
-    `NormalTable set ([] c1:1 2 3; c2:`a`b`c);
+    `PlainTable set ([] c1:1 2 3; c2:`a`b`c);
 
   after each
-    delete NormalTable from `.;
+    delete PlainTable from `.;
 
   should delete all rows if the criteria is empty.
     expect all rows deleted.
-      .qtk.db.delete[`NormalTable; ()];
-      .qu.compare[NormalTable; ([] c1:`long$(); c2:`$())]
+      .qtk.db.delete[`PlainTable; ()];
+      .qu.compare[PlainTable; ([] c1:`long$(); c2:`$())]
 
   should delete some rows if they match the criteria.
     expect some rows deleted.
-      .qtk.db.delete[`NormalTable; enlist (>;`c1;2)];
-      .qu.compare[NormalTable; ([] c1:1 2; c2:`a`b)]
+      .qtk.db.delete[`PlainTable; enlist (>;`c1;2)];
+      .qu.compare[PlainTable; ([] c1:1 2; c2:`a`b)]
 
   should delete no row if none match the criteria.
     expect no row deleted.
-      .qtk.db.delete[`NormalTable; enlist (>;`c1;5)];
-      .qu.compare[NormalTable; ([] c1:1 2 3; c2:`a`b`c)]
+      .qtk.db.delete[`PlainTable; enlist (>;`c1;5)];
+      .qu.compare[PlainTable; ([] c1:1 2 3; c2:`a`b`c)]

@@ -1,4 +1,4 @@
-feature Get table type of Splayed.
+feature Get table type of a splayed table.
 
   before each
     import "db";

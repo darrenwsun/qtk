@@ -2,14 +2,14 @@ feature Update values in certain columns of a plain table.
 
   before each
     import "db";
-    `NormalTable set ([] c1:1 2 3 4 5);
+    `PlainTable set ([] c1:1 2 3 4 5);
 
   after each
-    delete NormalTable from `.;
+    delete PlainTable from `.;
 
   should raise error "ColumnNotFoundError: [*]" if a column doesn't exist
     expect error "ColumnNotFoundError: [c2]"
       .qu.compare[
-        .[.qtk.db.update; (`NormalTable; (); (enlist`c2)!(enlist 0N)); {x}];
+        .[.qtk.db.update; (`PlainTable; (); (enlist`c2)!(enlist 0N)); {x}];
         "ColumnNotFoundError: [c2]"
       ]
