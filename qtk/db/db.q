@@ -124,13 +124,13 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Add a new table.
+// @overview Create a new empty table.
 // @param tableName {symbol} Table name.
 // @param data {table} Table data.
 // @param tableType {symbol} Plain, Splayed, or Partitioned.
 // @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
-.qtk.db.addTable:{[tableName;data;tableType]
+.qtk.db.createTable:{[tableName;data;tableType]
   $[tableType=`Plain;
     tableName set data;
     tableType=`Splayed;

@@ -4,7 +4,7 @@ feature Add a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_addTable_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.addTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.createTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after each

@@ -4,7 +4,7 @@ feature Apply a function to a column of a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_applyToColumn_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.addTable[`SplayedTable; ([] c1:10b; c2:1 2); `Splayed];
+    .qtk.db.createTable[`SplayedTable; ([] c1:10b; c2:1 2); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after

@@ -4,7 +4,7 @@ feature Update values in certain columns of a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_update_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.addTable[`SplayedTable; ([] c1:1 2 3 4 5); `Splayed];
+    .qtk.db.createTable[`SplayedTable; ([] c1:1 2 3 4 5); `Splayed];
     system "l ",.qutils.hdbRoot;
 
   after each
