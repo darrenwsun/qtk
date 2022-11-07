@@ -12,7 +12,7 @@ feature Add attribute to a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should add an attribute to a column of an in-memory table.
+  should add an attribute to a column of an plain table.
     expect the attribute added to the column.
       .qtk.db.addAttr[`InMemoryTable; `c1; `p];
       .qu.compare[(meta[InMemoryTable]`c1)`a; `p]

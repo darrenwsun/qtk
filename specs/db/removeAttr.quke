@@ -12,7 +12,7 @@ feature Remove attribute from a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should remove an attribute from a column of an in-memory table.
+  should remove an attribute from a column of an plain table.
     expect the attribute removed from the column.
       .qtk.db.removeAttr[`InMemoryTable; `c1];
       .qu.compare[(meta[InMemoryTable]`c1)`a; `]

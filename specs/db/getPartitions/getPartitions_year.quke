@@ -1,4 +1,4 @@
-feature Get all partitions of year.
+feature Get all partitions when `year` is the partition field.
 
   before
     import "db";

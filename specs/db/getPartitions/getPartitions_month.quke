@@ -1,4 +1,4 @@
-feature Get all partitions of month.
+feature Get all partitions when `month` is the partition field.
 
   before
     import "db";

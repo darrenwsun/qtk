@@ -1,4 +1,4 @@
-feature Get all partitions.
+feature Get all partitions when it's not a partitioned database.
 
   before
     import "db";

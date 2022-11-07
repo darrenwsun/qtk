@@ -11,7 +11,7 @@ feature Cast the datatype of a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should cast a column of an in-memory table to a new type.
+  should cast a column of an plain table to a new type.
     expect the column to be casted to a new type specified by type name.
       `InMemoryTable set ([] c1:1 2);
       .qtk.db.castColumn[`InMemoryTable; `c1; `float];

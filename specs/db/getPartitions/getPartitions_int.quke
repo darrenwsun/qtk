@@ -1,4 +1,4 @@
-feature Get all partitions of int.
+feature Get all partitions when `int` is the partition field.
 
   before
     import "db";

@@ -1,4 +1,4 @@
-feature Get all partitions of dates.
+feature Get all partitions when `date` is the partition field.
 
   before
     import "db";

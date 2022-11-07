@@ -12,7 +12,7 @@ feature Reorder columns of a table.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should reorder columns of an in-memory table.
+  should reorder columns of an plain table.
     expect the columns reordered in the table.
       .qtk.db.reorderColumns[`InMemoryTable; `c2`c1];
       .qu.compare[cols InMemoryTable; `c2`c1]
