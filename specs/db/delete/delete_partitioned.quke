@@ -2,6 +2,7 @@ feature Delete rows of a segmented table given certain criteria.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_delete_partitioned";
     system "cd ",.qutils.hdbRoot;
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set .Q.en[`:.;] ([] c1:1 2 3; c2:`a`b`c);

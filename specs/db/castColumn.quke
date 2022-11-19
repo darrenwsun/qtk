@@ -2,6 +2,7 @@ feature Cast the datatype of a column.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_castColumn";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;

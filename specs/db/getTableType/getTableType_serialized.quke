@@ -2,6 +2,7 @@ feature Get table type of a serialized table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getTableType_serialized";
     (hsym `$.qutils.hdbRoot,"/SerializedTable") set ([] c1:1 2 3; c2:`a`b`c);
 

@@ -2,9 +2,10 @@ feature Update values in certain columns of a splayed table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_update_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2 3 4 5)];
+    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2 3 4 5)];
     system "l ",.qutils.hdbRoot;
 
   after each

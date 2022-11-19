@@ -2,6 +2,7 @@ feature Partitions per segment.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_partitionsPerSegment";
     .qutils.segment1:"/tmp/hdb_segment1";
     .qutils.segment2:"/tmp/hdb_segment2";

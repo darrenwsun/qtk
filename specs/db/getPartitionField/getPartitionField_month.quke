@@ -2,6 +2,7 @@ feature Get partition field of month.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getPartitionField_month";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01/Table/") set Table;

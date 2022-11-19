@@ -1,0 +1,42 @@
+feature Insert data into a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_insert_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should insert full data into a partitioned table, when the table reference is a full path.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
+      system "l .";
+      .qu.compare[
+        select from PartitionedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:1 3 2 4; c2:`a`c`b`d)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PartitionedTable]
+
+  should insert full data into a partitioned table, when the table reference is the table name.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`PartitionedTable; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
+      system "l .";
+      .qu.compare[
+        select from PartitionedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:1 3 2 4; c2:`a`c`b`d)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PartitionedTable]
+
+  should insert partial data into a partitioned table.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`PartitionedTable; ([] date:2022.01.01 2022.01.02; c1:3 4)];
+      system "l .";
+      .qu.compare[
+        select from PartitionedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:1 3 2 4; c2:`a``b`)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PartitionedTable]

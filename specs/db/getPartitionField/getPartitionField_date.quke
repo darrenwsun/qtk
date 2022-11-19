@@ -2,6 +2,7 @@ feature Get partition field of date.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getPartitionField_date";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;

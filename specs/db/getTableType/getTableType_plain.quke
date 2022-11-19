@@ -2,6 +2,7 @@ feature Get table type of a plain table.
 
   before each
     import "db";
+    import "tbl";
     `PlainTable set ([] c1:1 2 3; c2:`a`b`c);
 
   after each

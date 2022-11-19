@@ -1,0 +1,23 @@
+feature Insert data into a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2; c2:`a`b)];
+
+  after each
+    delete PlainTable from `.;
+
+  should insert full data into a plain table.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`PlainTable; ([] c1:3 4; c2:`c`d)];
+      .qu.compare[PlainTable; ([] c1:1 2 3 4; c2:`a`b`c`d)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PlainTable]
+
+  should insert partial data into a plain table.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`PlainTable; ([] c1:3 4)];
+      .qu.compare[PlainTable; ([] c1:1 2 3 4; c2:`a`b``)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PlainTable]

@@ -2,6 +2,7 @@ feature Update values in certain columns of a plain table.
 
   before each
     import "db";
+    import "tbl";
     `PlainTable set ([] c1:1 2 3 4 5);
 
   after each

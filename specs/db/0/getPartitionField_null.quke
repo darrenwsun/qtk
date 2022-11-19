@@ -2,6 +2,7 @@ feature Get partition field.
 
   before
     import "db";
+    import "tbl";
 
   should give partition field of a partitioned database.
     expect partition field of the current database.

@@ -2,9 +2,10 @@ feature Apply a function to a column of a splayed table.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_applyToColumn_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:10b; c2:1 2)];
+    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:10b; c2:1 2)];
     system "l ",.qutils.hdbRoot;
 
   after

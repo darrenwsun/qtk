@@ -2,6 +2,7 @@ feature Get all partitions when `month` is the partition field.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getPartitions_month";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01/Table/") set Table;

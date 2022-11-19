@@ -2,6 +2,7 @@ feature Check if a column exists in a partitioned table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_columnExists_partitioned";
     PartitionedTable:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set PartitionedTable;

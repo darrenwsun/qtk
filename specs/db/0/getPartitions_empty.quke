@@ -2,6 +2,7 @@ feature Get all partitions when it's not a partitioned database.
 
   before
     import "db";
+    import "tbl";
 
   should give empty general list if the database is not a partitioned database.
     expect empty general list if the database is not a partitioned database.

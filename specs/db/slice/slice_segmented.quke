@@ -2,6 +2,7 @@ feature Slice a segmented table.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_slice_segmented";
     .qutils.segment1:"/tmp/hdb_slice_segment1";
     .qutils.segment2:"/tmp/hdb_slice_segment2";

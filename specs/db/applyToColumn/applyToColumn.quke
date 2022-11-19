@@ -2,6 +2,7 @@ feature Apply a function to a column.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_applyToColumn";
     Table:([] c1:10b; c2:1 2);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;

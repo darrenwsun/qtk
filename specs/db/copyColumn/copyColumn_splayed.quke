@@ -2,9 +2,10 @@ feature Copy an existing column to a new column for a splayed table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
+    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
     system "l ",.qutils.hdbRoot;
 
   after each

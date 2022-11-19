@@ -2,6 +2,7 @@ feature Delete rows of a partitioned table given certain criteria.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_delete_segmented";
     .qutils.segment1:"/tmp/hdb_delete_segment1";
     .qutils.segment2:"/tmp/hdb_delete_segment2";

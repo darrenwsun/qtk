@@ -2,6 +2,7 @@ feature Update values in certain columns of a partitioned table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_update_partitioned";
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set ([] c1:1 2 3 4 5);
     (hsym `$.qutils.hdbRoot,"/2022.01.02/PartitionedTable/") set ([] c1:1 2 3 4 5);

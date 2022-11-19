@@ -2,9 +2,10 @@ feature Delete rows of a splayed table given certain criteria.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_delete_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2 3; c2:`a`b`c)];
+    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2 3; c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;
 
   after each

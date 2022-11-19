@@ -2,20 +2,21 @@ feature Insert data into a segmented table.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_insert_segmented";
     .qutils.segment1:"/tmp/hdb_insert_segment1";
     .qutils.segment2:"/tmp/hdb_insert_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.db.createTable[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
     system "l ",.qutils.hdbRoot;
 
   after each
     .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
-  should insert given data into a segmented table, when the table reference is a full path.
+  should insert full data into a segmented table, when the table reference is a full path.
     expect given data inserted into the table
-      .qu.result:.qtk.db.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
+      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
       system "l .";
       .qu.compare[
         select from SegmentedTable;
@@ -23,12 +24,22 @@ feature Insert data into a segmented table.
     expect the table name is returned
       .qu.compare[.qu.result; `SegmentedTable]
 
-  should insert given data into a segmented table, when the table reference is the table name.
+  should insert full data into a segmented table, when the table reference is the table name.
     expect given data inserted into the table
-      .qu.result:.qtk.db.insert[`SegmentedTable; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
+      .qu.result:.qtk.tbl.insert[`SegmentedTable; ([] date:2022.01.01 2022.01.02; c1:3 4; c2:`c`d)];
       system "l .";
       .qu.compare[
         select from SegmentedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:1 3 2 4; c2:`a`c`b`d)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `SegmentedTable]
+
+  should insert partial data into a segmented table.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`SegmentedTable; ([] date:2022.01.01 2022.01.02; c1:3 4)];
+      system "l .";
+      .qu.compare[
+        select from SegmentedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:1 3 2 4; c2:`a``b`)]
     expect the table name is returned
       .qu.compare[.qu.result; `SegmentedTable]

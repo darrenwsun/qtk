@@ -2,6 +2,7 @@ feature Get all partitions when `year` is the partition field.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getPartitions_year";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2021/Table/") set Table;

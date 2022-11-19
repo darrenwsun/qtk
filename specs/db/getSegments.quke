@@ -2,6 +2,7 @@ feature Get all segments.
 
   before each
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getSegment";
     .qutils.segment1:"/tmp/hdb_segment1";
     .qutils.segment2:"/tmp/hdb_segment2";

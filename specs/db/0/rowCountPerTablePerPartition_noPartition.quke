@@ -2,6 +2,7 @@ feature Row count of each partitioned table per partition.
 
   before
     import "db";
+    import "tbl";
 
   should raise error "RuntimeError: no partition" if the database has no partition.
     expect error "RuntimeError: no partition"

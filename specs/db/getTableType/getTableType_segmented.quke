@@ -2,6 +2,7 @@ feature Get table type of a segmented table.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getTableType_segmented";
     .qutils.segment1:"/tmp/hdb_getTableType_segment1";
     .qutils.segment2:"/tmp/hdb_getTableType_segment2";

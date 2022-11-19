@@ -2,6 +2,7 @@ feature Get all partitions when `int` is the partition field.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_getPartitions_int";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/1/Table/") set Table;

@@ -2,6 +2,7 @@ feature Remove attribute from a column.
 
   before
     import "db";
+    import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_removeAttr";
     Table:([] c1:10b; c2:`p#1 2);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
