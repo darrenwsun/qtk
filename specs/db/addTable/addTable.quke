@@ -13,18 +13,18 @@ feature Add a table.
 
   should add an plain table.
     expect the table added.
-      .qtk.db.createTable[`InMemoryTable; ([] c1:1 0; c2:10b); `Plain];
+      .qtk.db.createTable[`InMemoryTable; ([] c1:1 0; c2:10b)];
       .qu.compare[InMemoryTable; ([] c1:1 0; c2:10b)] and .qu.compare[.Q.qp InMemoryTable; 0]
 
   should add a partitioned table.
     expect the table added.
-      .qtk.db.createTable[`PartitionedTable; ([] c1:1 0; c2:10b); `Partitioned];
+      .qtk.db.createTable[`:./`date`PartitionedTable; ([] date:2022.01.01 2022.01.02; c1:1 0; c2:10b)];
       system "l .";
-      .qu.compare[select from PartitionedTable; ([] date:2022.01.01 2022.01.02) cross ([] c1:1 0; c2:10b)]
+      .qu.compare[select from PartitionedTable; ([] date:2022.01.01 2022.01.02; c1:1 0; c2:10b)]
         and .qu.compare[.Q.qp PartitionedTable; 1b]
 
-  should raise error "TableTypeError: invalid table type [*]" if the table type is not valid.
-    expect error "TableTypeError: invalid table type [*]" if the table type is not valid.
-      .qu.compare[
-        @[.qtk.db.createTable[`PartitionedTable; ([] c1:1 0; c2:10b); ]; `InvalidTableType; {x}];
-        "TableTypeError: invalid table type [InvalidTableType]"]
+  //should raise error "TableTypeError: invalid table type [*]" if the table type is not valid.
+  //  expect error "TableTypeError: invalid table type [*]" if the table type is not valid.
+  //    .qu.compare[
+  //      @[.qtk.db.createTable[`PartitionedTable; ([] c1:1 0; c2:10b); ]; `InvalidTableType; {x}];
+  //      "TableTypeError: invalid table type [InvalidTableType]"]

@@ -1,0 +1,16 @@
+feature Create a new partitioned table with given data.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_createTable_partitioned";
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should create a new partitioned table with non-empty data
+    expect a new partitioned table created with non-empty data
+      .qu.result:.qtk.db.createTable[(hsym `$.qutils.hdbRoot; `date; `PartitionedTable); ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+      system "l ",.qutils.hdbRoot;
+      .qu.compare[select from PartitionedTable; .Q.en[`:.] ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PartitionedTable]

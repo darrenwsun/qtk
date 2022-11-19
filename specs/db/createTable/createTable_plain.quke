@@ -1,0 +1,21 @@
+feature Create a new plain table with given data.
+
+  before each
+    import "db";
+
+  after each
+    delete PlainTable from `.;
+
+  should create a new plain table with empty data
+    expect a new plain table created with empty data
+      .qu.result:.qtk.db.createTable[`PlainTable; ([] c1:`long$(); c2:`$())];
+      .qu.compare[PlainTable; ([] c1:`long$(); c2:`$())]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PlainTable]
+
+  should create a new plain table with non-empty data
+    expect a new plain table created with non-empty data
+      .qu.result:.qtk.db.createTable[`PlainTable; ([] c1:1 2; c2:`a`b)];
+      .qu.compare[PlainTable; ([] c1:1 2; c2:`a`b)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `PlainTable]

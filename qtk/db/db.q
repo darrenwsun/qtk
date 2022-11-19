@@ -5,12 +5,14 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Get table type, either of `` `Plain`Splayed`Partitioned ``. Note that tables in segmented database are
+// @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
 // classified as Partitioned.
 //
 // See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
-// @param t {symbol | table} Table name or value.
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table name, value, path, or a 3-element tuple consisting
+// of database directory, partition field, and table name.
 // @return {symbol} Table type.
+// @throws {ValueError: [*]} If `t` isn't a valid value.
 // @doctest A plain table.
 // system "l qtk/pkg.q";
 // .pkg.add enlist "qtk";
@@ -20,8 +22,25 @@ import "err";
 // .qtk.db.addAttr[`t; `c1; `s];
 // `Plain=.qtk.db.getTableType t
 .qtk.db.getTableType:{[t]
-  table:$[-11h=type t; get t; t];
-  isPartitioned:.Q.qp table;
+  v:$[-11h=type t;
+     [
+       if[":"=first str:string t;
+          :$["/"=last str; `Splayed; `Serialized]];
+       tvar:@[get; t; ::];
+       if[tvar~(::); :`Plain];   // t is undefined, treated as the name of a new plain table
+       tvar
+       ];
+     11h=type t;
+     [
+       // format: (dbDir; pfield; tableName)
+       if[3<>count t; '.qtk.err.compose[`ValueError; "expect 3 elements"]];
+       if[":"<>first string first t; '.qtk.err.compose[`ValueError; "expect hsym as the first element"]];
+       if[not t[1] in `int`date`month`year; '.qtk.err.compose[`ValueError; "expect a valid partition field"]];
+       :`Partitioned
+        ];
+     t
+   ];
+  isPartitioned:.Q.qp v;
   $[isPartitioned~1b; `Partitioned;
     isPartitioned~0b; `Splayed;
     `Plain
@@ -38,6 +57,58 @@ import "err";
 // @see .qtk.db.getModifiedPartitions
 .qtk.db.getPartitions:{
   @[value; `.Q.PV; ()]
+ };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Get all partitions of a database.
+// @param dbDir {hsym} DB directory.
+// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
+// if the database is not a partitioned database.
+// @throws {FileNotFoundError} If the directory doesn't exist.
+// @throws {NotADirectoryError} If the input argument is not a directory.
+.qtk.db._get1Partitions:{[dbDir]
+  items:.qtk.os.listDir dbDir;
+  partitionDirectories:$[`par.txt in items;
+                         raze .qtk.db._getPartitionDirectories each .qtk.db._getSegmentPaths[dbDir];
+                         .qtk.db._getPartitionDirectories dbDir];
+  if[0=count partitionDirectories; :()];
+  getPartitionDatatype:{`date`month`int`int[10 7 4?count x]};
+  partitionDatatype:getPartitionDatatype first partitionDirectories;
+  partitionDatatype$string partitionDirectories
+ };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Get segment paths of a segmented database.
+// @param dbDir {hsym} DB directory.
+// @return {hsym[]} Segment paths of the database, or an empty symbol list
+// if the database is not a segmented database.
+// @throws {FileNotFoundError} If the directory doesn't exist.
+// @throws {NotADirectoryError} If the input argument is not a directory.
+.qtk.db._getSegmentPaths:{[dbDir]
+  items:.qtk.os.listDir dbDir;
+  segmentPaths:$[`par.txt in items;
+                 hsym each `$read0 .Q.dd[dbDir; `par.txt];
+                 `$()
+   ];
+  segmentPaths
+ };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Get all partition directories of a partitioned database.
+// @param dbDir {hsym} DB directory of the partitioned database.
+// @return {symbol[]} Partition directories, or an empty general list if the database is not a partitioned database.
+// @throws {FileNotFoundError} If the directory doesn't exist.
+// @throws {NotADirectoryError} If the input argument is not a directory.
+.qtk.db._getPartitionDirectories:{[dbDir]
+  items:.qtk.os.listDir dbDir;
+  items:items where items like "[0-9]*";
+  items
  };
 
 // @kind function
@@ -124,28 +195,151 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Create a new empty table.
-// @param tableName {symbol} Table name.
+// @overview Create a new table with given data.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
+// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
 // @param data {table} Table data.
-// @param tableType {symbol} Plain, Splayed, or Partitioned.
 // @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
-.qtk.db.createTable:{[tableName;data;tableType]
-  $[tableType=`Plain;
-    tableName set data;
+.qtk.db.createTable:{[tabRef;data]
+  tabRefDesc:.qtk.db._descTabRef tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType in `Plain`Serialized;
+    tabRef set data;
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._addTable[tablePath; data];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.db._addTable[dbDir; tablePath; data];
       ];
     tableType=`Partitioned;
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
-      .qtk.db._addTable[; data] each tablePaths;
+      dbDir:tabRefDesc`dbDir;
+      parField:tabRefDesc`parField;
+      parValues:distinct ?[data; (); (); parField];
+      tablePaths:.Q.par[dbDir; ; tableName] each parValues;
+      dataByPartition:flip each value parField xgroup data;
+      .qtk.db._addTable[dbDir;;]'[tablePaths; dataByPartition];
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
   tableName
+ };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Describe a table reference.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
+// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
+// @return {dict (type:symbol; name:symbol; dbDir:symbol; parField:symbol)} A dictionary describing the table reference.
+// @throws {TypeError} If `tabRef` is not of valid type.
+.qtk.db._descTabRef:{[tabRef]
+  if[11h<>abs type tabRef; '.qtk.err.compose[`TypeError; "expect symbol or symbol vector"]];
+  tableType:.qtk.db.getTableType tabRef;
+
+  dbDir:tableName:parField:`;
+  $[tableType=`Plain;
+    tableName:tabRef;
+    tableType=`Serialized;
+    [
+      split:` vs tabRef;
+      dbDir:first split;
+      tableName:last split
+      ];
+    tableType=`Splayed;
+    [
+      $["/"=last string tabRef;
+        [
+          // tabRef is a full path
+          split:` vs `$-1 _ string tabRef;
+          dbDir:first split;
+          tableName:last split
+          ];
+        [
+          // tabRef is the table name
+          dbDir:`:.;
+          tableName:tabRef
+          ]
+       ];
+      ];
+    [
+      $[11h=type tabRef;
+        [
+          // tabRef is a full path
+          dbDir:tabRef[0];
+          parField:tabRef[1];
+          tableName:tabRef[2]
+          ];
+        [
+          // tabRef is the table name
+          dbDir:`:.;
+          parField:.Q.pf;
+          tableName:tabRef
+          ]
+       ]
+      ]
+   ];
+
+  r:.[!;] flip (
+    (`type;tableType);
+    (`name;tableName);
+    (`dbDir;dbDir);
+    (`parField;parField)
+  );
+  r
+ };
+
+// @kind function
+// @subcategory db
+// @overview Insert data into a table.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
+// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
+// for partitioned table.
+// @param data {table} Table data.
+// @return {symbol | hsym} `t` itself.
+// @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
+.qtk.db.insert:{[tabRef;data]
+  tabRefDesc:.qtk.db._descTabRef tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType=`Plain;
+    tabRef insert data;
+    tableType=`Serialized;
+    tabRef insert data;
+    tableType=`Splayed;
+    [
+      dbDir:tabRefDesc`dbDir;
+      tablePath:` sv (dbDir; tableName; `);
+      enumeratedData:.Q.en[dbDir; data];
+      .qtk.db._insert[tablePath; enumeratedData]
+      ];
+    tableType=`Partitioned;
+    [
+      dbDir:tabRefDesc`dbDir;
+      enumeratedData:.Q.en[dbDir; data];
+      parField:tabRefDesc`parField;
+      parValues:distinct ?[enumeratedData; (); (); parField];
+      tablePaths:.Q.dd[; `] each .Q.par[dbDir; ; tableName] each parValues;
+      dataByPartition:flip each value parField xgroup enumeratedData;
+      .qtk.db._insert'[tablePaths; dataByPartition];
+      ];
+    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+   ];
+  tableName
+ };
+
+// @kind function
+// @subcategory db
+// @overview Insert data into a table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param data {table} Table data.
+// @return {hsym} `tablePath` itself.
+.qtk.db._insert:{[tablePath;data]
+  tablePath upsert data
  };
 
 // @kind function
@@ -705,11 +899,12 @@ import "err";
 // @kind function
 // @private
 // @overview Add a table to a path.
+// @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
 // @return {hsym} The path to the table.
-.qtk.db._addTable:{[tablePath;data]
-  @[tablePath; `; :; .Q.en[`:.; data]];
+.qtk.db._addTable:{[dbDir;tablePath;data]
+  @[tablePath; `; :; .Q.en[dbDir; data]];
   tablePath
  };
 

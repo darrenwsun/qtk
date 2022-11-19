@@ -1,0 +1,13 @@
+feature Get table type of a serialized table.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_getTableType_serialized";
+    (hsym `$.qutils.hdbRoot,"/SerializedTable") set ([] c1:1 2 3; c2:`a`b`c);
+
+  after each
+    system "rm -rf ",.qutils.hdbRoot;
+
+  should return `Serialized` for a serialized table.
+    expect `Serialized` for a serialized table specified by hsym.
+      .qu.compare[.qtk.db.getTableType hsym `$.qutils.hdbRoot,"/SerializedTable"; `Serialized]

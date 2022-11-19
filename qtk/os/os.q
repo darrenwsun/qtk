@@ -27,14 +27,26 @@
 // @overview List files and directories under a path.
 // @param dir {symbol} A file symbol representing a directory.
 // @return {symbol[]} Items under the directory in ascending order.
-// @throws {FileNotFoundError: *} If the directory doesn't exist.
-// @throws {NotADirectoryError: *} If the input argument is not a directory.
+// @throws {FileNotFoundError} If the directory doesn't exist.
+// @throws {NotADirectoryError} If the input argument is not a directory.
 .qtk.os.listDir:{[dir]
   files:key dir;
   if[()~files; '"FileNotFoundError: ",.qtk.os.getPath dir];
   if[dir~files; '"NotADirectoryError: ",.qtk.os.getPath dir];
   files
  };
+
+// @kind function
+// @overview Check if the argument represents a directory.
+// @param path {hsym} A file symbol.
+// @return {bool} `1b` if this entry is a directory or a symbolic link pointing to a directory; return `0b` otherwise.
+.qtk.os.isDir:{[path] 11h=type key path };
+
+// @kind function
+// @overview Check if the argument represents a file.
+// @param path {symbol} A file symbol.
+// @return {bool} `1b` if it exists and it's a file, 0b otherwise.
+.qtk.os.isFile:{[path] path~key path };
 
 // @kind function
 // @overview Copy a file from a source to a target.

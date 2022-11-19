@@ -4,7 +4,7 @@ feature Delete a column from a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_deleteColumn_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
     system "l ",.qutils.hdbRoot;
 
   after

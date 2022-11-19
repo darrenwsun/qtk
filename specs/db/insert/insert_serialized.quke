@@ -1,0 +1,17 @@
+feature Insert data into a serialized table.
+
+  before each
+    import "db";
+    .qutils.hdbRoot:"/tmp/hdb_insert_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.db.createTable[.qutils.tabRef; ([] c1:1 2; c2:`a`b)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should insert given data into a plain table.
+    expect given data inserted into the table
+      .qu.result:.qtk.db.insert[.qutils.tabRef; ([] c1:3 4; c2:`c`d)];
+      .qu.compare[select from .qutils.tabRef; ([] c1:1 2 3 4; c2:`a`b`c`d)]
+    expect the table name is returned
+      .qu.compare[.qu.result; `SerializedTable]

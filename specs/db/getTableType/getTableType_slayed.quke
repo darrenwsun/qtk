@@ -4,7 +4,7 @@ feature Get table type of a splayed table.
     import "db";
     .qutils.hdbRoot:"/tmp/hdb_getTableType_splayed";
     system "cd ",.qutils.hdbRoot;
-    .qtk.db.createTable[`SplayedTable; ([] c1:1 0; c2:10b); `Splayed];
+    .qtk.db.createTable[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -16,3 +16,6 @@ feature Get table type of a splayed table.
 
     expect `Splayed` for a splayed table passed by name.
       .qu.compare[.qtk.db.getTableType `SplayedTable; `Splayed]
+
+    expect `Splayed` for a splayed table given by a hsym.
+      .qu.compare[.qtk.db.getTableType hsym `$.qutils.hdbRoot,"/SplayedTable/"; `Splayed]

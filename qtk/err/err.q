@@ -3,7 +3,7 @@
 // @kind data
 // @overview Error types.
 .qtk.err.Error:`u#`ColumnExistsError`ColumnNotFoundError`FileNotFoundError`NameError`NotADirectoryError`RuntimeError,
-  `SchemaError`TableTypeError`UnknownError;
+  `ValueError`SchemaError`TableTypeError`TypeError`UnknownError;
 
 
 // @kind function
