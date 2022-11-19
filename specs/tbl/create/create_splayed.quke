@@ -10,16 +10,16 @@ feature Create a new splayed table with given data.
 
   should create a new splayed table with empty data.
     expect a new splayed table created with empty data.
-      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:`long$(); c2:`$())];
+      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:(); c2:`$())];
       system "l ",.qutils.hdbRoot;
-      .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:`long$(); c2:`$())]
+      .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:(); c2:`$())]
     expect the table name is returned
       .qu.compare[.qu.result; `SplayedTable]
 
   should create a new splayed table with non-empty data
     expect a new splayed table created with non-empty data
-      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2; c2:`a`b)];
+      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:("aa";"bb"); c2:`a`b)];
       system "l ",.qutils.hdbRoot;
-      .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:1 2; c2:`a`b)]
+      .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:("aa";"bb"); c2:`a`b)]
     expect the table name is returned
       .qu.compare[.qu.result; `SplayedTable]

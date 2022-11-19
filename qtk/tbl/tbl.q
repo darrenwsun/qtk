@@ -1,4 +1,4 @@
-
+import "type";
 
 // @kind function
 // @subcategory db
@@ -34,6 +34,18 @@
    ];
   tableName
  };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Return a table with a single row that matches a given table schema.
+// @param tabMeta {table)} Metadata of a table.
+// @return {symbol} a table with a single row that matches the metadata.
+.qtk.tbl._singleton:{[tabMeta]
+  tabMeta:0!tabMeta;
+  v:enlist each .qtk.type.defaults raze string tabMeta`t;
+  flip (tabMeta`c)!v
+  };
 
 // @kind function
 // @subcategory db
@@ -156,19 +168,19 @@
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:` sv (dbDir; tableName; `);
-      enumeratedData:.Q.en[dbDir; data];
-      completeData:(0#get tableName) upsert enumeratedData;   // in case data don't have some columns
-      .qtk.db._insert[tablePath; completeData]
+      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;    // in case data don't have some columns
+      enumeratedData:.Q.en[dbDir; completeData];
+      .qtk.db._insert[tablePath; enumeratedData]
       ];
     tableType=`Partitioned;
     [
       dbDir:tabRefDesc`dbDir;
-      enumeratedData:.Q.en[dbDir; data];
-      completeData:(0#select from tableName) upsert enumeratedData;   // in case data don't have some columns
+      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;    // in case data don't have some columns
+      enumeratedData:.Q.en[dbDir; completeData];
       parField:tabRefDesc`parField;
-      parValues:distinct ?[completeData; (); (); parField];
+      parValues:distinct ?[enumeratedData; (); (); parField];
       tablePaths:.Q.dd[; `] each .Q.par[dbDir; ; tableName] each parValues;
-      dataByPartition:flip each value parField xgroup completeData;
+      dataByPartition:flip each value parField xgroup enumeratedData;
       .qtk.db._insert'[tablePaths; dataByPartition];
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]

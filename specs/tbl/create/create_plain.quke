@@ -9,14 +9,14 @@ feature Create a new plain table with given data.
 
   should create a new plain table with empty data
     expect a new plain table created with empty data
-      .qu.result:.qtk.tbl.create[`PlainTable; ([] c1:`long$(); c2:`$())];
-      .qu.compare[PlainTable; ([] c1:`long$(); c2:`$())]
+      .qu.result:.qtk.tbl.create[`PlainTable; ([] c1:(); c2:`$())];
+      .qu.compare[PlainTable; ([] c1:(); c2:`$())]
     expect the table name is returned
       .qu.compare[.qu.result; `PlainTable]
 
   should create a new plain table with non-empty data
     expect a new plain table created with non-empty data
-      .qu.result:.qtk.tbl.create[`PlainTable; ([] c1:1 2; c2:`a`b)];
-      .qu.compare[PlainTable; ([] c1:1 2; c2:`a`b)]
+      .qu.result:.qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
+      .qu.compare[PlainTable; ([] c1:("aa";"bb"); c2:`a`b)]
     expect the table name is returned
       .qu.compare[.qu.result; `PlainTable]

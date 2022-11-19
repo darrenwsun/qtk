@@ -10,14 +10,14 @@ feature Create a new serialized table with given data.
 
   should create a new serialized table with empty data
     expect a new serialized table created with empty data
-      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:`long$(); c2:`$())];
-      .qu.compare[select from hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:`long$(); c2:`$())]
+      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:(); c2:`$())];
+      .qu.compare[select from hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:(); c2:`$())]
     expect the table name is returned
       .qu.compare[.qu.result; `SerializedTable]
 
   should create a new serialized table with non-empty data
     expect a new serialized table created with non-empty data
-      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:1 2; c2:`a`b)];
-      .qu.compare[select from hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:1 2; c2:`a`b)]
+      .qu.result:.qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:("aa";"bb"); c2:`a`b)];
+      .qu.compare[select from hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:("aa";"bb"); c2:`a`b)]
     expect the table name is returned
       .qu.compare[.qu.result; `SerializedTable]
