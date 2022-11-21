@@ -1,0 +1,14 @@
+feature Drop a splayed table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_drop_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qutils.hdbRoot;
+
+  should drop a splayed table.
+    expect the splayed table dropped.
+      .qu.result:.qtk.tbl.drop[`SplayedTable];
+      .qu.compare[key `SplayedTable; ()]

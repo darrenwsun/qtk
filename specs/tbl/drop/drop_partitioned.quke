@@ -1,0 +1,14 @@
+feature Drop a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_drop_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    system "l ",.qutils.hdbRoot;
+
+  should drop a partitioned table.
+    expect the partitioned table dropped.
+      .qu.result:.qtk.tbl.drop[`PartitionedTable];
+      .qu.compare[key `PartitionedTable; ()]

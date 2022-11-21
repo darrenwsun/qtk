@@ -49,37 +49,31 @@ import "type";
 
 // @kind function
 // @subcategory db
-// @overview Drop a new table with given data.
+// @overview Drop a table.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
-// @param data {table} Table data.
-// @return {symbol} The table name.
-// @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
-.qtk.tbl.drop:{[tabRef;data]
+.qtk.tbl.drop:{[tabRef]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
-  $[tableType in `Plain`Serialized;
-    tabRef set data;
-    tableType=`Splayed;
+  $[tableType in `Plain;
+    ![`.; (); 0b; enlist tableName];
+    tableType in `Serialized`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      .qtk.db._addTable[dbDir; tablePath; data];
+      .qtk.os.rmtree tablePath;
       ];
     tableType=`Partitioned;
     [
       dbDir:tabRefDesc`dbDir;
-      parField:tabRefDesc`parField;
-      parValues:distinct ?[data; (); (); parField];
-      tablePaths:.Q.par[dbDir; ; tableName] each parValues;
-      dataByPartition:flip each value parField xgroup data;
-      .qtk.db._addTable[dbDir;;]'[tablePaths; dataByPartition];
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions[];
+      .qtk.os.rmtree each tablePaths;
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
-  tableName
+  ![`.; (); 0b; enlist tableName];
  };
 
 // @kind function

@@ -1,0 +1,12 @@
+feature Drop a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_drop_serialized";
+    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:("aa";"bb"); c2:`a`b)];
+
+  should drop a serialized table.
+    expect the serialized table dropped.
+      .qu.result:.qtk.tbl.drop[`SerializedTable];
+      .qu.compare[key `SerializedTable; ()]

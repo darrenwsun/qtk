@@ -3,7 +3,7 @@ feature Create a new splayed table with given data.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_createTable_splayed";
+    .qutils.hdbRoot:"/tmp/hdb_create_splayed";
 
   after each
     system "rm -rf ",.qutils.hdbRoot;

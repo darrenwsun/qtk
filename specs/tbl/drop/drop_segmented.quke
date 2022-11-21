@@ -1,0 +1,17 @@
+feature Drop a segmented table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_drop_segmented";
+    .qutils.segment1:"/tmp/hdb_drop_segment1";
+    .qutils.segment2:"/tmp/hdb_drop_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    system "l ",.qutils.hdbRoot;
+
+  should drop a partitioned table.
+    expect the partitioned table dropped.
+      .qu.result:.qtk.tbl.drop[`SegmentedTable];
+      .qu.compare[key `SegmentedTable; ()]

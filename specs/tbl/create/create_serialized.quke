@@ -3,7 +3,7 @@ feature Create a new serialized table with given data.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_createTable_serialized";
+    .qutils.hdbRoot:"/tmp/hdb_create_serialized";
 
   after each
     system "rm -rf ",.qutils.hdbRoot;

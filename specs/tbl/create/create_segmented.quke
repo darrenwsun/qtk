@@ -3,9 +3,9 @@ feature Create a new segmented table with given data.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_createTable_segmented";
-    .qutils.segment1:"/tmp/hdb_createTable_segment1";
-    .qutils.segment2:"/tmp/hdb_createTable_segment2";
+    .qutils.hdbRoot:"/tmp/hdb_create_segmented";
+    .qutils.segment1:"/tmp/hdb_create_segment1";
+    .qutils.segment2:"/tmp/hdb_create_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
 
   after each

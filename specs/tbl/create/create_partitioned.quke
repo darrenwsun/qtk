@@ -3,7 +3,7 @@ feature Create a new partitioned table with given data.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_createTable_partitioned";
+    .qutils.hdbRoot:"/tmp/hdb_create_partitioned";
 
   after each
     system "rm -rf ",.qutils.hdbRoot;
