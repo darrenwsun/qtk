@@ -26,7 +26,7 @@ feature Add a column to a table.
 
   should add a column to a partitioned table using an existing data file if it's length- and typed-compliant.
     expect the column added to the table.
-      tablePaths:.Q.par[`:.; ; `Table] each .qtk.db.getPartitions[];
+      tablePaths:.Q.par[`:.; ; `Table] each .qtk.db.getCurrentPartitions[];
       .qtk.db._deleteColumnHeader[; `c2] each tablePaths;
       system "l .";
 
@@ -36,7 +36,7 @@ feature Add a column to a table.
 
   should add a column to a partitioned table using default value, if a data file exists but it's not compliant.
     expect the column added to the table.
-      tablePaths:.Q.par[`:.; ; `Table] each .qtk.db.getPartitions[];
+      tablePaths:.Q.par[`:.; ; `Table] each .qtk.db.getCurrentPartitions[];
       .qtk.db._deleteColumnHeader[; `c2] each tablePaths;
       @[; `c2; :; enlist 1] each tablePaths;
       system "l .";

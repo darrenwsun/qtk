@@ -1,0 +1,35 @@
+feature Delete rows of a segmented table given certain criteria.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_delete_segmented";
+    .qutils.segment1:"/tmp/hdb_delete_segment1";
+    .qutils.segment2:"/tmp/hdb_delete_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should delete all rows if the criteria is empty.
+    expect all rows deleted.
+      .qtk.tbl.delete[`SegmentedTable; ()];
+      .qu.compare[select from SegmentedTable; .Q.en[`:.;] ([] date:`date$(); c1:(); c2:`$())]
+
+  should delete some rows if they match the criteria, for the case that partition key is not used in the criteria.
+    expect some rows deleted.
+      .qtk.tbl.delete[`SegmentedTable; enlist (=;`c2;enlist`c)];
+      .qu.compare[select from SegmentedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)]
+
+  should delete some rows if they match the criteria, for the case that partition key is used in first criterion.
+    expect some rows deleted.
+      .qtk.tbl.delete[`SegmentedTable; ((=;`date;2022.01.02); (=;`c2;enlist`c))];
+      .qu.compare[select from SegmentedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)]
+
+  should delete no row if none match the criteria.
+    expect no row deleted.
+      .qtk.tbl.delete[`SegmentedTable; enlist (=;`c2;enlist`d)];
+      .qu.compare[select from SegmentedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)]

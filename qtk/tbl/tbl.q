@@ -68,7 +68,7 @@ import "type";
     tableType=`Partitioned;
     [
       dbDir:tabRefDesc`dbDir;
-      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions[];
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.os.rmtree each tablePaths;
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
@@ -162,20 +162,20 @@ import "type";
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:` sv (dbDir; tableName; `);
-      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;    // in case data don't have some columns
+      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;     // in case data don't have some columns
       enumeratedData:.Q.en[dbDir; completeData];
-      .qtk.db._insert[tablePath; enumeratedData]
+      .qtk.tbl._insert[tablePath; enumeratedData]
       ];
     tableType=`Partitioned;
     [
       dbDir:tabRefDesc`dbDir;
-      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;    // in case data don't have some columns
+      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;     // in case data don't have some columns
       enumeratedData:.Q.en[dbDir; completeData];
       parField:tabRefDesc`parField;
       parValues:distinct ?[enumeratedData; (); (); parField];
       tablePaths:.Q.dd[; `] each .Q.par[dbDir; ; tableName] each parValues;
       dataByPartition:flip each value parField xgroup enumeratedData;
-      .qtk.db._insert'[tablePaths; dataByPartition];
+      .qtk.tbl._insert'[tablePaths; dataByPartition];
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
@@ -188,8 +188,72 @@ import "type";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
 // @return {hsym} `tablePath` itself.
-.qtk.db._insert:{[tablePath;data]
+.qtk.tbl._insert:{[tablePath;data]
   tablePath upsert data
+ };
+
+// @kind function
+// @subcategory db
+// @overview Delete rows of a table given certain criteria.
+// @param tabRef {symbol | hsym} Table reference.
+// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
+// @return {symbol} The table name.
+.qtk.tbl.delete:{[tabRef;criteria]
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType=`Plain;
+    ![tabRef; criteria; 0b; `$()];
+    tableType=`Serialized;
+    tabRef set ![get tabRef; criteria; 0b; `$()];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tabRef];
+      .qtk.db._delete[tablePath; criteria];
+      ];
+    tableType=`Partitioned;
+    [
+      parField:.qtk.db.getPartitionField[];
+      $[(first criteria)[1]~parField;
+        [
+          partitions:?[tabRef; enlist first criteria; 0b; (enlist parField)!(enlist parField)] parField;
+          tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
+          .qtk.db._delete[; 1_criteria] each tablePaths;
+          ];
+        [
+          partitions:.qtk.db.getCurrentPartitions[];
+          tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
+          .qtk.db._delete[; criteria] each tablePaths;
+          ]
+       ];
+      ];
+    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+   ];
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Delete rows of an on-disk table given certain criteria, in a similar format to functional delete.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
+// @return {hsym} The path to the table.
+.qtk.db._delete:{[tablePath;criteria]
+  indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
+  if[0=count indicesToDelete; :tablePath];
+
+  rowCount:.qtk.db._rowCount tablePath;
+  remainingIndices:(til rowCount) except indicesToDelete;
+
+  i:0;
+  allColumns:.qtk.db._getColumns tablePath;
+  do[count allColumns;
+     columnPath:.Q.dd[tablePath; allColumns[i]];
+     .[columnPath; (); :; get[columnPath] remainingIndices];
+     i +: 1;
+   ];
+  tablePath
  };
 
 // @kind function
@@ -212,7 +276,7 @@ import "type";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._renameTable[; newName] each tablePaths;
       ]
    ];

@@ -14,4 +14,4 @@ feature Get all partitions when `int` is the partition field.
 
   should give all int partitions of a partitioned database.
     expect int partitions of the current database.
-      .qu.compare[.qtk.db.getPartitions[]; 1 2]
+      .qu.compare[.qtk.db.getCurrentPartitions[]; 1 2]

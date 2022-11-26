@@ -55,7 +55,7 @@ import "err";
 // @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
 // if the database is not a partitioned database.
 // @see .qtk.db.getModifiedPartitions
-.qtk.db.getPartitions:{
+.qtk.db.getCurrentPartitions:{
   @[value; `.Q.PV; ()]
  };
 
@@ -68,7 +68,7 @@ import "err";
 // if the database is not a partitioned database.
 // @throws {FileNotFoundError} If the directory doesn't exist.
 // @throws {NotADirectoryError} If the input argument is not a directory.
-.qtk.db._get1Partitions:{[dbDir]
+.qtk.db.getPartitions:{[dbDir]
   items:.qtk.os.listDir dbDir;
   partitionDirectories:$[`par.txt in items;
                          raze .qtk.db._getPartitionDirectories each .qtk.db._getSegmentPaths[dbDir];
@@ -118,7 +118,7 @@ import "err";
 // See also [.Q.pv](https://code.kx.com/q/ref/dotq/#qpv-modified-partition-values).
 // @return {date[] | month[] | int[] | ()} Partitions of the database subject to modification by `.Q.view`,
 // or an empty general list if the database is not a partitioned database.
-// @see .qtk.db.getPartitions
+// @see .qtk.db.getCurrentPartitions
 .qtk.db.getModifiedPartitions:{
   @[value; `.Q.pv; ()]
  };
@@ -219,7 +219,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._addColumn[; column; .qtk.db._enumerate default] each tablePaths;
       ]
    ];
@@ -233,7 +233,7 @@ import "err";
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
 // @return {symbol} The table name.
-.qtk.db.deleteColumn:{[tableName;column]
+.qtk.tbl.deleteColumn:{[tableName;column]
   tableType:.qtk.db.getTableType tableName;
   $[tableType=`Plain;
     ![tableName; (); 0b; enlist[column]];
@@ -244,7 +244,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._deleteColumn[; column] each tablePaths;
       ]
    ];
@@ -273,7 +273,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._renameColumns[; nameDict] each tablePaths;
       ]
    ];
@@ -300,7 +300,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._reorderColumns[; firstColumns] each tablePaths;
       ]
    ];
@@ -332,7 +332,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
       ]
    ];
@@ -361,7 +361,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       .qtk.db._applyToColumn[; column; function] each tablePaths;
       ]
    ];
@@ -441,45 +441,9 @@ import "err";
           .qtk.db._update[; 1_criteria; assignment] each tablePaths;
           ];
         [
-          partitions:.qtk.db.getPartitions[];
+          partitions:.qtk.db.getCurrentPartitions[];
           tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
           .qtk.db._update[; criteria; assignment] each tablePaths;
-          ]
-       ];
-      ]
-   ];
-
-  tableName
- };
-
-// @kind function
-// @subcategory db
-// @overview Delete rows of a table given certain criteria, in a similar format to functional delete.
-// @param table {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
-// @return {symbol} The table name.
-.qtk.db.delete:{[tableName;criteria]
-  tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Plain;
-    ![tableName; criteria; 0b; `$()];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._delete[tablePath; criteria];
-      ];
-    // tableType=`Partitioned
-    [
-      partitionField:.qtk.db.getPartitionField[];
-      $[(first criteria)[1]~partitionField;
-        [
-          partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.db._delete[; 1_criteria] each tablePaths;
-          ];
-        [
-          partitions:.qtk.db.getPartitions[];
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.db._delete[; criteria] each tablePaths;
           ]
        ];
       ]
@@ -504,7 +468,7 @@ import "err";
   tablePath:.Q.par[`:.; refPartition; tableName];
   refColumns:.qtk.db._getColumns tablePath;
   defaultValues:.qtk.db._defaultValue[tablePath;] each refColumns;
-  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[] except refPartition;
+  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[] except refPartition;
   .qtk.db._fixTable[; refColumns!defaultValues] each tablePaths;
   tableName
  };
@@ -590,7 +554,7 @@ import "err";
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getPartitions[];
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
       // Can make the following part simpler by `all .qtk.db._columnExists[...]` at the cost of performance, due to inability
       // to return early
       partitionCount:count tablePaths;
@@ -693,7 +657,7 @@ import "err";
 // @param tableName {symbol} Table name.
 // @return {symbol} Paths of the table.
 .qtk.db._locateTable:{[tableName]
-  partitions:.qtk.db.getPartitions[];
+  partitions:.qtk.db.getCurrentPartitions[];
   .Q.par[`:.; ; tableName] each partitions
  };
 
@@ -1000,29 +964,6 @@ import "err";
          ];
        .qtk.db._addColumn[tablePath; column; columnVal]
       ];
-     i +: 1;
-   ];
-  tablePath
- };
-
-// @kind function
-// @private
-// @overview Delete rows of an on-disk table given certain criteria, in a similar format to functional delete.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
-// @return {hsym} The path to the table.
-.qtk.db._delete:{[tablePath;criteria]
-  indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
-  if[0=count indicesToDelete; :tablePath];
-
-  rowCount:.qtk.db._rowCount tablePath;
-  remainingIndices:(til rowCount) except indicesToDelete;
-
-  i:0;
-  allColumns:.qtk.db._getColumns tablePath;
-  do[count allColumns;
-     columnPath:.Q.dd[tablePath; allColumns[i]];
-     .[columnPath; (); :; get[columnPath] remainingIndices];
      i +: 1;
    ];
   tablePath
