@@ -1,4 +1,5 @@
 import "type";
+import "utils";
 
 // @kind function
 // @subcategory db
@@ -254,6 +255,14 @@ import "type";
      i +: 1;
    ];
   tablePath
+ };
+
+// @kind function
+// @overview Check if a table of given name exists.
+// @param tblName {symbol} Table name.
+// @return {boolean} `1b` if the table exists; `0b` otherwise.
+.qtk.tbl.exists:{[tblName]
+  $[.qtk.utils.nameExists tblName; .qtk.type.isTable tblName; 0b]
  };
 
 // @kind function

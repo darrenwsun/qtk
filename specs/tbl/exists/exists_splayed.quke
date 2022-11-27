@@ -1,0 +1,16 @@
+feature Check if a splayed table of given name exists.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_exists_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should return `1b` if the table resolves to a simple table.
+    expect `1b` if the table exists.
+      .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+      system "l ",.qutils.hdbRoot;
+      .qu.compare[.qtk.tbl.exists[`SplayedTable]; 1b]

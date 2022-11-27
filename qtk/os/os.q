@@ -37,18 +37,6 @@
  };
 
 // @kind function
-// @overview Check if the argument represents a directory.
-// @param path {hsym} A file symbol.
-// @return {bool} `1b` if this entry is a directory or a symbolic link pointing to a directory; return `0b` otherwise.
-.qtk.os.isDir:{[path] 11h=type key path };
-
-// @kind function
-// @overview Check if the argument represents a file.
-// @param path {symbol} A file symbol.
-// @return {bool} `1b` if it exists and it's a file, 0b otherwise.
-.qtk.os.isFile:{[path] path~key path };
-
-// @kind function
 // @overview Copy a file from a source to a target.
 // @param source {symbol | string} Source file path, of either symbol, file symbol, or string format.
 // @param target {symbol | string} Target file path, of either symbol, file symbol, or string format.

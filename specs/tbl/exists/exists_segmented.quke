@@ -1,0 +1,19 @@
+feature Check if a partitioned table of given name exists.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_exists_segmented";
+    .qutils.segment1:"/tmp/hdb_exists_segment1";
+    .qutils.segment2:"/tmp/hdb_exists_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should return `1b` if the table resolves to a simple table.
+    expect `1b` if the table exists.
+      .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+      system "l ",.qutils.hdbRoot;
+      .qu.compare[.qtk.tbl.exists[`SegmentedTable]; 1b]
