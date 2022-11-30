@@ -41,12 +41,22 @@ import "utils";
 // @subcategory db
 // @overview Return a table with a single row that matches a given table schema.
 // @param tabMeta {table)} Metadata of a table.
-// @return {symbol} a table with a single row that matches the metadata.
+// @return {table} An empty table with a single row that matches the metadata.
 .qtk.tbl._singleton:{[tabMeta]
   tabMeta:0!tabMeta;
   v:enlist each .qtk.type.defaults raze string tabMeta`t;
   flip (tabMeta`c)!v
   };
+
+// @kind function
+// @private
+// @subcategory db
+// @overview Return an empty table that matches a given table schema.
+// @param tabMeta {table)} Metadata of a table.
+// @return {table} An empty table that matches the metadata.
+.qtk.tbl._empty:{[tabMeta]
+  0#.qtk.tbl._singleton tabMeta
+ };
 
 // @kind function
 // @subcategory db
@@ -263,6 +273,28 @@ import "utils";
 // @return {boolean} `1b` if the table exists; `0b` otherwise.
 .qtk.tbl.exists:{[tblName]
   $[.qtk.utils.nameExists tblName; .qtk.type.isTable tblName; 0b]
+ };
+
+// @kind function
+// @overview Get entries at given indices of a table.
+// @param tblName {symbol} Table name.
+// @param indices {int[] | long[]} Indices.
+// @return {table} `1b` if the table exists; `0b` otherwise.
+.qtk.tbl.index:{[tblName;indices]
+  tabRefDesc:.qtk.tbl._desc tblName;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  result:$[tableType in `Plain`Serialized`Splayed;
+           select from tblName where i in indices;
+           tableType in `Partitioned`Segmented;
+           [
+             r:.Q.ind[get tableName; indices];
+             $[r~(); .Q.en[`:.; ] .qtk.tbl._empty meta tableName; r]
+             ];
+           '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+   ];
+  result
  };
 
 // @kind function

@@ -1,0 +1,23 @@
+feature Get entries at given indices of a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_index_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should return empty table if the indices are empty.
+    expect empty table if the indices are empty.
+      .qu.compare[
+        .qtk.tbl.index[.qutils.tabRef; `int$()];
+        ([] c1:(); c2:`$())]
+
+  should return entries at the specified indices if the indices are non-empty.
+    expect entries at the specified indices if the indices are non-empty.
+      .qu.compare[
+        .qtk.tbl.index[.qutils.tabRef; 0 2];
+        ([] c1:("aa";"cc"); c2:`a`c)]
