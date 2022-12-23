@@ -279,6 +279,19 @@ import "utils";
 
 // @kind function
 // @subcategory db
+// @overview Select from a table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+// @param table {symbol | table} Table name or value.
+// @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
+// @param assignment {dict} A mapping from column names to values of parse-tree form
+// @return {table} Selected data from the table.
+.qtk.tbl.select:{[tableName;criteria;groupings;assignment]
+  ?[tableName; criteria; groupings; assignment]
+ };
+
+
+// @kind function
+// @subcategory db
 // @overview Delete rows of a table given certain criteria.
 // @param tabRef {symbol | hsym} Table reference.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.

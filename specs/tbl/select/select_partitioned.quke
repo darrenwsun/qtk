@@ -1,0 +1,29 @@
+feature Select from a partitioned table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_select_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a partitioned table based on given criteria, groupings, and column mappings.
+    expect proper data specified by criteria
+      .qu.result:.qtk.tbl.select[`PartitionedTable; enlist(=;`c2;enlist `b); 0b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.02; c1:enlist "bb"; c2:`b)]
+    expect all data without criteria
+      .qu.result:.qtk.tbl.select[`PartitionedTable; (); 0b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02; c1:("aa";"aa";"bb"); c2:`a`a`b)]
+    expect proper data by groupings
+      .qu.result:.qtk.tbl.select[`PartitionedTable; (); enlist[`c2]!enlist[`c2]; ()];
+      .qu.compare[.qu.result; `c2 xkey .Q.en[`:.; ] ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)]
+    expect proper distinct data
+      .qu.result:.qtk.tbl.select[`PartitionedTable; (); 1b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)]
+    expect proper columns
+      .qu.result:.qtk.tbl.select[`PartitionedTable; (); 0b; enlist[`c3]!enlist[`c2]];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] c3:`a`a`b)]

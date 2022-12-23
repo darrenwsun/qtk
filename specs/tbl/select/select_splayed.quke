@@ -1,0 +1,29 @@
+feature Select from a splayed table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_select_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a splayed table based on given criteria, groupings, and column mappings.
+    expect proper data specified by criteria
+      .qu.result:.qtk.tbl.select[.qutils.tabRef; enlist(=;`c2;enlist `b); 0b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] c1:enlist "bb"; c2:`b)]
+    expect all data without criteria
+      .qu.result:.qtk.tbl.select[.qutils.tabRef; (); 0b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ]([] c1:("aa";"bb";"aa"); c2:`a`b`a)]
+    expect proper data by groupings
+      .qu.result:.qtk.tbl.select[.qutils.tabRef; (); enlist[`c2]!enlist[`c2]; ()];
+      .qu.compare[.qu.result; `c2 xkey .Q.en[`:.; ]([] c1:("aa";"bb"); c2:`a`b)]
+    expect proper distinct data
+      .qu.result:.qtk.tbl.select[.qutils.tabRef; (); 1b; ()];
+      .qu.compare[.qu.result; .Q.en[`:.; ]([] c1:("aa";"bb"); c2:`a`b)]
+    expect proper columns
+      .qu.result:.qtk.tbl.select[.qutils.tabRef; (); 0b; enlist[`c3]!enlist[`c2]];
+      .qu.compare[.qu.result; .Q.en[`:.; ]([] c3:`a`b`a)]
