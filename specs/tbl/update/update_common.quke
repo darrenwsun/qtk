@@ -11,6 +11,6 @@ feature Update values in certain columns of a plain table.
   should raise error "ColumnNotFoundError: [*]" if a column doesn't exist
     expect error "ColumnNotFoundError: [c2]"
       .qu.compare[
-        .[.qtk.db.update; (`PlainTable; (); (enlist`c2)!(enlist 0N)); {x}];
+        .[.qtk.tbl.update; (`PlainTable; (); (enlist`c2)!(enlist 0N)); {x}];
         "ColumnNotFoundError: [c2]"
       ]

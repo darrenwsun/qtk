@@ -412,46 +412,6 @@ import "err";
   .qtk.db.addAttr[tableName; column; `]
  };
 
-// @kind function
-// @subcategory db
-// @overview Update values in certain columns of a table, in a similar format to functional update.
-// @param table {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
-// @param assignment {dict} A mapping from column names to values of parse-tree form
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
-.qtk.db.update:{[tableName;criteria;assignment]
-  .qtk.db._validateColumnExists[tableName;] each key assignment;
-
-  tableType:.qtk.db.getTableType tableName;
-  $[tableType=`Plain;
-    ![tableName; criteria; 0b; assignment];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._update[tablePath; criteria; assignment];
-      ];
-    // tableType=`Partitioned
-    [
-      partitionField:.qtk.db.getPartitionField[];
-      $[(first criteria)[1]~partitionField;
-        [
-          partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.db._update[; 1_criteria; assignment] each tablePaths;
-          ];
-        [
-          partitions:.qtk.db.getCurrentPartitions[];
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.db._update[; criteria; assignment] each tablePaths;
-          ]
-       ];
-      ]
-   ];
-
-  tableName
- };
-
 
 // @kind function
 // @subcategory db
@@ -932,40 +892,6 @@ import "err";
   columns:cols tableData;
   @[tablePath; columns; ,; tableData columns];
   if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; columns]];
-  tablePath
- };
-
-// @kind function
-// @private
-// @overview Update values in certain columns of an on-disk table, in a similar format to functional update.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
-// @param assignment {dict} A mapping from column names to values
-// @return {hsym} The path to the table.
-// @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
-.qtk.db._update:{[tablePath;criteria;assignment]
-  updated:?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
-  if[0=count updated; :tablePath];
-
-  i:0;
-  allColumns:.qtk.db._getColumns tablePath;
-  do[count assignment;
-     column:key[assignment] [i];
-     columnVal:.qtk.db._enumerate updated column;
-     $[column in allColumns;
-       [
-         columnPath:.Q.dd[tablePath; column];
-         $[criteria~();
-           .[columnPath; (); :; columnVal];                   // rewrite the whole column
-           .Q.ty[columnVal]=.Q.ty[get columnPath];
-           @[columnPath; updated`index; :; columnVal];                   // update values at certain indices
-           '"type"
-          ];
-         ];
-       .qtk.db._addColumn[tablePath; column; columnVal]
-      ];
-     i +: 1;
-   ];
   tablePath
  };
 

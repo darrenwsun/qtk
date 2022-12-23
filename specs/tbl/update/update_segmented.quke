@@ -16,25 +16,25 @@ feature Update values in certain columns of a segmented table.
 
   should be able to change data type of a column.
     expect data type of the column is updated.
-      .qtk.db.update[`SegmentedTable; (); (enlist`c1)!(enlist enlist`a)];
+      .qtk.tbl.update[`SegmentedTable; (); (enlist`c1)!(enlist enlist`a)];
       system "l .";
       .qu.compare[select c1 from SegmentedTable; ([] c1:`sym$10#`a)]
 
   should be able to change certain indices of a column.
     expect certain indices of the column is updated.
-      .qtk.db.update[`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
+      .qtk.tbl.update[`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
       system "l .";
       .qu.compare[select c1 from SegmentedTable; ([] c1:1 2 3 8 10 1 2 3 8 10)]
 
   should be able to change certain indices of a column.
     expect certain indices of the column is updated.
-      .qtk.db.update[`SegmentedTable; ((=;`date;2022.01.01); (>;`c1;3)); (enlist`c1)!(enlist (*;`c1;2))];
+      .qtk.tbl.update[`SegmentedTable; ((=;`date;2022.01.01); (>;`c1;3)); (enlist`c1)!(enlist (*;`c1;2))];
       system "l .";
       .qu.compare[select c1 from SegmentedTable; ([] c1:1 2 3 8 10 1 2 3 4 5)]
 
   should raise error "type" if it's a partial update and the new values are not type-compatible with existing values.
     expect error "type"
       .qu.compare[
-        .[.qtk.db.update; (`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
+        .[.qtk.tbl.update; (`SegmentedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
         "type"
       ]
