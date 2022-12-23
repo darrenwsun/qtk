@@ -1,0 +1,23 @@
+feature Select from a segmented table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_selectLimitSort_segmented";
+    .qutils.segment1:"/tmp/hdb_selectLimitSort_segment1";
+    .qutils.segment2:"/tmp/hdb_selectLimitSort_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.01; c1:("bb";"aa";"cc"); c2:`b`a`c)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect data sorted by column c2 in ascending order
+      .qu.result:.qtk.tbl.selectLimitSort[`SegmentedTable; (); 0b; (); 0W; (<:; `c2)];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:("aa";"bb";"cc"); c2:`a`b`c)]
+    expect data sorted by column c2 in descending order
+      .qu.result:.qtk.tbl.selectLimitSort[`SegmentedTable; (); 0b; (); 0W; (>:; `c2)];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:("cc";"bb";"aa"); c2:`c`b`a)]

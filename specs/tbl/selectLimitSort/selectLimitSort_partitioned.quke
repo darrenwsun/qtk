@@ -1,0 +1,20 @@
+feature Select from a partitioned table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_selectLimitSort_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.01; c1:("bb";"aa";"cc"); c2:`b`a`c)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect data sorted by column c2 in ascending order
+      .qu.result:.qtk.tbl.selectLimitSort[`PartitionedTable; (); 0b; (); 0W; (<:; `c2)];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:("aa";"bb";"cc"); c2:`a`b`c)]
+    expect data sorted by column c2 in descending order
+      .qu.result:.qtk.tbl.selectLimitSort[`PartitionedTable; (); 0b; (); 0W; (>:; `c2)];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:("cc";"bb";"aa"); c2:`c`b`a)]

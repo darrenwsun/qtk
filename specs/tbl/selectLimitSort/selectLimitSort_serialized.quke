@@ -1,0 +1,19 @@
+feature Select from a serialized table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_selectLimitSort_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("bb";"aa";"cc"); c2:`b`a`c)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect data sorted by column c2 in ascending order
+      .qu.result:.qtk.tbl.selectLimitSort[.qutils.tabRef; (); 0b; (); 0W; (<:; `c2)];
+      .qu.compare[.qu.result;([] c1:("aa";"bb";"cc"); c2:`a`b`c)]
+    expect data sorted by column c2 in descending order
+      .qu.result:.qtk.tbl.selectLimitSort[.qutils.tabRef; (); 0b; (); 0W; (>:; `c2)];
+      .qu.compare[.qu.result;([] c1:("cc";"bb";"aa"); c2:`c`b`a)]
