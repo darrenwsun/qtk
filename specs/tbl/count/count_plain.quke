@@ -1,0 +1,15 @@
+feature Count rows of a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
+
+  after each
+    delete PlainTable from `.;
+
+  should get row count of a plain table
+    expect row count of a plain table, passed by reference
+      .qu.compare[.qtk.tbl.count `PlainTable; 3]
+    expect row count of a plain table, passed by value
+      .qu.compare[.qtk.tbl.count PlainTable; 3]

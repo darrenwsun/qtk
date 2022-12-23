@@ -1,0 +1,18 @@
+feature Count rows of a splayed table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_select_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should get row count of a splayed table
+    expect row count of a splayed table, passed by reference
+      .qu.compare[.qtk.tbl.count `SplayedTable; 3]
+    expect row count of a splayed table, passed by value
+      .qu.compare[.qtk.tbl.count SplayedTable; 3]

@@ -1,0 +1,18 @@
+feature Count rows of a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_count_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should get row count of a partitioned table
+    expect row count of a partitioned table, passed by reference
+      .qu.compare[.qtk.tbl.count `PartitionedTable; 3]
+    expect row count of a partitioned table, passed by value
+      .qu.compare[.qtk.tbl.count PartitionedTable; 3]

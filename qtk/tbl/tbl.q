@@ -341,7 +341,7 @@ import "utils";
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tabRef];
-      .qtk.db._delete[tablePath; criteria];
+      .qtk.tbl._delete[tablePath; criteria];
       ];
     tableType=`Partitioned;
     [
@@ -350,12 +350,12 @@ import "utils";
         [
           partitions:?[tabRef; enlist first criteria; 0b; (enlist parField)!(enlist parField)] parField;
           tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
-          .qtk.db._delete[; 1_criteria] each tablePaths;
+          .qtk.tbl._delete[; 1_criteria] each tablePaths;
           ];
         [
           partitions:.qtk.db.getCurrentPartitions[];
           tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
-          .qtk.db._delete[; criteria] each tablePaths;
+          .qtk.tbl._delete[; criteria] each tablePaths;
           ]
        ];
       ];
@@ -370,7 +370,7 @@ import "utils";
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
 // @return {hsym} The path to the table.
-.qtk.db._delete:{[tablePath;criteria]
+.qtk.tbl._delete:{[tablePath;criteria]
   indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
   if[0=count indicesToDelete; :tablePath];
 
@@ -385,6 +385,14 @@ import "utils";
      i +: 1;
    ];
   tablePath
+ };
+
+// @kind function
+// @overview Count rows of a table.
+// @param tab {symbol | table} Table, by name or value.
+// @return {long} Row count of the table.
+.qtk.tbl.count:{[tab]
+  $[98h=type tab; count tab; count get tab]
  };
 
 // @kind function
