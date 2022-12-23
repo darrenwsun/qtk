@@ -1,0 +1,26 @@
+feature Select from a segmented table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_insert_segmented";
+    .qutils.segment1:"/tmp/hdb_insert_segment1";
+    .qutils.segment2:"/tmp/hdb_insert_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"cc"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect proper data with a positive limit
+      .qu.result:.qtk.tbl.selectLimit[`SegmentedTable; enlist(=;`c2;enlist `a); 0b; (); 1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "aa"; c2:`a)]
+    expect proper data with a negative limit
+      .qu.result:.qtk.tbl.selectLimit[`SegmentedTable; enlist(=;`c2;enlist `a); 0b; (); -1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "cc"; c2:`a)]
+    expect proper data with a pair limit
+      .qu.result:.qtk.tbl.selectLimit[`SegmentedTable; enlist(=;`c2;enlist `a); 0b; (); 1 1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "cc"; c2:`a)]

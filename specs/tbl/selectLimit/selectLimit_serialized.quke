@@ -1,0 +1,22 @@
+feature Select from a serialized table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_selectLimit_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`a)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect proper data with a positive limit
+      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1];
+      .qu.compare[.qu.result; ([] c1:enlist "aa"; c2:`a)]
+    expect proper data with a negative limit
+      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); -1];
+      .qu.compare[.qu.result; ([] c1:enlist "cc"; c2:`a)]
+    expect proper data with a pair limit
+      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1 1];
+      .qu.compare[.qu.result; ([] c1:enlist "cc"; c2:`a)]

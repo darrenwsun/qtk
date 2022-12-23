@@ -1,0 +1,23 @@
+feature Select from a partitioned table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_selectLimit_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.01; c1:("aa";"bb";"cc"); c2:`a`b`a)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect proper data with a positive limit
+      .qu.result:.qtk.tbl.selectLimit[`PartitionedTable; enlist(=;`c2;enlist `a); 0b; (); 1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "aa"; c2:`a)]
+    expect proper data with a negative limit
+      .qu.result:.qtk.tbl.selectLimit[`PartitionedTable; enlist(=;`c2;enlist `a); 0b; (); -1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "cc"; c2:`a)]
+    expect proper data with a pair limit
+      .qu.result:.qtk.tbl.selectLimit[`PartitionedTable; enlist(=;`c2;enlist `a); 0b; (); 1 1];
+      .qu.compare[.qu.result; .Q.en[`:.; ] ([] date:2022.01.01; c1:enlist "cc"; c2:`a)]

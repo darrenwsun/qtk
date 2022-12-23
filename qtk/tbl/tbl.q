@@ -283,10 +283,25 @@ import "utils";
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param assignment {dict} A mapping from column names to values of parse-tree form
+// @param assignment {dict} A mapping from column names to values of parse-tree form.
 // @return {table} Selected data from the table.
 .qtk.tbl.select:{[tableName;criteria;groupings;assignment]
   ?[tableName; criteria; groupings; assignment]
+ };
+
+// @kind function
+// @subcategory db
+// @overview Similar to `.qtk.tbl.select` but with a limit on rows.
+// @param table {symbol | table} Table name or value.
+// @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
+// @param assignment {dict} A mapping from column names to values of parse-tree form.
+// @param limit {int | long | (int;int) | (long;long)} A mapping from column names to values of parse-tree form
+// @return {table} Selected data from the table.
+.qtk.tbl.selectLimit:{[tableName;criteria;groupings;assignment;limit]
+  $[0>type limit;
+    limit#?[tableName; criteria; groupings; assignment];
+    last[limit]#first[limit] _ ?[tableName; criteria; groupings; assignment]]
  };
 
 
