@@ -1,0 +1,15 @@
+feature Reorder columns of a table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+
+  after each
+    delete PlainTable from `.;
+
+  should raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
+      .qu.compare[
+        @[.qtk.tbl.reorderColumns[`PlainTable; ]; `c2`c3; {x}];
+        "ColumnNotFoundError: [c3]"]

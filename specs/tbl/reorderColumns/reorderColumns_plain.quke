@@ -1,0 +1,14 @@
+feature Reorder columns of a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+
+  after each
+    delete PlainTable from `.;
+
+  should reorder columns of a plain table.
+    expect the columns reordered in the table.
+      .qtk.tbl.reorderColumns[`PlainTable; `c2`c1];
+      .qu.compare[cols PlainTable; `c2`c1]

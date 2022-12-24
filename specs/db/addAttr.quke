@@ -13,7 +13,7 @@ feature Add attribute to a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should add an attribute to a column of an plain table.
+  should add an attribute to a column of a plain table.
     expect the attribute added to the column.
       .qtk.db.addAttr[`PlainTable; `c1; `p];
       .qu.compare[(meta[PlainTable]`c1)`a; `p]

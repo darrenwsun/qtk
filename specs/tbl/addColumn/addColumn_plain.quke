@@ -8,7 +8,7 @@ feature Add a column to a plain table.
   after each
     delete PlainTable from `.;
 
-  should add a column to an plain table with a default value.
+  should add a column to a plain table with a default value.
     expect the column added to the table.
       .qtk.tbl.addColumn[`PlainTable;`c2;`test];
       .qu.compare[cols PlainTable; `c1`c2]

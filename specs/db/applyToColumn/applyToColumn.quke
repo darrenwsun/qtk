@@ -13,7 +13,7 @@ feature Apply a function to a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should apply a function to a column of an plain table and save.
+  should apply a function to a column of a plain table and save.
     expect the column has the function-applied values.
       .qtk.db.applyToColumn[`PlainTable;`c1;1+];
       .qu.compare[PlainTable`c1; 2 3]

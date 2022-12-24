@@ -13,7 +13,7 @@ feature Copy an existing column to a new column.
   after each
     system "rm -rf ",.qutils.hdbRoot;
 
-  should copy a column of an plain table to a new column.
+  should copy a column of a plain table to a new column.
     expect the new column have the same value as the specified column.
       .qtk.db.copyColumn[`PlainTable;`c1;`c2];
       .qu.compare[PlainTable`c2; PlainTable`c1]

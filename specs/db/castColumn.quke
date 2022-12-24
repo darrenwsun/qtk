@@ -12,7 +12,7 @@ feature Cast the datatype of a column.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should cast a column of an plain table to a new type.
+  should cast a column of a plain table to a new type.
     expect the column to be casted to a new type specified by type name.
       `PlainTable set ([] c1:1 2);
       .qtk.db.castColumn[`PlainTable; `c1; `float];

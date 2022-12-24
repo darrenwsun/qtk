@@ -624,6 +624,45 @@ import "utils";
  };
 
 // @kind function
+// @subcategory db
+// @overview Reorder columns of a table.
+// @param tableName {symbol} Table name.
+// @param firstColumns {symbol[]} First columns after reordering.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
+.qtk.tbl.reorderColumns:{[tableName;firstColumns]
+  .qtk.tbl._validateColumnExists[tableName;] each firstColumns;
+
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType in `Plain`Serialized;
+    tableName set firstColumns xcols get tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._reorderColumns[tablePath; firstColumns];
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      .qtk.tbl._reorderColumns[; firstColumns] each tablePaths;
+      ]
+   ];
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Reorder columns of an on-disk table with specified first columns.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param firstColumns {dict} First columns after reordering.
+// @return {hsym} The path to the table.
+.qtk.tbl._reorderColumns:{[tablePath;firstColumns]
+  allColumns:.qtk.db._getColumns tablePath;
+  @[tablePath; `.d; :; firstColumns,allColumns except firstColumns];
+  tablePath
+ };
+
+// @kind function
 // @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.

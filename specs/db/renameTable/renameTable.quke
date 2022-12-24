@@ -13,7 +13,7 @@ feature Rename a table.
   after
     system "rm -rf ",.qutils.hdbRoot;
 
-  should rename an plain table.
+  should rename a plain table.
     expect the table to be renamed.
       .qtk.tbl.rename[`PlainTable; `MyTable];
       .qu.compare[MyTable; ([] c1:1 2; c2:10b)] and .qu.compare[key `PlainTable; ()]
