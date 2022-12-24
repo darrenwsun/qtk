@@ -151,39 +151,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Copy an existing column to a new column.
-// @param tableName {symbol} Table name.
-// @param sourceColumn {symbol} Source column.
-// @param targetColumn {symbol} Target column.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
-// @throws {ColumnExistsError: [*]} If `targetColumn` exists.
-// @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
-.qtk.db.copyColumn:{[tableName;sourceColumn;targetColumn]
-  .qtk.tbl._validateColumnExists[tableName; sourceColumn];
-  .qtk.tbl._validateColumnNotExists[tableName; targetColumn];
-  .qtk.tbl._validateColumnName targetColumn;
-
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._copyColumn[tablePath; sourceColumn; targetColumn];
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.db._copyColumn[; sourceColumn; targetColumn] each tablePaths;
-      ]
-   ];
-
-  tableName
- };
-
-// @kind function
-// @subcategory db
 // @overview Apply a function to a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -479,21 +446,6 @@ import "err";
 
 // @kind function
 // @private
-// @overview Copy an existing column of an on-disk table to a new column.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param sourceColumn {symbol} Source column.
-// @param targetColumn {symbol} Target column.
-// @return {hsym} The path to the table.
-.qtk.db._copyColumn:{[tablePath;sourceColumn;targetColumn]
-  sourceColumnPath:.Q.dd[tablePath; sourceColumn];
-  targetColumnPath:.Q.dd[tablePath; targetColumn];
-  .qtk.db._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
-  @[tablePath; `.d; ,; targetColumn];
-  tablePath
- };
-
-// @kind function
-// @private
 // @overview Get all columns of an on-disk table.
 // @param tablePath {hsym} Path to a splayed/partitioned table.
 // @return {symbol[]} Columns of the table.
@@ -633,7 +585,7 @@ import "err";
 // @overview Copy a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
-.qtk.db._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
+.qtk.tbl._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
   if[.qtk.os.path.isFile newColumnPath;
      .qtk.db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
    ];

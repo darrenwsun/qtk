@@ -1,0 +1,16 @@
+feature Copy an existing column to a new column for a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_delete_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"))];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should copy a column to a new column for a serialized table.
+    expect the new column have the same value as the specified column.
+      .qtk.tbl.copyColumn[.qutils.tabRef;`c1;`c2];
+      .qu.compare[(get .qutils.tabRef)`c2; (get .qutils.tabRef)`c1]

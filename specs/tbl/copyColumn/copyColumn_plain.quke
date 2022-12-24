@@ -1,0 +1,14 @@
+feature Copy an existing column to a new column for a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"))];
+
+  after each
+    delete PlainTable from `.;
+
+  should copy a column to a new column for a plain table.
+    expect the new column have the same value as the specified column.
+      .qtk.tbl.copyColumn[`PlainTable;`c1;`c2];
+      .qu.compare[PlainTable`c2; PlainTable`c1]

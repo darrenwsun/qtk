@@ -1,0 +1,27 @@
+feature Copy an existing column to a new column.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
+
+  after each
+    delete PlainTable from `.;
+
+  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
+    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+      .qu.compare[
+        @[.qtk.tbl.copyColumn[`PlainTable; `c2; ]; `$"53"; {x}];
+        "NameError: invalid column name [53]"]
+
+  should raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
+      .qu.compare[
+        @[.qtk.tbl.copyColumn[`PlainTable; ; `c4]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]
+
+  should raise error "ColumnExistsError: [*]" if `targetColumn` exists.
+    expect raise error "ColumnExistsError: [*]" if `targetColumn` exists.
+      .qu.compare[
+        @[.qtk.tbl.copyColumn[`PlainTable; `c1; ]; `c2; {x}];
+        "ColumnExistsError: [c2]"]

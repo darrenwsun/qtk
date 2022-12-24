@@ -1,0 +1,21 @@
+feature Copy an existing column to a new column for a segmented table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_delete_segmented";
+    .qutils.segment1:"/tmp/hdb_delete_segment1";
+    .qutils.segment2:"/tmp/hdb_delete_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should copy a column to a new column for a segmented table.
+    expect the new column have the same value as the specified column.
+      .qtk.tbl.copyColumn[`SegmentedTable;`c2;`c3];
+      system "l .";
+      .qu.compare[exec c3 from select c3 from SegmentedTable; exec c2 from select c2 from SegmentedTable]

@@ -3,16 +3,16 @@ feature Copy an existing column to a new column for a splayed table.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
-    system "cd ",.qutils.hdbRoot;
-    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
+    .qutils.hdbRoot:"/tmp/hdb_delete_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;
 
   after each
-    system "rm -rf ",.qutils.hdbRoot;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
-  should copy a column of a splayed table to a new column.
+  should copy a column to a new column for a splayed table.
     expect the new column have the same value as the specified column.
-      .qtk.db.copyColumn[`SplayedTable; `c2; `c3];
+      .qtk.tbl.copyColumn[`SplayedTable; `c2; `c3];
       system "l .";
       .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]

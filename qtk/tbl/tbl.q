@@ -663,6 +663,56 @@ import "utils";
  };
 
 // @kind function
+// @subcategory db
+// @overview Copy an existing column to a new column.
+// @param tableName {symbol} Table name.
+// @param sourceColumn {symbol} Source column.
+// @param targetColumn {symbol} Target column.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
+// @throws {ColumnExistsError: [*]} If `targetColumn` exists.
+// @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
+.qtk.tbl.copyColumn:{[tableName;sourceColumn;targetColumn]
+  .qtk.tbl._validateColumnExists[tableName; sourceColumn];
+  .qtk.tbl._validateColumnNotExists[tableName; targetColumn];
+  .qtk.tbl._validateColumnName targetColumn;
+
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType=`Plain;
+    ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
+    tableType=`Serialized;
+    tableName set ![get tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._copyColumn[tablePath; sourceColumn; targetColumn];
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      .qtk.tbl._copyColumn[; sourceColumn; targetColumn] each tablePaths;
+      ]
+   ];
+
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Copy an existing column of an on-disk table to a new column.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param sourceColumn {symbol} Source column.
+// @param targetColumn {symbol} Target column.
+// @return {hsym} The path to the table.
+.qtk.tbl._copyColumn:{[tablePath;sourceColumn;targetColumn]
+  sourceColumnPath:.Q.dd[tablePath; sourceColumn];
+  targetColumnPath:.Q.dd[tablePath; targetColumn];
+  .qtk.tbl._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
+  @[tablePath; `.d; ,; targetColumn];
+  tablePath
+ };
+
+// @kind function
 // @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
