@@ -151,40 +151,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Add a column to a table.
-// @param tableName {symbol} Table name.
-// @param column {symbol} Name of new column to be added.
-// @param default {*} Value to be set on the new column.
-// @return {symbol} The table name.
-// @throws {NameError} If the column name is not valid.
-// @throws {ColumnExistsError} If the column exists.
-.qtk.db.addColumn:{[tableName;column;default]
-  .qtk.db._validateColumnName column;
-  .qtk.db._validateColumnNotExists[tableName; column];
-
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    [
-      if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
-      ![tableName; (); 0b; enlist[column]!enlist[default]];
-      ];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._addColumn[tablePath; column; .qtk.db._enumerate default];
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.db._addColumn[; column; .qtk.db._enumerate default] each tablePaths;
-      ]
-   ];
-
-  tableName
- };
-
-// @kind function
-// @subcategory db
 // @overview Delete a column from a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
@@ -217,7 +183,7 @@ import "err";
 // @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
 .qtk.db.renameColumns:{[tableName;nameDict]
   .qtk.db._validateColumnName each value nameDict;
-  .qtk.db._validateColumnExists[tableName;] each key nameDict;
+  .qtk.tbl._validateColumnExists[tableName;] each key nameDict;
 
   tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
@@ -244,7 +210,7 @@ import "err";
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
 .qtk.db.reorderColumns:{[tableName;firstColumns]
-  .qtk.db._validateColumnExists[tableName;] each firstColumns;
+  .qtk.tbl._validateColumnExists[tableName;] each firstColumns;
 
   tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
@@ -274,8 +240,8 @@ import "err";
 // @throws {ColumnExistsError: [*]} If `targetColumn` exists.
 // @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
 .qtk.db.copyColumn:{[tableName;sourceColumn;targetColumn]
-  .qtk.db._validateColumnExists[tableName; sourceColumn];
-  .qtk.db._validateColumnNotExists[tableName; targetColumn];
+  .qtk.tbl._validateColumnExists[tableName; sourceColumn];
+  .qtk.tbl._validateColumnNotExists[tableName; targetColumn];
   .qtk.db._validateColumnName targetColumn;
 
   tableType:.qtk.tbl.getType tableName;
@@ -305,7 +271,7 @@ import "err";
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .qtk.db.applyToColumn:{[tableName;column;function]
-  .qtk.db._validateColumnExists[tableName; column];
+  .qtk.tbl._validateColumnExists[tableName; column];
 
   tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
@@ -463,6 +429,8 @@ import "err";
   tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     column in cols tableName;
+    tableType=`Serialized;
+    column in cols get tableName;
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
@@ -496,30 +464,6 @@ import "err";
 .qtk.db._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
      '.qtk.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
-   ];
- };
-
-// @kind function
-// @private
-// @overview Validate that a column exists, including header and data.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name.
-// @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
-.qtk.db._validateColumnExists:{[tableName;column]
-  if[not .qtk.db.columnExists[tableName; column];
-     '.qtk.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
-   ];
- };
-
-// @kind function
-// @private
-// @overview Validate that a column doesn't exist, either header or data or neither.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name.
-// @throws {ColumnExistsError: [*]} If the column exists.
-.qtk.db._validateColumnNotExists:{[tableName;column]
-  if[.qtk.db.columnExists[tableName; column];
-     '.qtk.err.compose[`ColumnExistsError; "[",string[column],"]"]
    ];
  };
 
@@ -622,32 +566,6 @@ import "err";
   newTablePath:.Q.dd[first[` vs tablePath]; newName];
   .qtk.os.move[tablePath; newTablePath];
   newTablePath
- };
-
-// @kind function
-// @private
-// @overview Add a column to a table specified by a path, using a default value unless
-// a length- and type-compliant column data file exists.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} Name of new column to be added.
-// @param defaultValue {*} Value to be set on the new column.
-// @return {hsym} The path to the table.
-.qtk.db._addColumn:{[tablePath;column;defaultValue]
-  allColumns:.qtk.db._getColumns tablePath;
-  countInPath:count get .Q.dd[tablePath; first allColumns];
-  columnPath:.Q.dd[tablePath; column];
-
-  // if the column file exists and it's type- and length-compliant, use it as-is;
-  // otherwise create the file using defaultValue
-  $[.qtk.os.path.isFile columnPath;
-    if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.qtk.db._defaultValue[tablePath; column]]);
-       .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
-     ];
-    .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
-   ];
-  @[tablePath; `.d; :; distinct allColumns,column];
-
-  tablePath
  };
 
 // @kind function
@@ -780,7 +698,7 @@ import "err";
 // @return {hsym} The path to the table.
 .qtk.db._fixTable:{[tablePath;columnDefaults]
   filesInPartition:.qtk.os.listDir tablePath;
-  addColumnProjection:.qtk.db._addColumn[tablePath; ;];
+  addColumnProjection:.qtk.tbl._addColumn[tablePath; ;];
   expectedColumns:key columnDefaults;
 
   if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];

@@ -8,7 +8,7 @@ feature Fix a table based on a good partition.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2);
+    `PlainTable set ([] c1:1 2);
 
   after each
     system "rm -rf ",.qutils.hdbRoot;
@@ -43,7 +43,7 @@ feature Fix a table based on a good partition.
   should remove excessive columns in `.d` file while keeping their data file
     expect excessive column headers removed.
       tablePath:.Q.par[`:.; 2022.01.02; `Table];
-      .qtk.db._addColumn[tablePath; `c3; 0];
+      .qtk.tbl._addColumn[tablePath; `c3; 0];
       system "l .";
 
       .qtk.db.fixTable[`Table; 2022.01.01];
@@ -64,5 +64,5 @@ feature Fix a table based on a good partition.
   should raise error "TableTypeError: not a partitioned table [*]" if the table is not a partitioned table.
     expect error "TableTypeError: not a partitioned table [*]" if the table is not a partitioned table.
       .qu.compare[
-        @[.qtk.db.fixTable[`InMemoryTable; ]; 2022.01.01; {x}];
-        "TableTypeError: not a partitioned table [InMemoryTable]"]
+        @[.qtk.db.fixTable[`PlainTable; ]; 2022.01.01; {x}];
+        "TableTypeError: not a partitioned table [PlainTable]"]

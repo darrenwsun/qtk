@@ -1,0 +1,14 @@
+feature Add a column to a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"))];
+
+  after each
+    delete PlainTable from `.;
+
+  should add a column to an plain table with a default value.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[`PlainTable;`c2;`test];
+      .qu.compare[cols PlainTable; `c1`c2]

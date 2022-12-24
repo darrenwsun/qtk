@@ -1,0 +1,16 @@
+feature Add a column to a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addColumn_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"))];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should add a column to an serialized table with a default value.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[.qutils.tabRef;`c2;`test];
+      .qu.compare[cols get .qutils.tabRef; `c1`c2]

@@ -8,15 +8,15 @@ feature Add attribute to a column.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2);
+    `PlainTable set ([] c1:1 2);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should add an attribute to a column of an plain table.
     expect the attribute added to the column.
-      .qtk.db.addAttr[`InMemoryTable; `c1; `p];
-      .qu.compare[(meta[InMemoryTable]`c1)`a; `p]
+      .qtk.db.addAttr[`PlainTable; `c1; `p];
+      .qu.compare[(meta[PlainTable]`c1)`a; `p]
 
   should add an attribute to a column of a partitioned table.
     expect the attribute added to the column.
@@ -27,5 +27,5 @@ feature Add attribute to a column.
   should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
       .qu.compare[
-        @[.qtk.db.addAttr[`InMemoryTable; ; `p]; `c3; {x}];
+        @[.qtk.db.addAttr[`PlainTable; ; `p]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]

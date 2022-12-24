@@ -8,15 +8,15 @@ feature Rename a table.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2; c2:10b);
+    `PlainTable set ([] c1:1 2; c2:10b);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should rename an plain table.
     expect the table to be renamed.
-      .qtk.tbl.rename[`InMemoryTable; `MyTable];
-      .qu.compare[MyTable; ([] c1:1 2; c2:10b)] and .qu.compare[key `InMemoryTable; ()]
+      .qtk.tbl.rename[`PlainTable; `MyTable];
+      .qu.compare[MyTable; ([] c1:1 2; c2:10b)] and .qu.compare[key `PlainTable; ()]
 
   should rename a partitioned table.
     expect the table to be renamed.

@@ -8,15 +8,15 @@ feature Copy an existing column to a new column.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2);
+    `PlainTable set ([] c1:1 2);
 
   after each
     system "rm -rf ",.qutils.hdbRoot;
 
   should copy a column of an plain table to a new column.
     expect the new column have the same value as the specified column.
-      .qtk.db.copyColumn[`InMemoryTable;`c1;`c2];
-      .qu.compare[InMemoryTable`c2; InMemoryTable`c1]
+      .qtk.db.copyColumn[`PlainTable;`c1;`c2];
+      .qu.compare[PlainTable`c2; PlainTable`c1]
 
   should copy a column of a partitioned table to a new column.
     expect the new column have the same value as the specified column.

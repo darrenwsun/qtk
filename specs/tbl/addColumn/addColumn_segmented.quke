@@ -1,0 +1,21 @@
+feature Add a column to a segmented table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_insert_segmented";
+    .qutils.segment1:"/tmp/hdb_insert_segment1";
+    .qutils.segment2:"/tmp/hdb_insert_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should add a column to a segmented table with a default value.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[`SegmentedTable;`c2;`test];
+      system "l .";
+      .qu.compare[cols SegmentedTable; `date`c1`c2]

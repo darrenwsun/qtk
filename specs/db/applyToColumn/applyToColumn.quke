@@ -8,15 +8,15 @@ feature Apply a function to a column.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2);
+    `PlainTable set ([] c1:1 2);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should apply a function to a column of an plain table and save.
     expect the column has the function-applied values.
-      .qtk.db.applyToColumn[`InMemoryTable;`c1;1+];
-      .qu.compare[InMemoryTable`c1; 2 3]
+      .qtk.db.applyToColumn[`PlainTable;`c1;1+];
+      .qu.compare[PlainTable`c1; 2 3]
 
   should apply a function to a column of a partitioned table and save.
     expect the column has the function-applied values.
@@ -28,5 +28,5 @@ feature Apply a function to a column.
   should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
       .qu.compare[
-        @[.qtk.db.applyToColumn[`InMemoryTable; ; 1+]; `c3; {x}];
+        @[.qtk.db.applyToColumn[`PlainTable; ; 1+]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]

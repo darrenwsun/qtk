@@ -1,0 +1,18 @@
+feature Add a column to a splayed table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addColumn_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"))];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should add a column to an splayed table with a default value.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[`SplayedTable;`c2;`test];
+      system "l .";
+      .qu.compare[cols SplayedTable; `c1`c2]

@@ -8,15 +8,15 @@ feature Reorder columns of a table.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2; c2:10b);
+    `PlainTable set ([] c1:1 2; c2:10b);
 
   after
     system "rm -rf ",.qutils.hdbRoot;
 
   should reorder columns of an plain table.
     expect the columns reordered in the table.
-      .qtk.db.reorderColumns[`InMemoryTable; `c2`c1];
-      .qu.compare[cols InMemoryTable; `c2`c1]
+      .qtk.db.reorderColumns[`PlainTable; `c2`c1];
+      .qu.compare[cols PlainTable; `c2`c1]
 
   should reorder columns of a partitioned table.
     expect the columns reordered in the table.

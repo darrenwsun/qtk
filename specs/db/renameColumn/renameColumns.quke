@@ -8,15 +8,15 @@ feature Rename column(s) of a table.
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
     system "l ",.qutils.hdbRoot;
-    `InMemoryTable set ([] c1:1 2; c2:10b);
+    `PlainTable set ([] c1:1 2; c2:10b);
 
   after each
     system "rm -rf ",.qutils.hdbRoot;
 
   should rename columns of an plain table.
     expect the columns renamed in the table.
-      .qtk.db.renameColumns[`InMemoryTable; `c1`c2!`c11`c12];
-      .qu.compare[cols InMemoryTable; `c11`c12]
+      .qtk.db.renameColumns[`PlainTable; `c1`c2!`c11`c12];
+      .qu.compare[cols PlainTable; `c11`c12]
 
   should rename columns of a partitioned table.
     expect the columns renamed in the table.

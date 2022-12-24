@@ -1,0 +1,18 @@
+feature Add a column to a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addColumn_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should add a column to a partitioned table with a default value.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[`PartitionedTable;`c2;`test];
+      system "l .";
+      .qu.compare[cols PartitionedTable; `date`c1`c2]

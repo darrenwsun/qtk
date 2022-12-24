@@ -14,13 +14,13 @@ feature Cast the datatype of a column.
 
   should cast a column of an plain table to a new type.
     expect the column to be casted to a new type specified by type name.
-      `InMemoryTable set ([] c1:1 2);
-      .qtk.db.castColumn[`InMemoryTable; `c1; `float];
-      .qu.compare[.Q.ty InMemoryTable`c1; "f"]
+      `PlainTable set ([] c1:1 2);
+      .qtk.db.castColumn[`PlainTable; `c1; `float];
+      .qu.compare[.Q.ty PlainTable`c1; "f"]
     expect the column to be casted to a new type specified by type character.
-      `InMemoryTable set ([] c1:1 2);
-      .qtk.db.castColumn[`InMemoryTable; `c1; "f"];
-      .qu.compare[.Q.ty InMemoryTable`c1; "f"]
+      `PlainTable set ([] c1:1 2);
+      .qtk.db.castColumn[`PlainTable; `c1; "f"];
+      .qu.compare[.Q.ty PlainTable`c1; "f"]
 
   should cast a column of a partitioned table to a new type.
     expect the column to be casted to a new type specified by type name.
@@ -37,5 +37,5 @@ feature Cast the datatype of a column.
   should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
       .qu.compare[
-        @[.qtk.db.castColumn[`InMemoryTable; ; `float]; `c3; {x}];
+        @[.qtk.db.castColumn[`PlainTable; ; `float]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]
