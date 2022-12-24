@@ -439,7 +439,7 @@ import "utils";
 // @throws {NameError} If the column name is not valid.
 // @throws {ColumnExistsError} If the column exists.
 .qtk.tbl.addColumn:{[tableName;column;default]
-  .qtk.db._validateColumnName column;
+  .qtk.tbl._validateColumnName column;
   .qtk.tbl._validateColumnNotExists[tableName; column];
 
   tableType:.qtk.tbl.getType tableName;
@@ -558,6 +558,79 @@ import "utils";
    ];
   if[.qtk.os.path.isFile dataFile:`$string[columnPath],"##";
      .qtk.os.remove dataFile
+   ];
+ };
+
+// @kind function
+// @subcategory db
+// @overview Rename column(s) from a table.
+// @param tableName {symbol} Table name.
+// @param nameDict {dict} A dictionary from existing name(s) to new name(s).
+// @return {symbol} The table name.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
+.qtk.tbl.renameColumns:{[tableName;nameDict]
+  .qtk.tbl._validateColumnName each value nameDict;
+  .qtk.tbl._validateColumnExists[tableName;] each key nameDict;
+
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType in `Plain`Serialized;
+    tableName set nameDict xcol get tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._renameColumns[tablePath; nameDict];
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      .qtk.tbl._renameColumns[; nameDict] each tablePaths;
+      ]
+   ];
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Rename column(s) of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param nameDict {dict} A dictionary from old name(s) to new name(s).
+// @return {hsym} The path to the table.
+.qtk.tbl._renameColumns:{[tablePath;nameDict]
+  renameOneColumn:.qtk.tbl._renameOneColumn[tablePath; ;];
+  renameOneColumn'[key nameDict; value nameDict];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Rename a column of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param oldName {symbol} A column name of the table.
+// @param newName {symbol} New column name.
+// @return {hsym} The path to the table.
+.qtk.tbl._renameOneColumn:{[tablePath;oldName;newName]
+  allColumns:.qtk.db._getColumns tablePath;
+
+  if[(not oldName in allColumns) or (newName in allColumns); :tablePath];
+
+  oldColumnPath:.Q.dd[tablePath; oldName];
+  newColumnPath:.Q.dd[tablePath; newName];
+  .qtk.db._renameColumnOnDisk[oldColumnPath; newColumnPath];
+
+  newColumns:@[allColumns; first where allColumns=oldName; :; newName];
+  @[tablePath; `.d; :; newColumns];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Validate column name.
+// @param columnName {symbol} A column name.
+// @throws {NameError: invalid column name [*]} If the column name is not valid.
+.qtk.tbl._validateColumnName:{[columnName]
+  if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
+     '.qtk.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
    ];
  };
 

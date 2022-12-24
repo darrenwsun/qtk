@@ -1,0 +1,16 @@
+feature Rename columns of a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_renameColumns_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should rename columns of a serialized table.
+    expect the columns renamed in the table.
+      .qtk.tbl.renameColumns[`SerializedTable; `c1`c2!`c11`c12];
+      .qu.compare[cols SerializedTable; `c11`c12]

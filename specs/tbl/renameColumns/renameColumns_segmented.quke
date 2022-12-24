@@ -1,0 +1,21 @@
+feature Rename columns of a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_renameColumns_segmented";
+    .qutils.segment1:"/tmp/hdb_renameColumns_segment1";
+    .qutils.segment2:"/tmp/hdb_renameColumns_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should rename columns of a partitioned table.
+    expect the columns renamed in the table.
+      .qtk.tbl.renameColumns[`SegmentedTable;`c1`c2!`c11`c12];
+      system "l .";
+      .qu.compare[cols SegmentedTable; `date`c11`c12]

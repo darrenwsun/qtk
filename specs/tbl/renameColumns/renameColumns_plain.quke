@@ -1,0 +1,14 @@
+feature Rename columns of a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+
+  after each
+    delete PlainTable from `.;
+
+  should rename columns of a plain table.
+    expect the columns renamed in the table.
+      .qtk.tbl.renameColumns[`PlainTable; `c1`c2!`c11`c12];
+      .qu.compare[cols PlainTable; `c11`c12]
