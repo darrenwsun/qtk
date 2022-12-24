@@ -5,50 +5,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
-// classified as Partitioned.
-//
-// See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
-// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table name, value, path, or a 3-element tuple consisting
-// of database directory, partition field, and table name.
-// @return {symbol} Table type.
-// @throws {ValueError: [*]} If `t` isn't a valid value.
-// @doctest A plain table.
-// system "l qtk/pkg.q";
-// .pkg.add enlist "qtk";
-// .q.import "db";
-//
-// t:([]c1:til 3);
-// .qtk.db.addAttr[`t; `c1; `s];
-// `Plain=.qtk.db.getTableType t
-.qtk.db.getTableType:{[t]
-  v:$[-11h=type t;
-     [
-       if[":"=first str:string t;
-          :$["/"=last str; `Splayed; `Serialized]];
-       tvar:@[get; t; ::];
-       if[tvar~(::); :`Plain];   // t is undefined, treated as the name of a new plain table
-       tvar
-       ];
-     11h=type t;
-     [
-       // format: (dbDir; pfield; tableName)
-       if[3<>count t; '.qtk.err.compose[`ValueError; "expect 3 elements"]];
-       if[":"<>first string first t; '.qtk.err.compose[`ValueError; "expect hsym as the first element"]];
-       if[not t[1] in `int`date`month`year; '.qtk.err.compose[`ValueError; "expect a valid partition field"]];
-       :`Partitioned
-        ];
-     t
-   ];
-  isPartitioned:.Q.qp v;
-  $[isPartitioned~1b; `Partitioned;
-    isPartitioned~0b; `Splayed;
-    `Plain
-   ]
- };
-
-// @kind function
-// @subcategory db
 // @overview Get all partitions.
 //
 // See also [.Q.PV](https://code.kx.com/q/ref/dotq/#qpv-partition-values).
@@ -206,7 +162,7 @@ import "err";
   .qtk.db._validateColumnName column;
   .qtk.db._validateColumnNotExists[tableName; column];
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     [
       if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
@@ -234,7 +190,7 @@ import "err";
 // @param column {symbol} A column to be deleted.
 // @return {symbol} The table name.
 .qtk.tbl.deleteColumn:{[tableName;column]
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     ![tableName; (); 0b; enlist[column]];
     tableType=`Splayed;
@@ -263,7 +219,7 @@ import "err";
   .qtk.db._validateColumnName each value nameDict;
   .qtk.db._validateColumnExists[tableName;] each key nameDict;
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     tableName set nameDict xcol get tableName;
     tableType=`Splayed;
@@ -290,7 +246,7 @@ import "err";
 .qtk.db.reorderColumns:{[tableName;firstColumns]
   .qtk.db._validateColumnExists[tableName;] each firstColumns;
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     tableName set firstColumns xcols get tableName;
     tableType=`Splayed;
@@ -322,7 +278,7 @@ import "err";
   .qtk.db._validateColumnNotExists[tableName; targetColumn];
   .qtk.db._validateColumnName targetColumn;
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     tableType=`Splayed;
@@ -351,7 +307,7 @@ import "err";
 .qtk.db.applyToColumn:{[tableName;column;function]
   .qtk.db._validateColumnExists[tableName; column];
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
     tableType=`Splayed;
@@ -452,7 +408,7 @@ import "err";
 // @param endIndex {integer} Index of the next element after the last element in the slice.
 // @return {table} A slice of the table within the given range.
 .qtk.db.slice:{[tableName;startIndex;endIndex]
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType in `Plain`Splayed;
     (endIndex-startIndex)#startIndex _get tableName;
     // tableType=`Partitioned
@@ -504,7 +460,7 @@ import "err";
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 .qtk.db.columnExists:{[tableName;column]
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     column in cols tableName;
     tableType=`Splayed;

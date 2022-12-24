@@ -3,7 +3,7 @@ feature Get table type of a partitioned table.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_getTableType_partitioned";
+    .qutils.hdbRoot:"/tmp/hdb_getType_partitioned";
     PartitionedTable:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set PartitionedTable;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/PartitionedTable/") set PartitionedTable;
@@ -14,26 +14,26 @@ feature Get table type of a partitioned table.
 
   should return `Partitioned` for a partitioned table.
     expect `Partitioned` for a partitioned table passed by value.
-      .qu.compare[.qtk.db.getTableType PartitionedTable; `Partitioned]
+      .qu.compare[.qtk.tbl.getType PartitionedTable; `Partitioned]
 
     expect `Partitioned` for a partitioned table passed by name.
-      .qu.compare[.qtk.db.getTableType `PartitionedTable; `Partitioned]
+      .qu.compare[.qtk.tbl.getType `PartitionedTable; `Partitioned]
 
     expect `Partitioned` for a partitioned table specified by .
-      .qu.compare[.qtk.db.getTableType `:.`date`PartitionedTable; `Partitioned]
+      .qu.compare[.qtk.tbl.getType `:.`date`PartitionedTable; `Partitioned]
 
   should raise error "ValueError: [*]" if the argument isn't a valid value.
     expect error "ValueError: [*]" if the argument is a symbol vector but its length isn't 3.
       .qu.compare[
-        @[.qtk.db.getTableType; `:.`date; {x}];
+        @[.qtk.tbl.getType; `:.`date; {x}];
         "ValueError: expect 3 elements"]
 
     expect error "ValueError: [*]" if the argument is a symbol vector but its first element isn't a hsym.
       .qu.compare[
-        @[.qtk.db.getTableType; `.`date`PartitionedTable; {x}];
+        @[.qtk.tbl.getType; `.`date`PartitionedTable; {x}];
         "ValueError: expect hsym as the first element"]
 
     expect error "ValueError: [*]" if the argument is a symbol vector but its second element isn't a valid partition field.
       .qu.compare[
-        @[.qtk.db.getTableType; `:.`week`PartitionedTable; {x}];
+        @[.qtk.tbl.getType; `:.`week`PartitionedTable; {x}];
         "ValueError: expect a valid partition field"]

@@ -3,6 +3,49 @@ import "utils";
 
 // @kind function
 // @subcategory db
+// @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
+// classified as Partitioned.
+//
+// See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table name, value, path, or a 3-element tuple consisting
+// of database directory, partition field, and table name.
+// @return {symbol} Table type.
+// @throws {ValueError: [*]} If `t` isn't a valid value.
+// @doctest A plain table.
+// system "l qtk/pkg.q";
+// .pkg.add enlist "qtk";
+// .q.import "db";
+//
+// t:([]c1:til 3);
+// `Plain=.qtk.tbl.getType t
+.qtk.tbl.getType:{[t]
+  v:$[-11h=type t;
+      [
+        if[":"=first str:string t;
+           :$["/"=last str; `Splayed; `Serialized]];
+        tvar:@[get; t; ::];
+        if[tvar~(::); :`Plain];   // t is undefined, treated as the name of a new plain table
+        tvar
+        ];
+      11h=type t;
+      [
+       // format: (dbDir; pfield; tableName)
+       if[3<>count t; '.qtk.err.compose[`ValueError; "expect 3 elements"]];
+       if[":"<>first string first t; '.qtk.err.compose[`ValueError; "expect hsym as the first element"]];
+       if[not t[1] in `int`date`month`year; '.qtk.err.compose[`ValueError; "expect a valid partition field"]];
+       :`Partitioned
+        ];
+      t
+   ];
+  isPartitioned:.Q.qp v;
+  $[isPartitioned~1b; `Partitioned;
+    isPartitioned~0b; `Splayed;
+    `Plain
+   ]
+ };
+
+// @kind function
+// @subcategory db
 // @overview Create a new table with given data.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
@@ -97,7 +140,7 @@ import "utils";
 // @throws {TypeError} If `tabRef` is not of valid type.
 .qtk.tbl._desc:{[tabRef]
   if[11h<>abs type tabRef; '.qtk.err.compose[`TypeError; "expect symbol or symbol vector"]];
-  tableType:.qtk.db.getTableType tabRef;
+  tableType:.qtk.tbl.getType tabRef;
 
   dbDir:tableName:parField:`;
   $[tableType=`Plain;
@@ -214,7 +257,7 @@ import "utils";
 .qtk.tbl.update:{[tableName;criteria;assignment]
   .qtk.db._validateColumnExists[tableName;] each key assignment;
 
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     ![tableName; criteria; 0b; assignment];
     tableType=`Splayed;
@@ -432,7 +475,7 @@ import "utils";
 // @param newName {symbol} New name of the table.
 // @return {symbol} New table name.
 .qtk.tbl.rename:{[tableName;newName]
-  tableType:.qtk.db.getTableType tableName;
+  tableType:.qtk.tbl.getType tableName;
   $[tableType=`Plain;
     [
       newName set get tableName;

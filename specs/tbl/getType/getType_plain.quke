@@ -10,7 +10,7 @@ feature Get table type of a plain table.
 
   should return `Plain` for a plain table.
     expect `Plain` for a plain table passed by value.
-      .qu.compare[.qtk.db.getTableType PlainTable; `Plain]
+      .qu.compare[.qtk.tbl.getType PlainTable; `Plain]
 
     expect `Splayed` for a splayed table passed by name.
-      .qu.compare[.qtk.db.getTableType `PlainTable; `Plain]
+      .qu.compare[.qtk.tbl.getType `PlainTable; `Plain]
