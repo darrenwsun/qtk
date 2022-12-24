@@ -3,7 +3,7 @@ feature Copy an existing column to a new column for a splayed table.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_delete_splayed";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;

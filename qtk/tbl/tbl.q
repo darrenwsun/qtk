@@ -624,6 +624,24 @@ import "utils";
  };
 
 // @kind function
+// @private
+// @overview Rename a column on disk.
+// @param oldColumnPath {symbol} A file symbol representing an existing column.
+// @param newColumnPath {symbol} A file symbol representing a new column.
+.qtk.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.qtk.os.path.isFile newColumnPath;
+     .qtk.db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+   ];
+  .qtk.os.move[oldColumnPath; newColumnPath];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .qtk.os.move[dataFile; `$string[newColumnPath],"#"]
+   ];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .qtk.os.move[dataFile; `$string[newColumnPath],"##"]
+   ];
+ };
+
+// @kind function
 // @subcategory db
 // @overview Reorder columns of a table.
 // @param tableName {symbol} Table name.
@@ -709,6 +727,74 @@ import "utils";
   targetColumnPath:.Q.dd[tablePath; targetColumn];
   .qtk.tbl._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
   @[tablePath; `.d; ,; targetColumn];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Copy a column on disk.
+// @param oldColumnPath {symbol} A file symbol representing an existing column.
+// @param newColumnPath {symbol} A file symbol representing a new column.
+.qtk.tbl._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
+  if[.qtk.os.path.isFile newColumnPath;
+     .qtk.db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
+   ];
+  .qtk.os.copy[oldColumnPath; newColumnPath];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
+     .qtk.os.copy[dataFile; `$string[newColumnPath],"#"]
+   ];
+  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
+     .qtk.os.copy[dataFile; `$string[newColumnPath],"##"]
+   ];
+ };
+
+// @kind function
+// @subcategory db
+// @overview Apply a function to a column.
+// @param tableName {symbol} Table name.
+// @param column {symbol} Name of new column to be added.
+// @param function {function} Function to be applied.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+.qtk.tbl.apply:{[tableName;column;function]
+  .qtk.tbl._validateColumnExists[tableName; column];
+
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType=`Plain;
+    ![tableName; (); 0b; enlist[column]!enlist[(function;column)]];
+    tableType=`Serialized;
+    tableName set ![get tableName; (); 0b; enlist[column]!enlist[(function;column)]];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._apply[tablePath; column; function];
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      .qtk.tbl._apply[; column; function] each tablePaths;
+      ]
+   ];
+
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Apply a function to a column of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param column {symbol} A column name of the table.
+// @param function {function} Function to be applied to the column.
+// @return {hsym} The path to the table.
+.qtk.tbl._apply:{[tablePath;column;function]
+  columnPath:.Q.dd[tablePath; column];
+  oldValue:get columnPath;
+  oldAttr:attr oldValue;
+  newValue:function oldValue;
+  newAttr:attr newValue;
+  if[(not oldValue~newValue) or (not oldAttr~newAttr);
+     .[columnPath; (); :; newValue]
+   ];
   tablePath
  };
 

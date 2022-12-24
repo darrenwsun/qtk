@@ -3,7 +3,7 @@ feature Copy an existing column to a new column for a serialized table.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_delete_serialized";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"))];
 

@@ -1,0 +1,18 @@
+feature Apply a function to a column of a splayed table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should apply a function to a column of a splayed table and save.
+    expect the column has the function-applied values.
+      .qtk.tbl.apply[`SplayedTable; `c1; string];
+      system "l .";
+      .qu.compare[exec c1 from SplayedTable; ("aa";"bb")]

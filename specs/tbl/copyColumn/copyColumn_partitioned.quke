@@ -3,7 +3,7 @@ feature Copy an existing column to a new column for a partitioned table.
   before each
     import "db";
     import "tbl";
-    .qutils.hdbRoot:"/tmp/hdb_delete_partitioned";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;

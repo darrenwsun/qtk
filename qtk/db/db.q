@@ -151,35 +151,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Apply a function to a column.
-// @param tableName {symbol} Table name.
-// @param column {symbol} Name of new column to be added.
-// @param function {function} Function to be applied.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
-.qtk.db.applyToColumn:{[tableName;column;function]
-  .qtk.tbl._validateColumnExists[tableName; column];
-
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[column]!enlist[function (value tableName)[column]]];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._applyToColumn[tablePath; column; function];
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.db._applyToColumn[; column; function] each tablePaths;
-      ]
-   ];
-
-  tableName
- };
-
-// @kind function
-// @subcategory db
 // @overview Cast the datatype of a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -187,7 +158,7 @@ import "err";
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 .qtk.db.castColumn:{[tableName;column;newType]
-  .qtk.db.applyToColumn[tableName; column; newType$]
+  .qtk.tbl.apply[tableName; column; newType$]
  };
 
 // @kind function
@@ -207,7 +178,7 @@ import "err";
 // .qtk.db.addAttr[`t; `c1; `s];
 // `s=attr t`c1
 .qtk.db.addAttr:{[tableName;column;newAttr]
-  .qtk.db.applyToColumn[tableName; column; newAttr#]
+  .qtk.tbl.apply[tableName; column; newAttr#]
  };
 
 // @kind function
@@ -455,25 +426,6 @@ import "err";
 
 // @kind function
 // @private
-// @overview Apply a function to a column of an on-disk table.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} A column name of the table.
-// @param function {function} Function to be applied to the column.
-// @return {hsym} The path to the table.
-.qtk.db._applyToColumn:{[tablePath;column;function]
-  columnPath:.Q.dd[tablePath; column];
-  oldValue:get columnPath;
-  oldAttr:attr oldValue;
-  newValue:function oldValue;
-  newAttr:attr newValue;
-  if[(not oldValue~newValue) or (not oldAttr~newAttr);
-     .[columnPath; (); :; newValue]
-   ];
-  tablePath
- };
-
-// @kind function
-// @private
 // @overview Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
 //   - create `.d` file if missing
 //   - add missing columns to `.d` file
@@ -578,40 +530,4 @@ import "err";
     columnType in .Q.A; lower[columnType]$();
     ()
    ]
- };
-
-// @kind function
-// @private
-// @overview Copy a column on disk.
-// @param oldColumnPath {symbol} A file symbol representing an existing column.
-// @param newColumnPath {symbol} A file symbol representing a new column.
-.qtk.tbl._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.qtk.os.path.isFile newColumnPath;
-     .qtk.db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
-   ];
-  .qtk.os.copy[oldColumnPath; newColumnPath];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .qtk.os.copy[dataFile; `$string[newColumnPath],"#"]
-   ];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .qtk.os.copy[dataFile; `$string[newColumnPath],"##"]
-   ];
- };
-
-// @kind function
-// @private
-// @overview Rename a column on disk.
-// @param oldColumnPath {symbol} A file symbol representing an existing column.
-// @param newColumnPath {symbol} A file symbol representing a new column.
-.qtk.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.qtk.os.path.isFile newColumnPath;
-     .qtk.db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
-   ];
-  .qtk.os.move[oldColumnPath; newColumnPath];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .qtk.os.move[dataFile; `$string[newColumnPath],"#"]
-   ];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .qtk.os.move[dataFile; `$string[newColumnPath],"##"]
-   ];
  };

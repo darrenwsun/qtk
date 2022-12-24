@@ -1,0 +1,16 @@
+feature Apply a function to a column of a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_apply_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should apply a function to a column of a serialized table and save.
+    expect the column has the function-applied values.
+      .qtk.tbl.apply[.qutils.tabRef; `c1; string];
+      .qu.compare[(get .qutils.tabRef)`c1; ("aa";"bb")]
