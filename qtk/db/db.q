@@ -151,30 +151,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Delete a column from a table.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column to be deleted.
-// @return {symbol} The table name.
-.qtk.tbl.deleteColumn:{[tableName;column]
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[column]];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._deleteColumn[tablePath; column];
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.db._deleteColumn[; column] each tablePaths;
-      ]
-   ];
-  tableName
- };
-
-// @kind function
-// @subcategory db
 // @overview Rename column(s) from a table.
 // @param tableName {symbol} Table name.
 // @param nameDict {dict} A dictionary from existing name(s) to new name(s).
@@ -570,47 +546,6 @@ import "err";
 
 // @kind function
 // @private
-// @overview Delete a column of an on-disk table and its data.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} A column to be deleted.
-// @return {hsym} The path to the table.
-.qtk.db._deleteColumn:{[tablePath;column]
-  columnPath:.Q.dd[tablePath; column];
-  .qtk.db._deleteColumnData columnPath;
-  .qtk.db._deleteColumnHeader[tablePath; column];
-  tablePath
- };
-
-// @kind function
-// @private
-// @overview Delete a column header of an on-disk table.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} A column to be deleted.
-// @return {hsym} The path to the table.
-.qtk.db._deleteColumnHeader:{[tablePath;column]
-  allColumns:.qtk.db._getColumns tablePath;
-  @[tablePath; `.d; :; allColumns except column];
-  tablePath
- };
-
-// @kind function
-// @private
-// @overview Delete a column on disk.
-// @param columnPath {symbol} A file symbol representing an existing column.
-.qtk.db._deleteColumnData:{[columnPath]
-  if[.qtk.os.path.isFile columnPath;
-     .qtk.os.remove columnPath
-   ];
-  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"#";
-     .qtk.os.remove dataFile
-   ];
-  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"##";
-     .qtk.os.remove dataFile
-   ];
- };
-
-// @kind function
-// @private
 // @overview Rename column(s) of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
@@ -718,7 +653,7 @@ import "err";
   // remove excessive columns
   allColumns:.qtk.db._getColumns tablePath;
   if[count excessiveColumns:allColumns except expectedColumns;
-     .qtk.db._deleteColumnHeader[tablePath;] each excessiveColumns;
+     .qtk.tbl._deleteColumnHeader[tablePath;] each excessiveColumns;
    ];
 
   // fix column order

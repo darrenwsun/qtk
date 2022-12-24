@@ -1,0 +1,18 @@
+feature Delete a column from a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_deleteColumn_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should delete a column from a partitioned table.
+    expect the column deleted from the table.
+      .qtk.tbl.deleteColumn[`PartitionedTable;`c2];
+      system "l .";
+      .qu.compare[cols PartitionedTable; `date`c1]

@@ -1,15 +1,15 @@
 feature Delete a column from a splayed table.
 
-  before
+  before each
     import "db";
     import "tbl";
     .qutils.hdbRoot:"/tmp/hdb_deleteColumn_splayed";
-    system "cd ",.qutils.hdbRoot;
-    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
     system "l ",.qutils.hdbRoot;
 
-  after
-    system "rm -rf ",.qutils.hdbRoot;
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should delete a column from a splayed table.
     expect the column deleted from the table.

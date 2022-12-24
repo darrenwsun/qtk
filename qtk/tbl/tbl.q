@@ -495,6 +495,73 @@ import "utils";
  };
 
 // @kind function
+// @subcategory db
+// @overview Delete a column from a table.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column to be deleted.
+// @return {symbol} The table name.
+.qtk.tbl.deleteColumn:{[tableName;column]
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType=`Plain;
+    ![tableName; (); 0b; enlist[column]];
+    tableType=`Serialized;
+    tableName set ![get tableName; (); 0b; enlist[column]];
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._deleteColumn[tablePath; column];
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      .qtk.tbl._deleteColumn[; column] each tablePaths;
+      ]
+   ];
+  tableName
+ };
+
+// @kind function
+// @private
+// @overview Delete a column of an on-disk table and its data.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param column {symbol} A column to be deleted.
+// @return {hsym} The path to the table.
+.qtk.tbl._deleteColumn:{[tablePath;column]
+  columnPath:.Q.dd[tablePath; column];
+  .qtk.tbl._deleteColumnData columnPath;
+  .qtk.tbl._deleteColumnHeader[tablePath; column];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Delete a column header of an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param column {symbol} A column to be deleted.
+// @return {hsym} The path to the table.
+.qtk.tbl._deleteColumnHeader:{[tablePath;column]
+  allColumns:.qtk.db._getColumns tablePath;
+  @[tablePath; `.d; :; allColumns except column];
+  tablePath
+ };
+
+// @kind function
+// @private
+// @overview Delete a column on disk.
+// @param columnPath {symbol} A file symbol representing an existing column.
+.qtk.tbl._deleteColumnData:{[columnPath]
+  if[.qtk.os.path.isFile columnPath;
+     .qtk.os.remove columnPath
+   ];
+  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"#";
+     .qtk.os.remove dataFile
+   ];
+  if[.qtk.os.path.isFile dataFile:`$string[columnPath],"##";
+     .qtk.os.remove dataFile
+   ];
+ };
+
+// @kind function
 // @private
 // @overview Validate that a column exists, including header and data.
 // @param tableName {symbol} Table name.
