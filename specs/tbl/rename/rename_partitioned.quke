@@ -1,0 +1,20 @@
+feature Rename a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_rename_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should rename a partitioned table.
+    expect new table to be created.
+      .qtk.tbl.rename[`PartitionedTable; `NewPartitionedTable];
+      .qtk.db.reload[];
+      .qu.compare[select from NewPartitionedTable; ([] date:2022.01.01 2022.01.01; c1:1 2)]
+    expect old table to be dropped.
+      not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/PartitionedTable"

@@ -1,0 +1,14 @@
+feature Remove attribute from a column of a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:`p#1 2)];
+
+  after each
+    delete PlainTable from `.;
+
+  should remove an attribute from a column of a plain table.
+    expect the attribute removed from the column.
+      .qtk.tbl.removeAttr[`PlainTable; `c1];
+      .qu.compare[(meta[PlainTable]`c1)`a; `]

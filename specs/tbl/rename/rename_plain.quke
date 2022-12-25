@@ -1,0 +1,16 @@
+feature Rename a plain table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+
+  after each
+    delete NewPlainTable from `.;
+
+  should rename a plain table.
+    expect new table to be created.
+      .qtk.tbl.rename[`PlainTable; `NewPlainTable];
+      .qu.compare[NewPlainTable; ([] c1:1 2)]
+    expect old table to be dropped.
+      not .qtk.utils.nameExists `PlainTable
