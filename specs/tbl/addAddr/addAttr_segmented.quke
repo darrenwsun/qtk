@@ -1,0 +1,21 @@
+feature Add attribute to a column of a segmented table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addAttr_segmented";
+    .qutils.segment1:"/tmp/hdb_addAttr_segment1";
+    .qutils.segment2:"/tmp/hdb_addAttr_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should add an attribute to a column of a partitioned table.
+    expect the attribute added to the column.
+      .qtk.tbl.addAttr[`SegmentedTable; `c1; `p];
+      .qtk.db.reload[];
+      .qu.compare[(meta[SegmentedTable]`c1)`a; `p]

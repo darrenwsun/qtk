@@ -1,0 +1,18 @@
+feature Add attribute to a column of a splayed table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addAttr_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should add an attribute to a column of a splayed table.
+    expect the attribute added to the column.
+      .qtk.tbl.addAttr[`SplayedTable; `c1; `p];
+      .qtk.db.reload[];
+      .qu.compare[(meta[SplayedTable]`c1)`a; `p]

@@ -17,5 +17,5 @@ feature Reorder columns of a table.
   should reorder columns of a segmented table.
     expect the columns reordered in the table.
       .qtk.tbl.reorderColumns[`SegmentedTable;`c2`c1];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols SegmentedTable; `date`c2`c1]

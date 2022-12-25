@@ -63,7 +63,7 @@ import "utils";
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      .qtk.db._addTable[dbDir; tablePath; data];
+      .qtk.tbl._addTable[dbDir; tablePath; data];
       ];
     tableType=`Partitioned;
     [
@@ -72,11 +72,23 @@ import "utils";
       parValues:distinct ?[data; (); (); parField];
       tablePaths:.Q.par[dbDir; ; tableName] each parValues;
       dataByPartition:flip each value parField xgroup data;
-      .qtk.db._addTable[dbDir;;]'[tablePaths; dataByPartition];
+      .qtk.tbl._addTable[dbDir;;]'[tablePaths; dataByPartition];
       ];
     '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
    ];
   tableName
+ };
+
+// @kind function
+// @private
+// @overview Add a table to a path.
+// @param dbDir {hsym} DB directory.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param data {table} Table data.
+// @return {hsym} The path to the table.
+.qtk.tbl._addTable:{[dbDir;tablePath;data]
+  @[tablePath; `; :; .Q.en[dbDir; data]];
+  tablePath
  };
 
 // @kind function
@@ -799,6 +811,49 @@ import "utils";
  };
 
 // @kind function
+// @subcategory db
+// @overview Cast the datatype of a column.
+// @param tableName {symbol} Table name.
+// @param column {symbol} Name of new column to be added.
+// @param newType {symbol | char} Name or char code of the new type.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+.qtk.tbl.castColumn:{[tableName;column;newType]
+  .qtk.tbl.apply[tableName; column; newType$]
+ };
+
+// @kind function
+// @subcategory db
+// @overview Add an attribute to a column.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column name of the table.
+// @param newAttr {symbol} Attribute to be added to the column.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError} If `column` doesn't exist.
+// @doctest
+// system "l qtk/pkg.q";
+// .pkg.add enlist "qtk";
+// .q.import "db";
+//
+// `t set ([]c1:til 3);
+// .qtk.tbl.addAttr[`t; `c1; `s];
+// `s=attr t`c1
+.qtk.tbl.addAttr:{[tableName;column;newAttr]
+  .qtk.tbl.apply[tableName; column; newAttr#]
+ };
+
+// @kind function
+// @subcategory db
+// @overview Remove attribute from a column.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column name of the table.
+// @return {symbol} The table name.
+// @throws {ColumnNotFoundError: [*]} where If `column` doesn't exist.
+.qtk.tbl.removeAttr:{[tableName;column]
+  .qtk.tbl.apply[tableName; column; `#]
+ };
+
+// @kind function
 // @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
@@ -884,16 +939,30 @@ import "utils";
       newName set get tableName;
       ![`.; (); 0b; enlist tableName];
       ];
+    tableType=`Serialized;
+    .qtk.os.move[tableName; newName];
     tableType=`Splayed;
     [
       tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._renameTable[tablePath; newName];
+      .qtk.tbl._rename[tablePath; newName];
       ];
     // tableType=`Partitioned
     [
       tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.db._renameTable[; newName] each tablePaths;
+      .qtk.tbl._rename[; newName] each tablePaths;
       ]
    ];
   newName
+ };
+
+// @kind function
+// @private
+// @overview Rename an on-disk table.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param newName {hsym} New table name.
+// @return {hsym} Path to the renamed table in the partition.
+.qtk.tbl._rename:{[tablePath;newName]
+  newTablePath:.Q.dd[first[` vs tablePath]; newName];
+  .qtk.os.move[tablePath; newTablePath];
+  newTablePath
  };

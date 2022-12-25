@@ -17,5 +17,5 @@ feature Apply a function to a column of a segmented table.
   should apply a function to a column of a segmented table and save.
     expect the column has the function-applied values.
       .qtk.tbl.apply[`SegmentedTable; `c1; string];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[exec c1 from select c1 from SegmentedTable; ("aa";"bb")]

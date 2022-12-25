@@ -16,5 +16,5 @@ feature Fill all tables missing in some partitions.
   should fill tables missing in some partitions.
     expect tables missing in some partitions filled.
       .qtk.db.fillTables[];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[select c1, c2 from T2 where date=2022.01.01; ([] c1:`boolean$(); c2:`long$())]

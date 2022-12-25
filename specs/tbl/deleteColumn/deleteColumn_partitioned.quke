@@ -14,5 +14,5 @@ feature Delete a column from a partitioned table.
   should delete a column from a partitioned table.
     expect the column deleted from the table.
       .qtk.tbl.deleteColumn[`PartitionedTable;`c2];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c1]

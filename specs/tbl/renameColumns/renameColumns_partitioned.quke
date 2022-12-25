@@ -14,5 +14,5 @@ feature Rename columns of a partitioned table.
   should rename columns of a partitioned table.
     expect the columns renamed in the table.
       .qtk.tbl.renameColumns[`PartitionedTable;`c1`c2!`c11`c12];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c11`c12]

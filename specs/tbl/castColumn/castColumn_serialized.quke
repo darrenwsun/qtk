@@ -1,0 +1,19 @@
+feature Cast the datatype of a column of a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_castColumn_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should cast a column of a serialized table to a new type.
+    expect the column to be casted to a new type specified by type name.
+      .qtk.tbl.castColumn[.qutils.tabRef; `c1; `float];
+      .qu.compare[.Q.ty get[.qutils.tabRef]`c1; "f"]
+    expect the column to be casted to a new type specified by type character.
+      .qtk.tbl.castColumn[.qutils.tabRef; `c1; "f"];
+      .qu.compare[.Q.ty get[.qutils.tabRef]`c1; "f"]

@@ -1,0 +1,20 @@
+feature Cast the datatype of a column.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_castColumn_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should cast a column of a plain table to a new type.
+    expect the column to be casted to a new type specified by type name.
+      .qtk.tbl.castColumn[`SplayedTable; `c1; `float];
+      .qu.compare[.Q.ty SplayedTable`c1; "f"]
+    expect the column to be casted to a new type specified by type character.
+      .qtk.tbl.castColumn[`SplayedTable; `c1; "f"];
+      .qu.compare[.Q.ty SplayedTable`c1; "f"]

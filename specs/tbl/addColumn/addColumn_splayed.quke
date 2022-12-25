@@ -14,5 +14,5 @@ feature Add a column to a splayed table.
   should add a column to an splayed table with a default value.
     expect the column added to the table.
       .qtk.tbl.addColumn[`SplayedTable;`c2;`test];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c1`c2]

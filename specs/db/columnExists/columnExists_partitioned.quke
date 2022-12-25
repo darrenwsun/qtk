@@ -25,12 +25,12 @@ feature Check if a column exists in a partitioned table.
       tablePath:.Q.par[`:.; 2022.01.01; `PartitionedTable];
       allColumns:.qtk.db._getColumns tablePath;
       @[tablePath; `.d; :; allColumns except `c1];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c1]; 0b]
 
   should return `0b` if a column doesn't exist in the filesystem in some partition.
     expect `0b`.
       columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `PartitionedTable]; `c1];
       .qtk.tbl._deleteColumnData columnPath;
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[.qtk.db.columnExists[`PartitionedTable; `c1]; 0b]

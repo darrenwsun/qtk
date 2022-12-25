@@ -14,5 +14,5 @@ feature Reorder columns of a table.
   should reorder columns of a partitioned table.
     expect the columns reordered in the table.
       .qtk.tbl.reorderColumns[`PartitionedTable;`c2`c1];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c2`c1]

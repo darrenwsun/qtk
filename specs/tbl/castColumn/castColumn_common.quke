@@ -1,0 +1,15 @@
+feature Cast the datatype of a column.
+
+  before each
+    import "db";
+    import "tbl";
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+
+  after each
+    delete PlainTable from `.;
+
+  should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+    expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+      .qu.compare[
+        @[.qtk.tbl.castColumn[`PlainTable; ; `float]; `c3; {x}];
+        "ColumnNotFoundError: [c3]"]

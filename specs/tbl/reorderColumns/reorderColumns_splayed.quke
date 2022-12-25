@@ -14,5 +14,5 @@ feature Reorder columns of a splayed table.
   should reorder columns of a splayed table.
     expect the columns reordered in the table.
       .qtk.tbl.reorderColumns[`SplayedTable; `c2`c1];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c2`c1]

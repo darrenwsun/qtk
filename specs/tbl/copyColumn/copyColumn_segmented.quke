@@ -17,5 +17,5 @@ feature Copy an existing column to a new column for a segmented table.
   should copy a column to a new column for a segmented table.
     expect the new column have the same value as the specified column.
       .qtk.tbl.copyColumn[`SegmentedTable;`c2;`c3];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[exec c3 from select c3 from SegmentedTable; exec c2 from select c2 from SegmentedTable]

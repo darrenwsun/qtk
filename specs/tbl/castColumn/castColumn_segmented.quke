@@ -1,0 +1,25 @@
+feature Cast the datatype of a column of a segmented table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_copyColumn_segmented";
+    .qutils.segment1:"/tmp/hdb_copyColumn_segment1";
+    .qutils.segment2:"/tmp/hdb_copyColumn_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should cast a column of a partitioned table to a new type.
+    expect the column to be casted to a new type specified by type name.
+      .qtk.tbl.castColumn[`SegmentedTable; `c1; `float];
+      .qtk.db.reload[];
+      .qu.compare[(meta[SegmentedTable]`c1)`t; "f"]
+    expect the column to be casted to a new type specified by type character.
+      .qtk.tbl.castColumn[`SegmentedTable; `c1; "f"];
+      .qtk.db.reload[];
+      .qu.compare[(meta[SegmentedTable]`c1)`t; "f"]

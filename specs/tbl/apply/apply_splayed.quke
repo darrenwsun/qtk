@@ -14,5 +14,5 @@ feature Apply a function to a column of a splayed table.
   should apply a function to a column of a splayed table and save.
     expect the column has the function-applied values.
       .qtk.tbl.apply[`SplayedTable; `c1; string];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[exec c1 from SplayedTable; ("aa";"bb")]

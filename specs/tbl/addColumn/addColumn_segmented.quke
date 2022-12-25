@@ -17,5 +17,5 @@ feature Add a column to a segmented table.
   should add a column to a segmented table with a default value.
     expect the column added to the table.
       .qtk.tbl.addColumn[`SegmentedTable;`c2;`test];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols SegmentedTable; `date`c1`c2]

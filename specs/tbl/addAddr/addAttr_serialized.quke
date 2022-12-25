@@ -1,0 +1,16 @@
+feature Add attribute to a column of a serialized table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_addAttr_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should add an attribute to a column of a serialized table.
+    expect the attribute added to the column.
+      .qtk.tbl.addAttr[.qutils.tabRef; `c1; `p];
+      .qu.compare[(meta[get .qutils.tabRef]`c1)`a; `p]

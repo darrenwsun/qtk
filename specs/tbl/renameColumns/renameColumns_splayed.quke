@@ -14,5 +14,5 @@ feature Rename column(s) of a splayed table.
   should rename columns of a splayed table.
     expect the columns renamed in the table.
       .qtk.tbl.renameColumns[`SplayedTable; `c1`c2!`c11`c12];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c11`c12]

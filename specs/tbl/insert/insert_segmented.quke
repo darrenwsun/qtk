@@ -17,7 +17,7 @@ feature Insert data into a segmented table.
   should insert full data into a segmented table, when the table reference is a full path.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[
         select from SegmentedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
@@ -27,7 +27,7 @@ feature Insert data into a segmented table.
   should insert full data into a segmented table, when the table reference is the table name.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[`SegmentedTable; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[
         select from SegmentedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
@@ -37,7 +37,7 @@ feature Insert data into a segmented table.
   should insert partial data into a segmented table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[`SegmentedTable; ([] date:2022.01.01 2022.01.02; c2:`b`d)];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[
         select from SegmentedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"";"cc";""); c2:`a`b`c`d)]

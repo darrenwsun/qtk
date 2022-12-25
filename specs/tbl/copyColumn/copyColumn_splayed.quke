@@ -14,5 +14,5 @@ feature Copy an existing column to a new column for a splayed table.
   should copy a column to a new column for a splayed table.
     expect the new column have the same value as the specified column.
       .qtk.tbl.copyColumn[`SplayedTable; `c2; `c3];
-      system "l .";
+      .qtk.db.reload[];
       .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]

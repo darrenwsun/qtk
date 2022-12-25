@@ -1,0 +1,22 @@
+feature Cast the datatype of a column of a partitioned table.
+
+  before each
+    import "db";
+    import "tbl";
+    .qutils.hdbRoot:"/tmp/hdb_castColumn_partitioned";
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should cast a column of a partitioned table to a new type.
+    expect the column to be casted to a new type specified by type name.
+      .qtk.tbl.castColumn[`PartitionedTable; `c1; `float];
+      .qtk.db.reload[];
+      .qu.compare[(meta[PartitionedTable]`c1)`t; "f"]
+    expect the column to be casted to a new type specified by type character.
+      .qtk.tbl.castColumn[`PartitionedTable; `c1; "f"];
+      .qtk.db.reload[];
+      .qu.compare[(meta[PartitionedTable]`c1)`t; "f"]

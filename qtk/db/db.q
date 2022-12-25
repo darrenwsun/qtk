@@ -151,50 +151,6 @@ import "err";
 
 // @kind function
 // @subcategory db
-// @overview Cast the datatype of a column.
-// @param tableName {symbol} Table name.
-// @param column {symbol} Name of new column to be added.
-// @param newType {symbol | char} Name or char code of the new type.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
-.qtk.db.castColumn:{[tableName;column;newType]
-  .qtk.tbl.apply[tableName; column; newType$]
- };
-
-// @kind function
-// @subcategory db
-// @overview Add an attribute to a column.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name of the table.
-// @param newAttr {symbol} Attribute to be added to the column.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError} If `column` doesn't exist.
-// @doctest
-// system "l qtk/pkg.q";
-// .pkg.add enlist "qtk";
-// .q.import "db";
-//
-// `t set ([]c1:til 3);
-// .qtk.db.addAttr[`t; `c1; `s];
-// `s=attr t`c1
-.qtk.db.addAttr:{[tableName;column;newAttr]
-  .qtk.tbl.apply[tableName; column; newAttr#]
- };
-
-// @kind function
-// @subcategory db
-// @overview Remove attribute from a column.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name of the table.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} where If `column` doesn't exist.
-.qtk.db.removeAttr:{[tableName;column]
-  .qtk.db.addAttr[tableName; column; `]
- };
-
-
-// @kind function
-// @subcategory db
 // @overview Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.
 // @param tableName {symbol} Table name.
 // @param refPartition {date | month | int} A partition to which the other partitions refer.
@@ -310,6 +266,22 @@ import "err";
    ]
  };
 
+// @kind function
+// @subcategory db
+// @overview Load database in a given directory.
+// @param dir {string | hsym} Directory.
+.qtk.db.load:{[dir]
+  dirStr:$[10h=type dir; dir; 1_string dir];
+  system "l ",dirStr;
+ };
+
+// @kind function
+// @subcategory db
+// @overview Reload current database.
+.qtk.db.reload:{
+  .qtk.db.load enlist".";
+ };
+
 /////////////////////////////////////////////
 // private functions
 /////////////////////////////////////////////
@@ -389,30 +361,6 @@ import "err";
 .qtk.db._enumerateAgainst:{[dir;domain;val]
   if[11<>abs type val; :val];
   .Q.dd[dir; domain]?val
- };
-
-// @kind function
-// @private
-// @overview Add a table to a path.
-// @param dbDir {hsym} DB directory.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param data {table} Table data.
-// @return {hsym} The path to the table.
-.qtk.db._addTable:{[dbDir;tablePath;data]
-  @[tablePath; `; :; .Q.en[dbDir; data]];
-  tablePath
- };
-
-// @kind function
-// @private
-// @overview Rename an on-disk table.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param newName {hsym} New table name.
-// @return {hsym} Path to the renamed table in the partition.
-.qtk.db._renameTable:{[tablePath;newName]
-  newTablePath:.Q.dd[first[` vs tablePath]; newName];
-  .qtk.os.move[tablePath; newTablePath];
-  newTablePath
  };
 
 // @kind function
