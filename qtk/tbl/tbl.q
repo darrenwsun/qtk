@@ -841,39 +841,43 @@
 // @kind function
 // @subcategory tbl
 // @overview Apply a function to a column of a table.
-// @param tableName {symbol} Table name.
-// @param column {symbol} Name of new column to be added.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param column {symbol} Column where the function will be applied.
 // @param function {fn(any[]) -> any[]} Function to be applied.
-// @return {symbol} The table name.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.apply[`t;`c1; 2*];
-// 0 2~t`c1
-.qtk.tbl.apply:{[tableName;column;function]
-  .qtk.tbl._validateColumnExists[tableName; column];
+// tabRef~.qtk.tbl.apply[tabRef; `c1; 2*]
+.qtk.tbl.apply:{[tabRef;column;function]
+  .qtk.tbl._validateColumnExists[tabRef; column];
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
   $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[column]!enlist[(function;column)]];
+    ![tabRef; (); 0b; enlist[column]!enlist[(function;column)]];
     tableType=`Serialized;
-    tableName set ![get tableName; (); 0b; enlist[column]!enlist[(function;column)]];
+    tabRef set ![get tabRef; (); 0b; enlist[column]!enlist[(function;column)]];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._apply[tablePath; column; function];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._apply[; column; function] each tablePaths;
       ]
    ];
 
-  tableName
+  tabRef
  };
 
 // @kind function

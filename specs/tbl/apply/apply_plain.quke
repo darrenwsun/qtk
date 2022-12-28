@@ -1,12 +1,11 @@
 feature Apply a function to a column of a plain table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:`aa`bb)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should apply a function to a column of a plain table and save.
     expect the column has the function-applied values.

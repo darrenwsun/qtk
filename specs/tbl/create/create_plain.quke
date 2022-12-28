@@ -1,7 +1,6 @@
 feature Create a new plain table with given data.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
 
   after each

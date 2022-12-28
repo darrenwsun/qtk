@@ -1,7 +1,6 @@
 feature Get table type of a plain table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     `PlainTable set ([] c1:1 2 3; c2:`a`b`c);
 

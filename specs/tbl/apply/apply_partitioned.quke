@@ -1,7 +1,6 @@
 feature Apply a function to a column of a partitioned table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_copyColumn_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
@@ -9,10 +8,16 @@ feature Apply a function to a column of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `PartitionedTable;
 
-  should apply a function to a column of a partitioned table and save.
+  should apply a function to a column of a partitioned table specified by table name.
     expect the column has the function-applied values.
       .qtk.tbl.apply[`PartitionedTable; `c1; string];
+      .qtk.db.reload[];
+      .qu.compare[exec c1 from select c1 from PartitionedTable; ("aa";"bb")]
+
+  should apply a function to a column of a partitioned table specified by partitioned table ID.
+    expect the column has the function-applied values.
+      .qtk.tbl.apply[.qutils.tabRef; `c1; string];
       .qtk.db.reload[];
       .qu.compare[exec c1 from select c1 from PartitionedTable; ("aa";"bb")]

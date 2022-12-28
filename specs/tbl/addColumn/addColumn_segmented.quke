@@ -1,7 +1,6 @@
 feature Add a column to a segmented table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_insert_segmented";
     .qutils.segment1:"/tmp/hdb_insert_segment1";

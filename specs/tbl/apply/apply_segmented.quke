@@ -1,7 +1,6 @@
 feature Apply a function to a column of a segmented table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_apply_segmented";
     .qutils.segment1:"/tmp/hdb_apply_segment1";
@@ -12,10 +11,16 @@ feature Apply a function to a column of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop `SegmentedTable;
 
-  should apply a function to a column of a segmented table and save.
+  should apply a function to a column of a segmented table specified by table name.
     expect the column has the function-applied values.
       .qtk.tbl.apply[`SegmentedTable; `c1; string];
+      .qtk.db.reload[];
+      .qu.compare[exec c1 from select c1 from SegmentedTable; ("aa";"bb")]
+
+  should apply a function to a column of a segmented table specified by partitioned table ID.
+    expect the column has the function-applied values.
+      .qtk.tbl.apply[.qutils.tabRef; `c1; string];
       .qtk.db.reload[];
       .qu.compare[exec c1 from select c1 from SegmentedTable; ("aa";"bb")]

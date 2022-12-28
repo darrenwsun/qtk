@@ -1,7 +1,6 @@
 feature Check if a column exists in a plain table.
 
   before
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     `PlainTable set ([] c1:1 0; c2:10b);
 

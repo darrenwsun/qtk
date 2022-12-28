@@ -1,7 +1,6 @@
 feature Rename a plain table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 

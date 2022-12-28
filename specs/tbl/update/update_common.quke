@@ -1,7 +1,6 @@
 feature Update values in certain columns of a plain table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     `PlainTable set ([] c1:1 2 3 4 5);
 

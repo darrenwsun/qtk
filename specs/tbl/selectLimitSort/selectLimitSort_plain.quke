@@ -1,7 +1,6 @@
 feature Select from a plain table based on given criteria, groupings, and column mappings, in a similar format to functional select.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:("bb";"aa";"cc"); c2:`b`a`c)];
 

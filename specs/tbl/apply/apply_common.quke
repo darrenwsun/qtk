@@ -1,12 +1,11 @@
 feature Apply a function to a column.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:`a`b)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.

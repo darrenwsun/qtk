@@ -1,7 +1,6 @@
 feature Check if a plain table of given name exists.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
 
   after each

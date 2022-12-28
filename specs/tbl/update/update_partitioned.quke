@@ -1,7 +1,6 @@
 feature Update values in certain columns of a partitioned table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_update_partitioned";
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set ([] c1:1 2 3 4 5);
