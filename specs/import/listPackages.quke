@@ -1,0 +1,12 @@
+feature List all packages.
+
+  before each
+    .qtk.import.addPackage[`qtk; getenv `QTK];
+
+  should list all loaded packages.
+    expect all loaded packages
+      // column `path` varies under different setups so it's excluded from the comparison
+      .qu.compare[
+        exec name from .qtk.import.listPackages[];
+        enlist`qtk
+      ]

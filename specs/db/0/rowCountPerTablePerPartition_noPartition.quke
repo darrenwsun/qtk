@@ -1,8 +1,8 @@
 feature Row count of each partitioned table per partition.
 
   before
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
 
   should raise error "RuntimeError: no partition" if the database has no partition.
     expect error "RuntimeError: no partition"

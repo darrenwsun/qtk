@@ -1,0 +1,16 @@
+feature Remove a package.
+
+  after each
+    .qtk.import.addPackage[`qtk; getenv `QTK];
+
+  should remove a package.
+    expect `1b` from the function call
+      .qtk.import.removePackage[`qtk]
+    expect the package not added
+      not `qtk in exec name from .qtk.import.listPackages[]
+
+  should have no effect for an non-existent package
+    expect `0b` from the function call
+      not .qtk.import.removePackage[`noexist]
+    expect the package not added
+      not `noexist in exec name from .qtk.import.listPackages[]

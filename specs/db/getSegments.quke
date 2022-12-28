@@ -1,8 +1,8 @@
 feature Get all segments.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_getSegment";
     .qutils.segment1:"/tmp/hdb_segment1";
     .qutils.segment2:"/tmp/hdb_segment2";

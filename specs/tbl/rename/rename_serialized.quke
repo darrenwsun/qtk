@@ -1,8 +1,8 @@
 feature Rename a serialized table.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_rename_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qutils.tabRefNew:hsym `$.qutils.hdbRoot,"/NewSerializedTable";

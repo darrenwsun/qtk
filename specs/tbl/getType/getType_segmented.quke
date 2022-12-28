@@ -1,8 +1,8 @@
 feature Get table type of a segmented table.
 
   before
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_getType_segmented";
     .qutils.segment1:"/tmp/hdb_getType_segment1";
     .qutils.segment2:"/tmp/hdb_getType_segment2";

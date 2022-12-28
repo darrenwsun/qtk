@@ -1,8 +1,8 @@
 feature Select from a segmented table based on given criteria, groupings, and column mappings, in a similar format to functional select.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_select_segmented";
     .qutils.segment1:"/tmp/hdb_select_segment1";
     .qutils.segment2:"/tmp/hdb_select_segment2";

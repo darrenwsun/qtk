@@ -1,0 +1,15 @@
+feature List all loaded modules.
+
+  before each
+    .qtk.import.clearModules[];
+    .qtk.import.loadModule["os";`qtk];
+
+  after each
+    .qtk.import.clearModules[];
+
+  should list all loaded modules.
+    expect all loaded packages
+      .qu.compare[
+        exec name from .qtk.import.listModules[];
+        enlist`os
+      ]

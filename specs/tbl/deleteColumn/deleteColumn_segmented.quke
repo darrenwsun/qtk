@@ -1,8 +1,8 @@
 feature Delete a column from a partitioned table.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_deleteColumn_segmented";
     .qutils.segment1:"/tmp/hdb_deleteColumn_segment1";
     .qutils.segment2:"/tmp/hdb_deleteColumn_segment2";

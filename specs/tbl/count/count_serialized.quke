@@ -1,8 +1,8 @@
 feature Count rows of a serialized table.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_count_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];

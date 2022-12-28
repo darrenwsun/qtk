@@ -1,0 +1,43 @@
+feature Search for a module.
+
+  should get a path to the found module whose name is of string format.
+    expect a path to the found module.
+      .qu.compare[
+        .qtk.import.searchModule["tbl"; `qtk];
+        .Q.dd[.qtk.import.Package[`qtk;`path]; `tbl]
+      ]
+
+  should get a path to the found module whose name is of symbol format.
+    expect a path to the found module.
+      .qu.compare[
+        .qtk.import.searchModule[`tbl; `qtk];
+        .Q.dd[.qtk.import.Package[`qtk;`path]; `tbl]
+      ]
+
+  should get a path to the found module which is a single script without .q suffix.
+    expect a path to the found module.
+      .qu.compare[
+        .qtk.import.searchModule["tbl/tbl"; `qtk];
+        .Q.dd[.qtk.import.Package[`qtk;`path]; `$"tbl/tbl.q"]
+      ]
+
+  should raise error "PackageNotFoundError: [*]" if the package is not found.
+    expect error "PackageNotFoundError: os"
+      .qu.compare[
+        .[.qtk.import.searchModule; ("any"; `noexist); {x}];
+        "PackageNotFoundError: noexist"
+      ]
+
+  should raise error "ModuleNotFoundError: [*]" if the module is not found.
+    expect error "ModuleNotFoundError: noexist"
+      .qu.compare[
+        .[.qtk.import.searchModule; ("noexist"; `qtk); {x}];
+        "ModuleNotFoundError: noexist"
+      ]
+
+  should raise error "ModuleNameError: [*]" if the module name is not valid.
+    expect error "ModuleNameError: tbl/tbl.q"
+      .qu.compare[
+        .[.qtk.import.searchModule; ("tbl/tbl.q"; `qtk); {x}];
+        "ModuleNameError: tbl/tbl.q"
+      ]

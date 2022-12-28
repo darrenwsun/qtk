@@ -1,7 +1,3 @@
-import "qdate.q_";
-
-import "os";
-import "err";
 
 // @kind function
 // @subcategory db

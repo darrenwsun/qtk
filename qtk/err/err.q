@@ -2,7 +2,8 @@
 
 // @kind data
 // @overview Error types.
-.qtk.err.Error:`u#`ColumnExistsError`ColumnNotFoundError`FileNotFoundError`NameError`NotADirectoryError`RuntimeError,
+.qtk.err.Error:`u#`ColumnExistsError`ColumnNotFoundError`DirectoryNotFoundError`FileNotFoundError`ImportError,
+  `ModuleNameError`ModuleNotFoundError`NameError`NotADirectoryError`PackageNotFoundError`RuntimeError,
   `ValueError`SchemaError`TableTypeError`TypeError`UnknownError;
 
 

@@ -1,8 +1,8 @@
 feature Get partition field.
 
   before
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
 
   should give partition field of a partitioned database.
     expect partition field of the current database.

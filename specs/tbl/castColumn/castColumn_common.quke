@@ -1,8 +1,8 @@
 feature Cast the datatype of a column.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 
   after each

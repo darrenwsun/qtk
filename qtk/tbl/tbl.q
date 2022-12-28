@@ -1,5 +1,5 @@
-import "type";
-import "utils";
+.qtk.import.loadModule["type";`qtk];
+.qtk.import.loadModule["utils";`qtk];
 
 // @kind function
 // @subcategory db
@@ -12,9 +12,7 @@ import "utils";
 // @return {symbol} Table type.
 // @throws {ValueError: [*]} If `t` isn't a valid value.
 // @doctest A plain table.
-// system "l qtk/pkg.q";
-// .pkg.add enlist "qtk";
-// .q.import "db";
+// .qtk.import.loadModule["db";`qtk];
 //
 // t:([]c1:til 3);
 // `Plain=.qtk.tbl.getType t
@@ -641,9 +639,6 @@ import "utils";
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
 .qtk.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.qtk.os.path.isFile newColumnPath;
-     .qtk.db._renameColumnOnDisk[newColumnPath; `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
-   ];
   .qtk.os.move[oldColumnPath; newColumnPath];
   if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
      .qtk.os.move[dataFile; `$string[newColumnPath],"#"]
@@ -748,9 +743,6 @@ import "utils";
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
 .qtk.tbl._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
-  if[.qtk.os.path.isFile newColumnPath;
-     .qtk.db._renameColumnOnDisk[newColumnPath; hsym `$string[newColumnPath],"_",.qdate.print["%Y%m%d_%H%M%S"; .z.d]]
-   ];
   .qtk.os.copy[oldColumnPath; newColumnPath];
   if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
      .qtk.os.copy[dataFile; `$string[newColumnPath],"#"]
@@ -831,9 +823,7 @@ import "utils";
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
-// system "l qtk/pkg.q";
-// .pkg.add enlist "qtk";
-// .q.import "db";
+// .qtk.import.loadModule["db";`qtk];
 //
 // `t set ([]c1:til 3);
 // .qtk.tbl.addAttr[`t; `c1; `s];

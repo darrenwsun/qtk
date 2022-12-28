@@ -1,0 +1,51 @@
+feature Load a module.
+
+  after each
+    .qtk.import.unloadModule `tbl;
+
+  should load a module whose name is of string format.
+    expect `1b` from the function call
+      .qtk.import.loadModule["tbl"; `qtk]
+    expect the module to be listed
+      `tbl in exec name from .qtk.import.listModules[]
+
+  should load a module whose name is of symbol format.
+    expect `1b` from the function call
+      .qtk.import.loadModule[`tbl; `qtk]
+    expect the module to be listed
+      `tbl in exec name from .qtk.import.listModules[]
+
+  should have no effect for an loaded module.
+    expect `0b` from the function call
+      .qtk.import.loadModule["tbl"; `qtk];
+      .qtk.import.loadModule["tbl"; `qtk]
+    expect the module to be listed
+      `tbl in exec name from .qtk.import.listModules[]
+
+  should have no effect for a module whose parent module has been loaded.
+    expect `0b` from the function call
+      .qtk.import.loadModule["import"; `qtk];
+      not .qtk.import.loadModule["import/import"; `qtk]
+    expect the module to be listed
+      `import in exec name from .qtk.import.listModules[]
+
+  should raise error "PackageNotFoundError: [*]" if the package is not found.
+    expect error "PackageNotFoundError: os"
+      .qu.compare[
+        .[.qtk.import.loadModule; ("any"; `noexist); {x}];
+        "PackageNotFoundError: noexist"
+      ]
+
+  should raise error "ModuleNotFoundError: [*]" if the module is not found.
+    expect error "ModuleNotFoundError: noexist"
+      .qu.compare[
+        .[.qtk.import.loadModule; ("noexist"; `qtk); {x}];
+        "ModuleNotFoundError: noexist"
+      ]
+
+  should raise error "ModuleNameError: [*]" if the module name is not valid.
+    expect error "ModuleNameError: tbl/tbl.q"
+      .qu.compare[
+        .[.qtk.import.searchModule; ("tbl/tbl.q"; `qtk); {x}];
+        "ModuleNameError: tbl/tbl.q"
+      ]

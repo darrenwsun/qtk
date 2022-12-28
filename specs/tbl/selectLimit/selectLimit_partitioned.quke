@@ -1,8 +1,8 @@
 feature Select from a partitioned table based on given criteria, groupings, and column mappings, in a similar format to functional select.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_selectLimit_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.01; c1:("aa";"bb";"cc"); c2:`a`b`a)];

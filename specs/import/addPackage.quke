@@ -1,0 +1,37 @@
+feature Add a package specified by a name and a path.
+
+  before each
+    .qtk.import.removePackage `qtk;
+
+  should add a package whose path is specified via a string.
+    expect `1b` from the function call
+      .qtk.import.addPackage[`qtk; getenv `QTK]
+    expect the path in `.qtk.import.Package`
+      `qtk in exec name from .qtk.import.Package
+
+  should add a package whose path is specified via a hsym.
+    expect `1b` from the function call
+      .qtk.import.addPackage[`qtk; hsym `$getenv `QTK]
+    expect the path in `.qtk.import.Package`
+      `qtk in exec name from .qtk.import.Package
+
+  should have no effect for an existent package
+    expect `0b` from the function call
+      .qtk.import.addPackage[`qtk; hsym `$getenv `QTK];
+      not .qtk.import.addPackage[`qtk; hsym `$getenv `QTK]
+    expect the path in `.qtk.import.Package`
+      `qtk in exec name from .qtk.import.Package
+
+  should raise error "DirectoryNotFoundError: [*]" if the path doesn't exist.
+    expect error "DirectoryNotFoundError: /var/noexist"
+      .qu.compare[
+        .[.qtk.import.addPackage; (`noexist; "/var/noexist"); {x}];
+        "DirectoryNotFoundError: /var/noexist"
+      ]
+
+  should raise error "NotADirectoryError: [*]" if the path is not a directory.
+    expect error "NotADirectoryError: /bin/bash"
+      .qu.compare[
+        .[.qtk.import.addPackage; (`bash; "/bin/bash"); {x}];
+        "NotADirectoryError: /bin/bash"
+      ]

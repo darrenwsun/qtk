@@ -1,8 +1,8 @@
 feature Apply a function to a column.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:`a`b)];
 
   after each

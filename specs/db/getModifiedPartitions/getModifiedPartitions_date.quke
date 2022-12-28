@@ -1,8 +1,8 @@
 feature Get all modified partitions when `date` is the partition field.
 
   before
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_getModifiedPartitions_date";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set .Q.en[hsym `$.qutils.hdbRoot;] ([] c1:1 2; c2:`a`b);

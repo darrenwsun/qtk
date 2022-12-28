@@ -1,8 +1,8 @@
 feature Slice a splayed table.
 
   before
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_slice_partitioned";
     PartitionedTable:([] c1:1 2 3);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set PartitionedTable;

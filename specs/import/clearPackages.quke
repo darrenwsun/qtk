@@ -1,0 +1,12 @@
+feature Clear all packages.
+
+  after each
+    .qtk.import.addPackage[`qtk; getenv `QTK];
+
+  should clear all loaded packages.
+    expect all loaded packages cleared
+      .qtk.import.clearPackages[];
+      .qu.compare[
+        .qtk.import.Package;
+        ([name:`$()]path:`$())
+      ]

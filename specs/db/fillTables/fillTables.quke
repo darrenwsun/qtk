@@ -1,8 +1,8 @@
 feature Fill all tables missing in some partitions.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_fillTables";
     Table:([] c1:10b; c2:1 2);
     (hsym `$.qutils.hdbRoot,"/2022.01.01/T1/") set Table;

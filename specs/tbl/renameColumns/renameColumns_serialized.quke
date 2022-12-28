@@ -1,8 +1,8 @@
 feature Rename columns of a serialized table.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_renameColumns_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];

@@ -1,8 +1,8 @@
 feature Get entries at given indices of a partitioned table.
 
   before each
-    import "db";
-    import "tbl";
+    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_index_segmented";
     .qutils.segment1:"/tmp/hdb_index_segment1";
     .qutils.segment2:"/tmp/hdb_index_segment2";
