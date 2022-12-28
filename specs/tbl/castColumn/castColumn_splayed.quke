@@ -8,7 +8,7 @@ feature Cast the datatype of a column.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should cast a column of a plain table to a new type.
     expect the column to be casted to a new type specified by type name.

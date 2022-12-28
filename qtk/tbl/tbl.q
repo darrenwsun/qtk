@@ -522,6 +522,7 @@
 // tabRef:(`:/tmp/qtk/tbl/addColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
+// // Or replace tabRef with PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.addColumn[tabRef; `c2; 0n]
 .qtk.tbl.addColumn:{[tabRef;column;columnValue]
   .qtk.tbl._validateColumnName column;
@@ -852,6 +853,7 @@
 // tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
+// // Or replace tabRef with PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.apply[tabRef; `c1; 2*]
 .qtk.tbl.apply:{[tabRef;column;function]
   .qtk.tbl._validateColumnExists[tabRef; column];
@@ -867,13 +869,13 @@
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      .qtk.tbl._apply[tablePath; column; function];
+      .qtk.tbl._apply[dbDir; tablePath; column; function];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
-      .qtk.tbl._apply[; column; function] each tablePaths;
+      .qtk.tbl._apply[dbDir; ; column; function] each tablePaths;
       ]
    ];
 
@@ -887,14 +889,14 @@
 // @param column {symbol} A column name of the table.
 // @param function {function} Function to be applied to the column.
 // @return {hsym} The path to the table.
-.qtk.tbl._apply:{[tablePath;column;function]
+.qtk.tbl._apply:{[dbDir;tablePath;column;function]
   columnPath:.Q.dd[tablePath; column];
   oldValue:get columnPath;
   oldAttr:attr oldValue;
   newValue:function oldValue;
   newAttr:attr newValue;
   if[(not oldValue~newValue) or (not oldAttr~newAttr);
-     .[columnPath; (); :; newValue]
+     .[columnPath; (); :; .qtk.db._enumerateAgainst[dbDir;`sym;newValue]]
    ];
   tablePath
  };
@@ -902,20 +904,21 @@
 // @kind function
 // @subcategory tbl
 // @overview Cast the datatype of a column of a table.
-// @param tableName {symbol} Table name.
-// @param column {symbol} Name of new column to be added.
-// @param newType {symbol | char} Name or character code of the new type.
-// @return {symbol} The table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param column {symbol} Column whose datatype will be casted.
+// @param newType {symbol | char} Name or character code of the new data type.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/castColumn; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.castColumn[`t; `c1; `int];
-// 0 1i~t`c1
-.qtk.tbl.castColumn:{[tableName;column;newType]
-  .qtk.tbl.apply[tableName; column; newType$]
+// // Or replace tabRef with PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.castColumn[tabRef; `c1; `int]
+.qtk.tbl.castColumn:{[tabRef;column;newType]
+  .qtk.tbl.apply[tabRef; column; newType$]
  };
 
 // @kind function

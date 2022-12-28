@@ -5,7 +5,7 @@ feature Cast the datatype of a column of a plain table.
     .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should cast a column of a plain table to a new type.
     expect the column to be casted to a new type specified by type name.
