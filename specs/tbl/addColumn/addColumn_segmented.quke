@@ -12,10 +12,16 @@ feature Add a column to a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop `SegmentedTable;
 
-  should add a column to a segmented table with a default value.
+  should add a column to a segmented table specified by table name.
     expect the column added to the table.
       .qtk.tbl.addColumn[`SegmentedTable;`c2;`test];
+      .qtk.db.reload[];
+      .qu.compare[cols SegmentedTable; `date`c1`c2]
+
+  should add a column to a segmented table specified by partitioned table ID.
+    expect the column added to the table.
+      .qtk.tbl.addColumn[.qutils.tabRef; `c2; `test];
       .qtk.db.reload[];
       .qu.compare[cols SegmentedTable; `date`c1`c2]

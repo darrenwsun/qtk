@@ -1,12 +1,11 @@
-feature Add a column to a table.
+feature Add a column to a table (erroneous cases).
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should raise error "NameError: invalid column name [*]" if the colum name is not valid.
     expect error "NameError: invalid column name [*]" if the colum name is not valid.

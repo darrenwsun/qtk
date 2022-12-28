@@ -89,7 +89,7 @@
 // @kind function
 // @subcategory db
 // @overview Get partition field of a database under a directory.
-// @param {#hsym} A database directory.
+// @param {hsym} A database directory.
 // @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
 // if the database is not a partitioned database.
 .qtk.db.getPartitionField:{[dbDir]

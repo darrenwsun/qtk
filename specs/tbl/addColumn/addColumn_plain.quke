@@ -1,12 +1,11 @@
 feature Add a column to a plain table.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"))];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should add a column to a plain table with a default value.
     expect the column added to the table.

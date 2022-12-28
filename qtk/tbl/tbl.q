@@ -510,19 +510,19 @@
 // @kind function
 // @subcategory tbl
 // @overview Add a column to a table with a given value.
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param column {symbol} Name of new column to be added.
-// @param columnValue {*} Value to be set on the new column.
-// @return {symbol} The table name.
+// @param columnValue {any} Value to be set on the new column.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {NameError} If `column` is not a valid name.
 // @throws {ColumnExistsError} If `column` already exists.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/addColumn; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.addColumn[`t; `c2; 0n];
-// 0n 0n~t`c2
+// tabRef~.qtk.tbl.addColumn[tabRef; `c2; 0n]
 .qtk.tbl.addColumn:{[tabRef;column;columnValue]
   .qtk.tbl._validateColumnName column;
   .qtk.tbl._validateColumnNotExists[tabRef; column];
@@ -843,7 +843,7 @@
 // @overview Apply a function to a column of a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
-// @param function {fn(#any[]) -> #any[]} Function to be applied.
+// @param function {fn(any[]) -> any[]} Function to be applied.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
