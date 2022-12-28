@@ -1,4 +1,4 @@
-feature Copy an existing column to a new column.
+feature Copy an existing column to a new column (erroneous cases).
 
   before each
     .qtk.import.loadModule["tbl";`qtk];

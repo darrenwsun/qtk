@@ -11,10 +11,16 @@ feature Copy an existing column to a new column for a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop `SegmentedTable;
 
   should copy a column to a new column for a segmented table.
     expect the new column have the same value as the specified column.
       .qtk.tbl.copyColumn[`SegmentedTable;`c2;`c3];
+      .qtk.db.reload[];
+      .qu.compare[exec c3 from select c3 from SegmentedTable; exec c2 from select c2 from SegmentedTable]
+
+  should copy a column to a new column for a segmented table, when the table is specified by partitioned table ID.
+    expect the new column have the same value as the specified column.
+      .qtk.tbl.copyColumn[.qutils.tabRef;`c2;`c3];
       .qtk.db.reload[];
       .qu.compare[exec c3 from select c3 from SegmentedTable; exec c2 from select c2 from SegmentedTable]

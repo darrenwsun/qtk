@@ -8,10 +8,16 @@ feature Copy an existing column to a new column for a splayed table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should copy a column to a new column for a splayed table.
     expect the new column have the same value as the specified column.
       .qtk.tbl.copyColumn[`SplayedTable; `c2; `c3];
+      .qtk.db.reload[];
+      .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]
+
+  should copy a column to a new column for a splayed table, when the table is specified by hsym.
+    expect the new column have the same value as the specified column.
+      .qtk.tbl.copyColumn[.qutils.tabRef; `c2; `c3];
       .qtk.db.reload[];
       .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]

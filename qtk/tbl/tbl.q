@@ -461,6 +461,7 @@
 // tabRef:(`:/tmp/qtk/tbl/columnExists; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
+// Or replace tabRef with PartitionedTable if the database is loaded
 // .qtk.tbl.columnExists[tabRef;`c1]
 .qtk.tbl.columnExists:{[tabRef;column]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -771,43 +772,49 @@
 // @kind function
 // @subcategory tbl
 // @overview Copy an existing column of a table to a new column.
-// @param tableName {symbol} Table name.
-// @param sourceColumn {symbol} Source column.
-// @param targetColumn {symbol} Target column.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
-// @throws {ColumnExistsError: [*]} If `targetColumn` exists.
-// @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param sourceColumn {symbol} Source column to copy from.
+// @param targetColumn {symbol} Target column to copy to.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @throws {ColumnNotFoundError} If `sourceColumn` doesn't exist.
+// @throws {ColumnExistsError} If `targetColumn` exists.
+// @throws {NameError} If name of `targetColumn` is not valid.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.copyColumn[`t; `c1; `c2];
-// 0 1~t`c2
-.qtk.tbl.copyColumn:{[tableName;sourceColumn;targetColumn]
-  .qtk.tbl._validateColumnExists[tableName; sourceColumn];
-  .qtk.tbl._validateColumnNotExists[tableName; targetColumn];
+// Or replace tabRef with PartitionedTable if the database is loaded
+// .qtk.tbl.copyColumn[tabRef; `c1; `c2];
+// .qtk.tbl.columnExists[tabRef; `c2]
+.qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
+  .qtk.tbl._validateColumnExists[tabRef; sourceColumn];
+  .qtk.tbl._validateColumnNotExists[tabRef; targetColumn];
   .qtk.tbl._validateColumnName targetColumn;
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
   $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
+    ![tabRef; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     tableType=`Serialized;
-    tableName set ![get tableName; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
+    tabRef set ![get tabRef; (); 0b; enlist[targetColumn]!enlist[sourceColumn]];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._copyColumn[tablePath; sourceColumn; targetColumn];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._copyColumn[; sourceColumn; targetColumn] each tablePaths;
       ]
    ];
 
-  tableName
+  tabRef
  };
 
 // @kind function

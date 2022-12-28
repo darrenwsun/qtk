@@ -5,7 +5,7 @@ feature Copy an existing column to a new column for a plain table.
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"))];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should copy a column to a new column for a plain table.
     expect the new column have the same value as the specified column.
