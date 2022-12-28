@@ -449,18 +449,19 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
-// appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
-// partitions.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name.
+// @overview Check if a column exists in a table.
+// For splayed tables, column existence requires that the column appears in `.d` file and its data file exists.
+// For partitioned tables, it requires the condition holds for all partitions.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param column {symbol} Column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/columnExists; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.columnExists[`t;`c1]
+// .qtk.tbl.columnExists[tabRef;`c1]
 .qtk.tbl.columnExists:{[tabRef;column]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
@@ -908,7 +909,7 @@
 // @param column {symbol} Column whose datatype will be casted.
 // @param newType {symbol | char} Name or character code of the new data type.
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+// @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
