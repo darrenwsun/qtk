@@ -13,6 +13,6 @@ feature Add attribute to a column of a partitioned table.
 
   should add an attribute to a column of a partitioned table.
     expect the attribute added to the column.
-      .qtk.tbl.addAttr[`PartitionedTable; `c1; `p];
+      .qtk.tbl.setAttr[`PartitionedTable; `c1; `p];
       .qtk.db.reload[];
       .qu.compare[(meta[PartitionedTable]`c1)`a; `p]

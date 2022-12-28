@@ -11,5 +11,5 @@ feature Remove attribute to a column.
   should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
     expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
       .qu.compare[
-        @[.qtk.tbl.addAttr[`PlainTable; ; `p]; `c3; {x}];
+        @[.qtk.tbl.setAttr[`PlainTable; ; `p]; `c3; {x}];
         "ColumnNotFoundError: [c3]"]

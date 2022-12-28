@@ -3,7 +3,7 @@
 .qtk.import.loadModule["db";`qtk];
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
 // classified as Partitioned.
 //
@@ -15,8 +15,8 @@
 // @doctest A plain table.
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 3);
 //
-// t:([]c1:til 3);
 // `Plain=.qtk.tbl.getType t
 .qtk.tbl.getType:{[t]
   v:$[-11h=type t;
@@ -45,13 +45,18 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Create a new table with given data.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
 // @param data {table} Table data.
 // @return {symbol} The table name.
 // @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+//
+// `PartitionedTable=.qtk.tbl.create[(`:/tmp/qtk; `date; `PartitionedTable); ([] date:2022.01.01 2022.01.02; c1:1 2)];
 .qtk.tbl.create:{[tabRef;data]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
@@ -93,7 +98,7 @@
 
 // @kind function
 // @private
-// @subcategory db
+// @subcategory tbl
 // @overview Return a table with a single row that matches a given table schema.
 // @param tabMeta {table)} Metadata of a table.
 // @return {table} An empty table with a single row that matches the metadata.
@@ -105,7 +110,7 @@
 
 // @kind function
 // @private
-// @subcategory db
+// @subcategory tbl
 // @overview Return an empty table that matches a given table schema.
 // @param tabMeta {table)} Metadata of a table.
 // @return {table} An empty table that matches the metadata.
@@ -114,7 +119,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Drop a table.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
@@ -144,7 +149,7 @@
 
 // @kind function
 // @private
-// @subcategory db
+// @subcategory tbl
 // @overview Describe a table reference.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
@@ -190,7 +195,7 @@
         [
           // tabRef is the table name
          dbDir:`:.;
-         parField:.Q.pf;
+         parField:.qtk.db.getPartitionField dbDir;
          tableName:tabRef
           ]
        ]
@@ -207,7 +212,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Insert data into a table.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
 // hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
@@ -249,7 +254,8 @@
  };
 
 // @kind function
-// @subcategory db
+// @private
+// @subcategory tbl
 // @overview Insert data into a table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
@@ -259,7 +265,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Update values in certain columns of a table, in a similar format to functional update.
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
@@ -279,7 +285,7 @@
       ];
     // tableType=`Partitioned
     [
-      partitionField:.qtk.db.getPartitionField[];
+      partitionField:.qtk.db.getCurrentPartitionField[];
       $[(first criteria)[1]~partitionField;
         [
           partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
@@ -333,7 +339,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Select from a table based on given criteria, groupings, and column mappings, in a similar format to functional select.
 // @param table {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
@@ -345,7 +351,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Similar to `.qtk.tbl.select` but with a limit on rows.
 // @param tableName {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
@@ -358,7 +364,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Similar to `.qtk.tbl.selectLimit` but with sorting.
 // @param tableName {symbol | table} Table name or value.
 // @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
@@ -378,7 +384,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Delete rows of a table given certain criteria.
 // @param tabRef {symbol | hsym} Table reference.
 // @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
@@ -399,7 +405,7 @@
       ];
     tableType=`Partitioned;
     [
-      parField:.qtk.db.getPartitionField[];
+      parField:.qtk.db.getCurrentPartitionField[];
       $[(first criteria)[1]~parField;
         [
           partitions:?[tabRef; enlist first criteria; 0b; (enlist parField)!(enlist parField)] parField;
@@ -442,34 +448,45 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
 // appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
 // partitions.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
-.qtk.tbl.columnExists:{[tableName;column]
-  tableType:.qtk.tbl.getType tableName;
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
+//
+// .qtk.tbl.columnExists[`t;`c1]
+.qtk.tbl.columnExists:{[tabRef;column]
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
   $[tableType=`Plain;
-    column in cols tableName;
+    column in cols tabRef;
     tableType=`Serialized;
-    column in cols get tableName;
+    column in cols get tabRef;
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._columnExists[tablePath; column]
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       // Can make the following part simpler by `all .qtk.tbl._columnExists[...]` at the cost of performance, due to inability
       // to return early
       partitionCount:count tablePaths;
       i:0;
       while[i<partitionCount;
             if[not .qtk.tbl._columnExists[tablePaths[i]; column]; :0b];
-            i +: 1
+            i+:1
        ];
       1b
       ]
@@ -491,42 +508,53 @@
  };
 
 // @kind function
-// @subcategory db
-// @overview Add a column to a table.
+// @subcategory tbl
+// @overview Add a column to a table with a given value.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
-// @param default {*} Value to be set on the new column.
+// @param columnValue {*} Value to be set on the new column.
 // @return {symbol} The table name.
-// @throws {NameError} If the column name is not valid.
-// @throws {ColumnExistsError} If the column exists.
-.qtk.tbl.addColumn:{[tableName;column;default]
+// @throws {NameError} If `column` is not a valid name.
+// @throws {ColumnExistsError} If `column` already exists.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
+//
+// .qtk.tbl.addColumn[`t; `c2; 0n];
+// 0n 0n~t`c2
+.qtk.tbl.addColumn:{[tabRef;column;columnValue]
   .qtk.tbl._validateColumnName column;
-  .qtk.tbl._validateColumnNotExists[tableName; column];
+  .qtk.tbl._validateColumnNotExists[tabRef; column];
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
   $[tableType=`Plain;
     [
-      if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
-      ![tableName; (); 0b; enlist[column]!enlist[default]];
+      if[-11h=type columnValue; columnValue:enlist columnValue];                         // enlist singleton symbol value
+      ![tabRef; (); 0b; enlist[column]!enlist[columnValue]];
       ];
     tableType=`Serialized;
     [
-      if[-11h=type default; default:enlist default];                      // enlist singleton symbol value
-      tableName set ![get tableName; (); 0b; enlist[column]!enlist[default]];
+      if[-11h=type columnValue; columnValue:enlist columnValue];                         // enlist singleton symbol value
+      tabRef set ![get tabRef; (); 0b; enlist[column]!enlist[columnValue]];
       ];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.tbl._addColumn[tablePath; column; .qtk.db._enumerate default];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.tbl._addColumn[tablePath; column; .qtk.db._enumerateAgainst[dbDir;`sym;columnValue]];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.tbl._addColumn[; column; .qtk.db._enumerate default] each tablePaths;
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
+      .qtk.tbl._addColumn[; column; .qtk.db._enumerateAgainst[dbDir;`sym;columnValue] ] each tablePaths;
       ]
    ];
 
-  tableName
+  tabRef
  };
 
 // @kind function
@@ -556,7 +584,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Delete a column from a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column to be deleted.
@@ -623,7 +651,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Rename column(s) from a table.
 // @param tableName {symbol} Table name.
 // @param nameDict {dict} A dictionary from existing name(s) to new name(s).
@@ -700,7 +728,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Reorder columns of a table.
 // @param tableName {symbol} Table name.
 // @param firstColumns {symbol[]} First columns after reordering.
@@ -739,8 +767,8 @@
  };
 
 // @kind function
-// @subcategory db
-// @overview Copy an existing column to a new column.
+// @subcategory tbl
+// @overview Copy an existing column of a table to a new column.
 // @param tableName {symbol} Table name.
 // @param sourceColumn {symbol} Source column.
 // @param targetColumn {symbol} Target column.
@@ -748,6 +776,13 @@
 // @throws {ColumnNotFoundError: [*]} If `sourceColumn` doesn't exist.
 // @throws {ColumnExistsError: [*]} If `targetColumn` exists.
 // @throws {NameError: invalid column name [*]} If name of `targetColumn` is not valid.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
+//
+// .qtk.tbl.copyColumn[`t; `c1; `c2];
+// 0 1~t`c2
 .qtk.tbl.copyColumn:{[tableName;sourceColumn;targetColumn]
   .qtk.tbl._validateColumnExists[tableName; sourceColumn];
   .qtk.tbl._validateColumnNotExists[tableName; targetColumn];
@@ -804,13 +839,20 @@
  };
 
 // @kind function
-// @subcategory db
-// @overview Apply a function to a column.
+// @subcategory tbl
+// @overview Apply a function to a column of a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
-// @param function {function} Function to be applied.
+// @param function {fn(#any[]) -> #any[]} Function to be applied.
 // @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+// @throws {ColumnNotFoundError} If `column` doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
+//
+// .qtk.tbl.apply[`t;`c1; 2*];
+// 0 2~t`c1
 .qtk.tbl.apply:{[tableName;column;function]
   .qtk.tbl._validateColumnExists[tableName; column];
 
@@ -854,38 +896,45 @@
  };
 
 // @kind function
-// @subcategory db
-// @overview Cast the datatype of a column.
+// @subcategory tbl
+// @overview Cast the datatype of a column of a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
-// @param newType {symbol | char} Name or char code of the new type.
+// @param newType {symbol | char} Name or character code of the new type.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If `column` doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
+//
+// .qtk.tbl.castColumn[`t; `c1; `int];
+// 0 1i~t`c1
 .qtk.tbl.castColumn:{[tableName;column;newType]
   .qtk.tbl.apply[tableName; column; newType$]
  };
 
 // @kind function
-// @subcategory db
-// @overview Add an attribute to a column.
+// @subcategory tbl
+// @overview Set an attribute to a column. See also [Set Attribute](https://code.kx.com/q/ref/set-attribute/).
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name of the table.
-// @param newAttr {symbol} Attribute to be added to the column.
+// @param attribute {symbol} Attribute to be added to the column.
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
+// `t set ([]c1:til 2);
 //
-// `t set ([]c1:til 3);
-// .qtk.tbl.addAttr[`t; `c1; `s];
-// `s=attr t`c1
-.qtk.tbl.addAttr:{[tableName;column;newAttr]
-  .qtk.tbl.apply[tableName; column; newAttr#]
+// .qtk.tbl.setAttr[`t;`c1;`s];
+// `s=meta[t][`c1;`a]
+.qtk.tbl.setAttr:{[tableName;column;attribute]
+  .qtk.tbl.apply[tableName; column; attribute#]
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Remove attribute from a column.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name of the table.
@@ -969,7 +1018,7 @@
  };
 
 // @kind function
-// @subcategory db
+// @subcategory tbl
 // @overview Rename a table.
 // @param tableName {symbol} Table name.
 // @param newName {symbol} New name of the table.

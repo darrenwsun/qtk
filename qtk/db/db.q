@@ -26,9 +26,9 @@
                          raze .qtk.db._getPartitionDirectories each .qtk.db._getSegmentPaths[dbDir];
                          .qtk.db._getPartitionDirectories dbDir];
   if[0=count partitionDirectories; :()];
-  getPartitionDatatype:{`date`month`int`int[10 7 4?count x]};
+  getPartitionDatatype:{"DMII" 10 7 4?count x};
   partitionDatatype:getPartitionDatatype first partitionDirectories;
-  partitionDatatype$string partitionDirectories
+  partitionDatatype$partitionDirectories
  };
 
 // @kind function
@@ -54,13 +54,13 @@
 // @subcategory db
 // @overview Get all partition directories of a partitioned database.
 // @param dbDir {hsym} DB directory of the partitioned database.
-// @return {symbol[]} Partition directories, or an empty general list if the database is not a partitioned database.
+// @return {string[]} Partition directories, or an empty general list if the database is not a partitioned database.
 // @throws {FileNotFoundError} If the directory doesn't exist.
 // @throws {NotADirectoryError} If the input argument is not a directory.
 .qtk.db._getPartitionDirectories:{[dbDir]
   items:.qtk.os.listDir dbDir;
   items:items where items like "[0-9]*";
-  items
+  string items
  };
 
 // @kind function
@@ -77,13 +77,28 @@
 
 // @kind function
 // @subcategory db
-// @overview Get partition field.
+// @overview Get partition field of the current database.
 //
 // See also [.Q.pf](https://code.kx.com/q/ref/dotq/#qpf-partition-field).
 // @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
 // if the database is not a partitioned database.
-.qtk.db.getPartitionField:{
+.qtk.db.getCurrentPartitionField:{
   @[value; `.Q.pf; `]
+ };
+
+// @kind function
+// @subcategory db
+// @overview Get partition field of a database under a directory.
+// @param {#hsym} A database directory.
+// @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
+// if the database is not a partitioned database.
+.qtk.db.getPartitionField:{[dbDir]
+  partitions:.qtk.db.getPartitions dbDir;
+  $[14h=t:type partitions; `date;
+    13h=t; `month;
+    0h=t; `;
+    all partitions within\: 1000 9999; `year;
+    `int]
  };
 
 // @kind function

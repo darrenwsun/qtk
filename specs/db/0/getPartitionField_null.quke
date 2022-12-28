@@ -6,4 +6,4 @@ feature Get partition field.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.qtk.db.getPartitionField[]; `]
+      .qu.compare[.qtk.db.getCurrentPartitionField[]; `]

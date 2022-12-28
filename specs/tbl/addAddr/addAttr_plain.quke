@@ -10,5 +10,5 @@ feature Add attribute to a column of a plain table.
 
   should add an attribute to a column of a plain table.
     expect the attribute added to the column.
-      .qtk.tbl.addAttr[`PlainTable; `c1; `p];
+      .qtk.tbl.setAttr[`PlainTable; `c1; `p];
       .qu.compare[(meta[PlainTable]`c1)`a; `p]

@@ -8,7 +8,7 @@ feature Remove attribute from a column of a segmented table.
     .qutils.segment2:"/tmp/hdb_removeAttr_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:`p#1 2)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:`p#1 2)];
     system "l ",.qutils.hdbRoot;
 
   after each

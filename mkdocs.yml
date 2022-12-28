@@ -6,11 +6,12 @@ markdown_extensions:
         baselevel: 1
         toc_depth: 3
 theme:
-  name: material
+    name: material
 
 nav:
     - Home: 'index.md'
     - 'API Reference':
         - '.qtk.db': 'qtk_db.md'
+        - '.qtk.tbl': 'qtk_tbl.md'
         - '.qtk.err': 'qtk_err.md'
         - '.qtk.os': 'qtk_os.md'

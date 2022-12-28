@@ -3,7 +3,7 @@ feature Get partition field of date.
   before
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_getPartitionField_date";
+    .qutils.hdbRoot:"/tmp/hdb_getCurrentPartitionField_date";
     Table:([] c1:`boolean$(); c2:`long$());
     (hsym `$.qutils.hdbRoot,"/2022.01.01/Table/") set Table;
     (hsym `$.qutils.hdbRoot,"/2022.01.02/Table/") set Table;
@@ -14,4 +14,4 @@ feature Get partition field of date.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.qtk.db.getPartitionField[]; `date]
+      .qu.compare[.qtk.db.getCurrentPartitionField[]; `date]

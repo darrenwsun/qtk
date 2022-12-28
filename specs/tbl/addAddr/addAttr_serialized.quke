@@ -12,5 +12,5 @@ feature Add attribute to a column of a serialized table.
 
   should add an attribute to a column of a serialized table.
     expect the attribute added to the column.
-      .qtk.tbl.addAttr[.qutils.tabRef; `c1; `p];
+      .qtk.tbl.setAttr[.qutils.tabRef; `c1; `p];
       .qu.compare[(meta[get .qutils.tabRef]`c1)`a; `p]
