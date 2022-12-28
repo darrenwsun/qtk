@@ -1,11 +1,5 @@
 feature Reload a module.
 
-  before each
-    .qtk.import.loadModule["tbl";`qtk];
-
-  after each
-    .qtk.import.unloadModule "tbl";
-
   should raise error "ModuleNotFoundError: [*]" if the module is not found.
     expect error "ModuleNotFoundError: noexist"
       .qu.compare[

@@ -1,30 +1,31 @@
 feature Unload a module.
 
   before each
-    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.import.loadModule["type";`qtk];
 
   should unload a module whose name is of string format.
     expect `1b` from the function call
-      .qtk.import.unloadModule["tbl"]
+      .qtk.import.unloadModule["type"]
     expect the module not loaded
-      not `tbl in exec name from .qtk.import.listModules[]
+      not `type in exec name from .qtk.import.listModules[]
 
   should unload a module whose name is of symbol format.
     expect `1b` from the function call
-      .qtk.import.unloadModule[`tbl]
+      .qtk.import.unloadModule[`type]
     expect the module not loaded
-      not `tbl in exec name from .qtk.import.listModules[]
+      not `type in exec name from .qtk.import.listModules[]
 
   should unload a module and its submodules.
     expect `1b` from the function call
-      .qtk.import.loadModule["tbl/tbl";`qtk];
-      .qtk.import.loadModule["tbl";`qtk];
-      .qtk.import.unloadModule[`tbl]
+      .qtk.import.loadModule["type/type";`qtk];
+      .qtk.import.loadModule["type";`qtk];
+      .qtk.import.unloadModule[`type]
     expect the module and its submodules not loaded
-      not any (`tbl,`$"tbl/tbl") in exec name from .qtk.import.listModules[]
+      not any (`type,`$"type/type") in exec name from .qtk.import.listModules[]
 
   should have no effect for an unloaded module.
     expect `0b` from the function call
-      not .qtk.import.unloadModule["db"]
+      .qtk.import.unloadModule["type"];
+      not .qtk.import.unloadModule["type"]
     expect the module not loaded
-      not `db in exec name from .qtk.import.listModules[]
+      not `type in exec name from .qtk.import.listModules[]

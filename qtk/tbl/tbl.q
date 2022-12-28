@@ -1,5 +1,6 @@
 .qtk.import.loadModule["type";`qtk];
 .qtk.import.loadModule["utils";`qtk];
+.qtk.import.loadModule["db";`qtk];
 
 // @kind function
 // @subcategory db
@@ -12,7 +13,8 @@
 // @return {symbol} Table type.
 // @throws {ValueError: [*]} If `t` isn't a valid value.
 // @doctest A plain table.
-// .qtk.import.loadModule["db";`qtk];
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
 //
 // t:([]c1:til 3);
 // `Plain=.qtk.tbl.getType t
@@ -441,6 +443,55 @@
 
 // @kind function
 // @subcategory db
+// @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
+// appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
+// partitions.
+// @param tableName {symbol} Table name.
+// @param column {symbol} A column name.
+// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
+.qtk.tbl.columnExists:{[tableName;column]
+  tableType:.qtk.tbl.getType tableName;
+  $[tableType=`Plain;
+    column in cols tableName;
+    tableType=`Serialized;
+    column in cols get tableName;
+    tableType=`Splayed;
+    [
+      tablePath:.Q.dd[`:.; tableName];
+      .qtk.tbl._columnExists[tablePath; column]
+      ];
+    // tableType=`Partitioned
+    [
+      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      // Can make the following part simpler by `all .qtk.tbl._columnExists[...]` at the cost of performance, due to inability
+      // to return early
+      partitionCount:count tablePaths;
+      i:0;
+      while[i<partitionCount;
+            if[not .qtk.tbl._columnExists[tablePaths[i]; column]; :0b];
+            i +: 1
+       ];
+      1b
+      ]
+   ]
+ };
+
+// @kind function
+// @private
+// @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
+// there is a file of the same name in the table path.
+// @param tablePath {hsym} Path to an on-disk table.
+// @param column {symbol} A column name.
+// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
+.qtk.tbl._columnExists:{[tablePath;column]
+  allColumns:.qtk.db._getColumns tablePath;
+  if[not column in allColumns; :0b];
+  columnPath:.Q.dd[tablePath; column];
+  .qtk.os.path.isFile columnPath
+ };
+
+// @kind function
+// @subcategory db
 // @overview Add a column to a table.
 // @param tableName {symbol} Table name.
 // @param column {symbol} Name of new column to be added.
@@ -823,7 +874,8 @@
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError} If `column` doesn't exist.
 // @doctest
-// .qtk.import.loadModule["db";`qtk];
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
 //
 // `t set ([]c1:til 3);
 // .qtk.tbl.addAttr[`t; `c1; `s];
@@ -861,7 +913,7 @@
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
 .qtk.tbl._validateColumnExists:{[tableName;column]
-  if[not .qtk.db.columnExists[tableName; column];
+  if[not .qtk.tbl.columnExists[tableName; column];
      '.qtk.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
    ];
  };
@@ -873,7 +925,7 @@
 // @param column {symbol} A column name.
 // @throws {ColumnExistsError: [*]} If the column exists.
 .qtk.tbl._validateColumnNotExists:{[tableName;column]
-  if[.qtk.db.columnExists[tableName; column];
+  if[.qtk.tbl.columnExists[tableName; column];
      '.qtk.err.compose[`ColumnExistsError; "[",string[column],"]"]
    ];
  };

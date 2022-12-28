@@ -229,41 +229,6 @@
 
 // @kind function
 // @subcategory db
-// @overview Check if a column exists in a table. For splayed tables, column existence requires that the column
-// appears in `.d` file and its data file exists. For partitioned table, it requires the condition holds for all
-// partitions.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name.
-// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
-.qtk.db.columnExists:{[tableName;column]
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    column in cols tableName;
-    tableType=`Serialized;
-    column in cols get tableName;
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.db._columnExists[tablePath; column]
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      // Can make the following part simpler by `all .qtk.db._columnExists[...]` at the cost of performance, due to inability
-      // to return early
-      partitionCount:count tablePaths;
-      i:0;
-      while[i<partitionCount;
-            if[not .qtk.db._columnExists[tablePaths[i]; column]; :0b];
-            i +: 1
-       ];
-      1b
-      ]
-   ]
- };
-
-// @kind function
-// @subcategory db
 // @overview Load database in a given directory.
 // @param dir {string | hsym} Directory.
 .qtk.db.load:{[dir]
@@ -411,20 +376,6 @@
    ];
 
   tablePath
- };
-
-// @kind function
-// @private
-// @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
-// there is a file of the same name in the table path.
-// @param tablePath {hsym} Path to an on-disk table.
-// @param column {symbol} A column name.
-// @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
-.qtk.db._columnExists:{[tablePath;column]
-  allColumns:.qtk.db._getColumns tablePath;
-  if[not column in allColumns; :0b];
-  columnPath:.Q.dd[tablePath; column];
-  .qtk.os.path.isFile columnPath
  };
 
 // @kind function
