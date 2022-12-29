@@ -8,6 +8,7 @@ feature Reorder columns of a table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should reorder columns of a partitioned table.

@@ -8,7 +8,8 @@ feature Delete a column from a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should delete a column from a partitioned table.
     expect the column deleted from the table.

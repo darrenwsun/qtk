@@ -8,6 +8,7 @@ feature Apply a function to a column of a serialized table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should apply a function to a column of a serialized table and save.
     expect the column has the function-applied values.

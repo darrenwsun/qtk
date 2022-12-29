@@ -8,7 +8,8 @@ feature Check if a partitioned table of given name exists.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should return `1b` if the table exists.
     expect `1b`.

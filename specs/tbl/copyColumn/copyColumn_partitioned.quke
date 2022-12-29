@@ -8,7 +8,8 @@ feature Copy an existing column to a new column for a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should copy a column to a new column for a partitioned table.
     expect the new column have the same value as the specified column.

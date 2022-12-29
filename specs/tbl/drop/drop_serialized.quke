@@ -6,6 +6,9 @@ feature Drop a serialized table.
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
   should drop a serialized table.
     expect the corresponding file deleted
       .qtk.tbl.drop .qutils.tabRef;

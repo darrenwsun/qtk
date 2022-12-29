@@ -8,6 +8,7 @@ feature Add a column to a serialized table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should add a column to an serialized table with a default value.
     expect the column added to the table.

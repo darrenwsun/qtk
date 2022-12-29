@@ -8,7 +8,8 @@ feature Add a column to a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should add a column to a partitioned table specified by table name.
     expect the column added to the table.

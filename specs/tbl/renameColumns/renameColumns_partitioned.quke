@@ -8,6 +8,7 @@ feature Rename columns of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename columns of a partitioned table.

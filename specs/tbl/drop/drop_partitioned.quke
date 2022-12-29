@@ -7,9 +7,12 @@ feature Drop a partitioned table.
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
   should drop a partitioned table.
     expect the partitioned table dropped.
-      .qtk.tbl.drop `PartitionedTable;
+      .qtk.tbl.drop (`:.; `date; `PartitionedTable);
       .qu.compare[key `PartitionedTable; ()]
     expect the corresponding directories deleted
       not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/PartitionedTable"

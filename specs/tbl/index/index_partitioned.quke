@@ -9,6 +9,7 @@ feature Get entries at given indices of a partitioned table.
 
   after each
     delete PartitionedTable from `.;
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should return empty table if the indices are empty.

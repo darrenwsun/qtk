@@ -8,6 +8,7 @@ feature Get table type of a serialized table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should return `Serialized` for a serialized table.
     expect `Serialized` for a serialized table specified by hsym.

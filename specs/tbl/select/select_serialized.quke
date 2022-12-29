@@ -7,6 +7,7 @@ feature Select from a serialized table based on given criteria, groupings, and c
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should select from a serialized table based on given criteria, groupings, and column mappings.

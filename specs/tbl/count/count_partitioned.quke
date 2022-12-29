@@ -8,6 +8,7 @@ feature Count rows of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should get row count of a partitioned table

@@ -47,6 +47,58 @@
 
 // @kind function
 // @subcategory tbl
+// @overview Get metadata of a table.
+//
+// - See also [meta](https://code.kx.com/q/ref/meta/).
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
+// @return {table} Metadata of the table.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/meta; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// ([c:`date`c1] t:"dj"; f:`; a:`)=.qtk.tbl.meta tabRef
+.qtk.tbl.meta:{[t]
+  if[(tt:type t) in 98 99h; :meta t];
+
+  tabRefDesc:.qtk.tbl._desc t;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType=`Plain;
+    meta t;
+    tableType=`Serialized;
+    meta get t;
+    tableType=`Splayed;
+    [
+      if[type[t] in 98 99h; :meta t];
+      if[not t like "*/"; :meta t];
+      dbDir:tabRefDesc`dbDir;
+      .qtk.db.loadSym[dbDir;`sym];
+      tableMeta:meta t;
+      .qtk.db.recoverSym `sym;
+      tableMeta
+      ];
+    // tableType=`Partitioned
+    [
+      if[98h=tt:type t; :meta t];
+      if[-11h=tt; :meta t];
+      dbDir:tabRefDesc`dbDir;
+      parField:tabRefDesc`parField;
+      lastPartition:last .qtk.db.getPartitions dbDir;
+      .qtk.db.loadSym[dbDir;`sym];
+      tableMeta:meta .Q.dd[;`] .Q.par[dbDir; lastPartition; tableName];
+      tableMeta:([c:enlist parField] t:enlist "dmii" `date`month`year`int?parField; f:`; a:`) upsert tableMeta;
+      .qtk.db.recoverSym `sym;
+      tableMeta
+      ]
+   ]
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Create a new table with given data.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param data {table} Table data.
@@ -224,43 +276,46 @@
 // @kind function
 // @subcategory tbl
 // @overview Insert data into a table.
-// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
-// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
-// for partitioned table.
+// For partitioned tables, data need to be sorted by partitioned field.
+// Partial data are acceptable; the missing columns will be filled by type compliant nulls for simple columns
+// or empty lists for compound columns.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference
 // @param data {table} Table data.
-// @return {symbol | hsym} `t` itself.
-// @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/insert; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.insert[tabRef; ([] date:2022.01.03 2022.01.04; c1:3 4)]
 .qtk.tbl.insert:{[tabRef;data]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
-  $[tableType=`Plain;
-    tabRef insert data;
-    tableType=`Serialized;
+  $[tableType in `Plain`Serialized;
     tabRef insert data;
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
-      tablePath:` sv (dbDir; tableName; `);
-      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;     // in case data don't have some columns
-      enumeratedData:.Q.en[dbDir; completeData];
-      .qtk.tbl._insert[tablePath; enumeratedData]
+      tablePath:.Q.dd[dbDir; tableName];
+      completeData:1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
+      .qtk.tbl._insert[dbDir; tablePath; completeData]
       ];
-    tableType=`Partitioned;
+    // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      completeData:1 _ (.qtk.tbl._singleton meta tableName) upsert data;     // in case data don't have some columns
-      enumeratedData:.Q.en[dbDir; completeData];
+      completeData:1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
       parField:tabRefDesc`parField;
-      parValues:distinct ?[enumeratedData; (); (); parField];
-      tablePaths:.Q.dd[; `] each .Q.par[dbDir; ; tableName] each parValues;
-      dataByPartition:flip each value parField xgroup enumeratedData;
-      .qtk.tbl._insert'[tablePaths; dataByPartition];
-      ];
-    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+      parValues:?[completeData; (); (); (distinct;parField)];
+      tablePaths:.Q.par[dbDir; ; tableName] each parValues;
+      dataByPartition:flip each value parField xgroup completeData;
+      .qtk.tbl._insert[dbDir;;]'[tablePaths; dataByPartition];
+      ]
    ];
-  tableName
+  tabRef
  };
 
 // @kind function
@@ -270,8 +325,8 @@
 // @param tablePath {hsym} Path to an on-disk table.
 // @param data {table} Table data.
 // @return {hsym} `tablePath` itself.
-.qtk.tbl._insert:{[tablePath;data]
-  tablePath upsert data
+.qtk.tbl._insert:{[dbDir;tablePath;data]
+  .Q.dd[tablePath; `] upsert .Q.en[dbDir; data]
  };
 
 // @kind function
@@ -1073,12 +1128,11 @@
 
   result:$[tableType in `Plain`Serialized`Splayed;
            select from tblName where i in indices;
-           tableType in `Partitioned`Segmented;
+           // tableType in `Partitioned`Segmented
            [
              r:.Q.ind[get tableName; indices];
              $[r~(); .Q.en[`:.; ] .qtk.tbl._empty meta tableName; r]
-             ];
-           '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+             ]
    ];
   result
  };

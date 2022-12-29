@@ -8,7 +8,8 @@ feature Get table type of a table (erroneous cases).
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should raise error "ValueError: [*]" if the argument isn't a valid value.
     expect error "ValueError: [*]" if the argument is a symbol vector but its length isn't 3.

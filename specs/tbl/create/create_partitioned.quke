@@ -7,6 +7,8 @@ feature Create a new partitioned table with given data.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should create a new partitioned table with non-empty data
     expect a new partitioned table created with non-empty data

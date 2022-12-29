@@ -160,6 +160,22 @@
   .qtk.db.getSegments[]!@[value; `.Q.D; ()]
  };
 
+.qtk.db.loadSym:{[dbDir;sym]
+  symFile:.Q.dd[dbDir;sym];
+  if[not .qtk.os.path.isFile symFile; :`];
+  if[sym in system enlist"v"; .qtk.db[sym]:get sym];
+  load .Q.dd[dbDir;sym];
+  sym
+ };
+
+.qtk.db.recoverSym:{[sym]
+  oldSym:.qtk.db[sym];
+  if[11h<>type oldSym; :`];
+  sym set oldSym;
+  delete sym from `.qtk.db;
+  sym
+ };
+
 // @kind function
 // @subcategory db
 // @overview Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.

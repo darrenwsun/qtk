@@ -7,18 +7,15 @@ feature Insert data into a serialized table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should insert full data into a serialized table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] c1:("cc";"dd"); c2:`c`d)];
       .qu.compare[select from .qutils.tabRef; ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `SerializedTable]
 
   should insert partial data into a serialized table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] c2:`c`d)];
       .qu.compare[select from .qutils.tabRef; ([] c1:("aa";"bb";"";""); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `SerializedTable]

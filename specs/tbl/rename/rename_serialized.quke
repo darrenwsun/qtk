@@ -8,6 +8,7 @@ feature Rename a serialized table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename a serialized table.

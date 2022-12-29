@@ -8,6 +8,7 @@ feature Add attribute to a column of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should add an attribute to a column of a partitioned table.

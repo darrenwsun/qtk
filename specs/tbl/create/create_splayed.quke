@@ -7,6 +7,7 @@ feature Create a new splayed table with given data.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should create a new splayed table with empty data.
     expect a new splayed table created with empty data.

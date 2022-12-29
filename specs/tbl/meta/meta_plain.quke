@@ -1,0 +1,22 @@
+feature Get metadata of a plain table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should metadata of a plain table, by value.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta PlainTable;
+        ([c:enlist`c1] t:enlist "j"; f:`; a:`)
+      ]
+
+  should metadata of a plain table, by name.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta `PlainTable;
+        ([c:enlist`c1] t:enlist "j"; f:`; a:`)
+      ]

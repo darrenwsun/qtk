@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rm -rf /tmp/qtk
+
 QTK=$(readlink -f qtk)
 export QTK
 
@@ -10,3 +12,5 @@ rlwrap q $AXLIBRARIES_HOME/ws/qdoc.q_ -src qtk -out tempdocs -map overview:fileo
 
 mv tempdocs/md/* docs
 rm -rf tempdocs
+
+rm -rf /tmp/qtk

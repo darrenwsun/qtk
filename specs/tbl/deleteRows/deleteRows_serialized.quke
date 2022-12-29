@@ -8,6 +8,7 @@ feature Delete rows of a serialized table given certain criteria.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should delete all rows if the criteria is empty.
     expect all rows deleted.

@@ -8,6 +8,7 @@ feature Rename a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename a partitioned table.

@@ -9,6 +9,7 @@ feature Add a column to a splayed table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should add a column to an splayed table specified by table name.
     expect the column added to the table.

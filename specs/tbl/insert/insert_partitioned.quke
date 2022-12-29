@@ -8,27 +8,32 @@ feature Insert data into a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
-  should insert full data into a partitioned table, when the table reference is a full path.
-    expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
-      .qtk.db.reload[];
-      .qu.compare[
-        select from PartitionedTable;
-        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `PartitionedTable]
-
-  should insert full data into a partitioned table, when the table reference is the table name.
+  should insert full data into a partitioned table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[`PartitionedTable; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
       .qtk.db.reload[];
       .qu.compare[
         select from PartitionedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `PartitionedTable]
+
+  should insert full data into a partitioned table, when the table is specified by partitioned table ID.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
+      .qtk.db.reload[];
+      .qu.compare[
+        select from PartitionedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
+
+  should insert full data into new partitions of a partitioned table.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[`PartitionedTable; ([] date:2022.01.03 2022.01.04; c1:("bb";"dd"); c2:`b`d)];
+      .qtk.db.reload[];
+      .qu.compare[
+        select from PartitionedTable;
+        .Q.en[`:.; ] ([] date:2022.01.01 2022.01.02 2022.01.03 2022.01.04; c1:("aa";"cc";"bb";"dd"); c2:`a`c`b`d)]
 
   should insert partial data into a partitioned table.
     expect given data inserted into the table
@@ -37,5 +42,3 @@ feature Insert data into a partitioned table.
       .qu.compare[
         select from PartitionedTable;
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("aa";"";"cc";""); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `PartitionedTable]

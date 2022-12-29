@@ -8,6 +8,7 @@ feature Copy an existing column to a new column for a serialized table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should copy a column to a new column for a serialized table.
     expect the new column have the same value as the specified column.

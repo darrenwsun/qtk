@@ -7,6 +7,7 @@ feature Remove attribute from a column of a serialized table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:`p#1 2)];
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should remove an attribute from a column of a serialized table.

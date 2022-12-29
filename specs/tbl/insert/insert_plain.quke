@@ -5,18 +5,14 @@ feature Insert data into a plain table.
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should insert full data into a plain table.
     expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[`PlainTable; ([] c1:("cc";"dd"); c2:`c`d)];
+      .qtk.tbl.insert[`PlainTable; ([] c1:("cc";"dd"); c2:`c`d)];
       .qu.compare[PlainTable; ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `PlainTable]
 
   should insert partial data into a plain table.
     expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[`PlainTable; ([] c2:`c`d)];
+      .qtk.tbl.insert[`PlainTable; ([] c2:`c`d)];
       .qu.compare[PlainTable; ([] c1:("aa";"bb";"";""); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `PlainTable]

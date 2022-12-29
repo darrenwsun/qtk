@@ -1,0 +1,36 @@
+feature Get metadata of a segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_meta_segmented";
+    .qutils.segment1:"/tmp/hdb_meta_segment1";
+    .qutils.segment2:"/tmp/hdb_meta_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should metadata of a plain table, by value.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta SegmentedTable;
+        ([c:`date`c1] t:"dj"; f:`; a:`)
+      ]
+
+  should metadata of a plain table, by name.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta `SegmentedTable;
+        ([c:`date`c1] t:"dj"; f:`; a:`)
+      ]
+
+  should metadata of a plain table, by partitioned table ID.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta .qutils.tabRef;
+        ([c:`date`c1] t:"dj"; f:`; a:`)
+      ]

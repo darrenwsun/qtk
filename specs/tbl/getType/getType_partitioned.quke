@@ -8,7 +8,8 @@ feature Get table type of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should return `Partitioned` for a partitioned table.
     expect `Partitioned` for a partitioned table passed by value.

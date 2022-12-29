@@ -11,7 +11,8 @@ feature Get table type of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `SegmentedTable;
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should return `Partitioned` for a segmented table.
     expect `Partitioned` for a segmented table passed by value.

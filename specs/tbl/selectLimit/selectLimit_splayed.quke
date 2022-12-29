@@ -8,6 +8,7 @@ feature Select from a splayed table based on given criteria, groupings, and colu
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should select from a plain table based on given criteria, groupings, and column mappings.

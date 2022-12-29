@@ -7,6 +7,9 @@ feature Drop a splayed table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
   should drop a splayed table.
     expect the splayed table dropped.
       .qu.result:.qtk.tbl.drop `SplayedTable;

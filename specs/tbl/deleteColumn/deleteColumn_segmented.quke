@@ -12,6 +12,7 @@ feature Delete a column from a partitioned table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should delete a column from a segmented table.
     expect the column deleted from the table.

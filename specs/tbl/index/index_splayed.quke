@@ -9,6 +9,7 @@ feature Get entries at given indices of a splayed table.
 
   after each
     delete SplayedTable from `.;
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should return empty table if the indices are empty.

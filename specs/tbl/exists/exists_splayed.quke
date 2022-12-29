@@ -9,6 +9,7 @@ feature Check if a splayed table of given name exists.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should return `1b` if the table resolves to a simple table.
     expect `1b` if the table exists.

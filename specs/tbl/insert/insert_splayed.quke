@@ -8,28 +8,23 @@ feature Insert data into a splayed table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
-  should insert full data into a splayed table, when the table reference is a full path.
-    expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] c1:("cc";"dd"); c2:`c`d)];
-      .qtk.db.reload[];
-      .qu.compare[select from SplayedTable; .Q.en[`:.; ] ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `SplayedTable]
-
-  should insert full data into a splayed table, when the table reference is the table name.
+  should insert full data into a splayed table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[`SplayedTable; ([] c1:("cc";"dd"); c2:`c`d)];
       .qtk.db.reload[];
       .qu.compare[select from SplayedTable; .Q.en[`:.; ] ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `SplayedTable]
+
+  should insert full data into a splayed table, when the table is specified by hsym.
+    expect given data inserted into the table
+      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] c1:("cc";"dd"); c2:`c`d)];
+      .qtk.db.reload[];
+      .qu.compare[select from SplayedTable; .Q.en[`:.; ] ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
 
   should insert partial data into a splayed table.
     expect given data inserted into the table
       .qu.result:.qtk.tbl.insert[`SplayedTable; ([] c2:`c`d)];
       .qtk.db.reload[];
       .qu.compare[select from SplayedTable; .Q.en[`:.; ] ([] c1:("aa";"bb";"";""); c2:`a`b`c`d)]
-    expect the table name is returned
-      .qu.compare[.qu.result; `SplayedTable]

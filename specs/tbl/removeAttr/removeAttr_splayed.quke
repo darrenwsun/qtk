@@ -8,6 +8,7 @@ feature Remove attribute from a column of a splayed table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should remove an attribute from a column of a splayed table.

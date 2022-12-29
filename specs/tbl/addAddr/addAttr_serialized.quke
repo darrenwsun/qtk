@@ -7,6 +7,7 @@ feature Add attribute to a column of a serialized table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   after each
+    .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should add an attribute to a column of a serialized table.

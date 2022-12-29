@@ -10,9 +10,12 @@ feature Drop a segmented table.
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
+  after each
+    .qtk.os.rmtree .qutils.hdbRoot;
+
   should drop a segmented table.
     expect the segmented table dropped.
-      .qu.result:.qtk.tbl.drop `SegmentedTable;
+      .qtk.tbl.drop `SegmentedTable;
       .qu.compare[key `SegmentedTable; ()]
     expect the corresponding directories deleted
       not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/SegmentedTable"

@@ -1,0 +1,26 @@
+feature Get metadata of a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_meta_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should metadata of a plain table, by value.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta SplayedTable;
+        ([c:enlist`c1] t:enlist "j"; f:`; a:`)
+      ]
+
+  should metadata of a plain table, by hsym.
+    expect metadata of the table.
+      .qu.compare[
+        .qtk.tbl.meta .qutils.tabRef;
+        ([c:enlist`c1] t:enlist "j"; f:`; a:`)
+      ]

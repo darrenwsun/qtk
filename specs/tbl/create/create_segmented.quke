@@ -10,6 +10,7 @@ feature Create a new segmented table with given data.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should create a new segmented table with non-empty data
     expect a new segmented table created with non-empty data
