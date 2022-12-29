@@ -3,9 +3,10 @@ feature Drop a serialized table.
   before each
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_drop_serialized";
-    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SerializedTable"; ([] c1:("aa";"bb"); c2:`a`b)];
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   should drop a serialized table.
-    expect the serialized table dropped.
-      .qu.result:.qtk.tbl.drop[`SerializedTable];
-      .qu.compare[key `SerializedTable; ()]
+    expect the corresponding file deleted
+      .qtk.tbl.drop .qutils.tabRef;
+      not .qtk.os.path.exists .qutils.tabRef

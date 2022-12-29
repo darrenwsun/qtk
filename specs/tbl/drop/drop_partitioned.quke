@@ -4,10 +4,19 @@ feature Drop a partitioned table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_drop_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
   should drop a partitioned table.
     expect the partitioned table dropped.
-      .qu.result:.qtk.tbl.drop[`PartitionedTable];
+      .qtk.tbl.drop `PartitionedTable;
       .qu.compare[key `PartitionedTable; ()]
+    expect the corresponding directories deleted
+      not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/PartitionedTable"
+
+  should drop a partitioned table, when the table is specified by partitioned table ID.
+    expect the partitioned table dropped.
+      .qtk.tbl.drop (`:.; `date; `PartitionedTable);
+      .qu.compare[key `PartitionedTable; ()]
+    expect the corresponding directories deleted
+      not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/PartitionedTable"

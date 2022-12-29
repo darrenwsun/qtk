@@ -118,30 +118,42 @@
 // @kind function
 // @subcategory tbl
 // @overview Drop a table.
-// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
-// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/drop; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.drop tabRef
 .qtk.tbl.drop:{[tabRef]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
-  $[tableType in `Plain;
+  $[tableType=`Plain;
     ![`.; (); 0b; enlist tableName];
-    tableType in `Serialized`Splayed;
+    tableType=`Serialized;
+    .qtk.os.remove tabRef;
+    tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
+      if[dbDir=`:.; ![`.; (); 0b; enlist tableName]];
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.os.rmtree tablePath;
       ];
-    tableType=`Partitioned;
+    // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getCurrentPartitions[];
+      if[dbDir=`:.; ![`.; (); 0b; enlist tableName]];
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.os.rmtree each tablePaths;
-      ];
-    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+      ]
    ];
-  ![`.; (); 0b; enlist tableName];
+
+  tabRef
  };
 
 // @kind function
@@ -390,7 +402,7 @@
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// tabRef:(`:/tmp/qtk/tbl/create; `date; `PartitionedTable);
+// tabRef:(`:/tmp/qtk/tbl/deleteRows; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:1 2 3)];
 //
 // // Or replace tabRef with PartitionedTable if the database is loaded
@@ -800,7 +812,7 @@
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
+// tabRef:(`:/tmp/qtk/tbl/copyColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
 // // Or replace tabRef with PartitionedTable if the database is loaded

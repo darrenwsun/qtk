@@ -7,10 +7,19 @@ feature Drop a segmented table.
     .qutils.segment2:"/tmp/hdb_drop_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
-  should drop a partitioned table.
-    expect the partitioned table dropped.
-      .qu.result:.qtk.tbl.drop[`SegmentedTable];
+  should drop a segmented table.
+    expect the segmented table dropped.
+      .qu.result:.qtk.tbl.drop `SegmentedTable;
       .qu.compare[key `SegmentedTable; ()]
+    expect the corresponding directories deleted
+      not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/SegmentedTable"
+
+  should drop a segmented table, when the table is specified by partitioned table ID.
+    expect the segmented table dropped.
+      .qtk.tbl.drop (`:.; `date; `SegmentedTable);
+      .qu.compare[key `SegmentedTable; ()]
+    expect the corresponding directories deleted
+      not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/PartitionedTable"
