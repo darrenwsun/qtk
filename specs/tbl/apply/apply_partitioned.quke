@@ -8,7 +8,7 @@ feature Apply a function to a column of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop `PartitionedTable;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should apply a function to a column of a partitioned table specified by table name.
     expect the column has the function-applied values.

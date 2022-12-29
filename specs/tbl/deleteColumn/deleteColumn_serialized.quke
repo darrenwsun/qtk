@@ -4,10 +4,10 @@ feature Delete a column from a serialized table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_deleteColumn_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb; c2:("aa";"bb"))];
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should delete a column from a serialized table.
     expect the column deleted from the table.

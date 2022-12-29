@@ -2,10 +2,10 @@ feature Delete a column from a plain table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
+    .qtk.tbl.create[`PlainTable; ([] c1:`aa`bb; c2:("aa";"bb"))];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should delete a column from a plain table.
     expect the column deleted from the table.

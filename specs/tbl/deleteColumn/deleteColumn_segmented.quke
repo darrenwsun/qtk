@@ -7,14 +7,20 @@ feature Delete a column from a partitioned table.
     .qutils.segment2:"/tmp/hdb_deleteColumn_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:`aa`bb; c2:("aa";"bb"))];
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop .qutils.tabRef;
 
   should delete a column from a segmented table.
     expect the column deleted from the table.
       .qtk.tbl.deleteColumn[`SegmentedTable;`c2];
+      .qtk.db.reload[];
+      .qu.compare[cols SegmentedTable; `date`c1]
+
+  should delete a column from a segmented table, when the table is specified by a partitioned table ID.
+    expect the column deleted from the table.
+      .qtk.tbl.deleteColumn[.qutils.tabRef;`c2];
       .qtk.db.reload[];
       .qu.compare[cols SegmentedTable; `date`c1]

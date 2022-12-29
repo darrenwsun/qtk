@@ -265,7 +265,7 @@
 // @subcategory tbl
 // @overview Update values in certain columns of a table, in a similar format to functional update.
 // @param table {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
+// @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
 // @param assignment {dict} A mapping from column names to values of parse-tree form
 // @return {symbol} The table name.
 // @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
@@ -305,7 +305,7 @@
 // @private
 // @overview Update values in certain columns of an on-disk table, in a similar format to functional update.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param criteria {*[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
+// @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
 // @param assignment {dict} A mapping from column names to values
 // @return {hsym} The path to the table.
 // @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
@@ -339,7 +339,7 @@
 // @subcategory tbl
 // @overview Select from a table based on given criteria, groupings, and column mappings, in a similar format to functional select.
 // @param table {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param assignment {dict} A mapping from column names to values of parse-tree form.
 // @return {table} Selected data from the table.
@@ -351,7 +351,7 @@
 // @subcategory tbl
 // @overview Similar to `.qtk.tbl.select` but with a limit on rows.
 // @param tableName {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param assignment {dict} A mapping from column names to values of parse-tree form.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
@@ -364,11 +364,11 @@
 // @subcategory tbl
 // @overview Similar to `.qtk.tbl.selectLimit` but with sorting.
 // @param tableName {symbol | table} Table name or value.
-// @param criteria {*[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param assignment {dict} A mapping from column names to values of parse-tree form.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
-// @param sort {*[]} Sort the result by a column. The format is `(op;col)` where `op` is `>:` for descending and
+// @param sort {any[]} Sort the result by a column. The format is `(op;col)` where `op` is `>:` for descending and
 //   `<:` for ascending, and `col` is the column to be ordered by.
 // @return {table} Selected data from the table.
 .qtk.tbl.selectLimitSort:{[tableName;criteria;groupings;assignment;limit;sort]
@@ -383,10 +383,19 @@
 // @kind function
 // @subcategory tbl
 // @overview Delete rows of a table given certain criteria.
-// @param tabRef {symbol | hsym} Table reference.
-// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
-// @return {symbol} The table name.
-.qtk.tbl.delete:{[tabRef;criteria]
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param criteria {any[]} A list of criteria where matching rows will be deleted, or empty list to delete all rows.
+// For partitioned tables, if partition field is included in the criteria, it has to be the first in the list.
+// @return {tabRef} The table reference.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/create; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:1 2 3)];
+//
+// // Or replace tabRef with PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.deleteRows[tabRef; enlist(=;`c1;3)]
+.qtk.tbl.deleteRows:{[tabRef;criteria]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
@@ -397,37 +406,35 @@
     tabRef set ![get tabRef; criteria; 0b; `$()];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tabRef];
-      .qtk.tbl._delete[tablePath; criteria];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.tbl._deleteRows[tablePath; criteria];
       ];
-    tableType=`Partitioned;
+    // tableType=`Partitioned
     [
-      parField:.qtk.db.getCurrentPartitionField[];
-      $[(first criteria)[1]~parField;
-        [
-          partitions:?[tabRef; enlist first criteria; 0b; (enlist parField)!(enlist parField)] parField;
-          tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
-          .qtk.tbl._delete[; 1_criteria] each tablePaths;
-          ];
-        [
-          partitions:.qtk.db.getCurrentPartitions[];
-          tablePaths:{.Q.par[`:.; x; y]}[; tabRef] each partitions;
-          .qtk.tbl._delete[; criteria] each tablePaths;
-          ]
+      dbDir:tabRefDesc`dbDir;
+      partitions:.qtk.db.getPartitions dbDir;
+      parField:.qtk.db.getPartitionField dbDir;
+
+      if[(first criteria)[1]~parField;
+         partitions:?[flip enlist[parField]!enlist[partitions]; enlist first criteria; (); parField];
+         criteria:1_criteria
        ];
-      ];
-    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+
+      tablePaths:.Q.par[dbDir; ; tableName] each partitions;
+      .qtk.tbl._deleteRows[; criteria] each tablePaths;
+      ]
    ];
-  tableName
+  tabRef
  };
 
 // @kind function
 // @private
 // @overview Delete rows of an on-disk table given certain criteria, in a similar format to functional delete.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param criteria {*[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
+// @param criteria {any[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
 // @return {hsym} The path to the table.
-.qtk.tbl._delete:{[tablePath;criteria]
+.qtk.tbl._deleteRows:{[tablePath;criteria]
   indicesToDelete:exec index from ?[tablePath; criteria; 0b; (enlist `index)!(enlist `i)];
   if[0=count indicesToDelete; :tablePath];
 
@@ -586,27 +593,41 @@
 // @kind function
 // @subcategory tbl
 // @overview Delete a column from a table.
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param column {symbol} A column to be deleted.
-// @return {symbol} The table name.
-.qtk.tbl.deleteColumn:{[tableName;column]
-  tableType:.qtk.tbl.getType tableName;
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/deleteColumn; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+//
+// // Or replace tabRef with PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.deleteColumn[tabRef; `c2]
+.qtk.tbl.deleteColumn:{[tabRef;column]
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
   $[tableType=`Plain;
-    ![tableName; (); 0b; enlist[column]];
+    ![tabRef; (); 0b; enlist[column]];
     tableType=`Serialized;
-    tableName set ![get tableName; (); 0b; enlist[column]];
+    tabRef set ![get tabRef; (); 0b; enlist[column]];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._deleteColumn[tablePath; column];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._deleteColumn[; column] each tablePaths;
       ]
    ];
-  tableName
+
+  tabRef
  };
 
 // @kind function

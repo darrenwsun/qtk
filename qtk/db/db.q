@@ -184,7 +184,7 @@
 // @subcategory db
 // @overview Fill all tables missing in some partitions, using the most recent partition as a template.
 // See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
-// @return {*[]} Partitions that are filled with missing tables.
+// @return {any[]} Partitions that are filled with missing tables.
 // @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
 .qtk.db.fillTables:{
   .Q.chk[`:.]
@@ -295,8 +295,8 @@
 //   - their types as returned by `.Q.ty` are the same
 //   - target list is not a vector nor a compound list
 //   - target list is a compound list, and actual list is a generic empty list
-// @param target {*[]} Target list.
-// @param actual {*[]} Actual list.
+// @param target {any[]} Target list.
+// @param actual {any[]} Actual list.
 // @return `1b` if the actual list is type-compliant to the target list; `0b` otherwise.
 .qtk.db._isTypeCompliant:{[target;actual]
   targetType:.Q.ty target;
