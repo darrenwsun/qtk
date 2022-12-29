@@ -47,16 +47,15 @@
 // @kind function
 // @subcategory tbl
 // @overview Create a new table with given data.
-// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
-// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param data {table} Table data.
-// @return {symbol} The table name.
-// @throws {TableTypeError: invalid table type [*]} If the table type is not valid.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/create; `date; `PartitionedTable);
 //
-// `PartitionedTable=.qtk.tbl.create[(`:/tmp/qtk; `date; `PartitionedTable); ([] date:2022.01.01 2022.01.02; c1:1 2)];
+// tabRef~.qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)]
 .qtk.tbl.create:{[tabRef;data]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
@@ -70,7 +69,6 @@
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._addTable[dbDir; tablePath; data];
       ];
-    tableType=`Partitioned;
     [
       dbDir:tabRefDesc`dbDir;
       parField:tabRefDesc`parField;
@@ -78,10 +76,9 @@
       tablePaths:.Q.par[dbDir; ; tableName] each parValues;
       dataByPartition:flip each value parField xgroup data;
       .qtk.tbl._addTable[dbDir;;]'[tablePaths; dataByPartition];
-      ];
-    '.qtk.err.compose[`TableTypeError; "invalid table type [",string[tableType],"]"]
+      ]
    ];
-  tableName
+  tabRef
  };
 
 // @kind function
@@ -461,7 +458,7 @@
 // tabRef:(`:/tmp/qtk/tbl/columnExists; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with PartitionedTable if the database is loaded
 // .qtk.tbl.columnExists[tabRef;`c1]
 .qtk.tbl.columnExists:{[tabRef;column]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -785,7 +782,7 @@
 // tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with PartitionedTable if the database is loaded
 // .qtk.tbl.copyColumn[tabRef; `c1; `c2];
 // .qtk.tbl.columnExists[tabRef; `c2]
 .qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
@@ -1004,10 +1001,30 @@
 
 // @kind function
 // @overview Check if a table of given name exists.
-// @param tblName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @return {boolean} `1b` if the table exists; `0b` otherwise.
-.qtk.tbl.exists:{[tblName]
-  $[.qtk.utils.nameExists tblName; .qtk.type.isTable tblName; 0b]
+.qtk.tbl.exists:{[tabRef]
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType=`Plain;
+    $[.qtk.utils.nameExists tabRef; .qtk.type.isTable tabRef; 0b];
+    tableType=`Serialized;
+    .qtk.os.path.isFile tabRef;
+    tableType=`Splayed;
+    [
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.os.path.isDir tablePath
+      ];
+    // tableType=`Partitioned
+    [
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each (first;last) @\: .qtk.db.getPartitions dbDir;
+      any .qtk.os.path.isDir each tablePaths
+      ]
+   ]
  };
 
 // @kind function

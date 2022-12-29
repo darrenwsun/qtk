@@ -4,12 +4,11 @@ feature Check if a serialized table of given name exists.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_exists_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should return `1b` if the table resolves to a simple table.
     expect `1b` if the table exists.
-      .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
-      system "l ",.qutils.hdbRoot;
-      .qu.compare[.qtk.tbl.exists[`SerializedTable]; 1b]
+      .qtk.tbl.exists[.qutils.tabRef]

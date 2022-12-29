@@ -2,25 +2,24 @@ feature Check if a plain table of given name exists.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should return `1b` if the table resolves to a simple table.
     expect `1b` if the table exists.
-      .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
-      .qu.compare[.qtk.tbl.exists[`PlainTable]; 1b]
+      .qtk.tbl.exists[`PlainTable]
 
   should return `1b` if the table resolves to a keyed table.
     expect `1b` if the table exists.
-      .qtk.tbl.create[`PlainTable; ([c1:("aa";"bb")] c2:`a`b)];
-      .qu.compare[.qtk.tbl.exists[`PlainTable]; 1b]
+      .qtk.tbl.exists[`PlainTable]
 
   should return `0b` if the name doesn't exist.
     expect `0b` if the table exists.
-      .qu.compare[.qtk.tbl.exists[`PlainTable]; 0b]
+      not .qtk.tbl.exists[`PlainTable1]
 
   should return `0b` if the name doesn't resolve to a table.
     expect `0b` if the name doesn't resolve to a table.
-      `PlainTable set 1;
-      .qu.compare[.qtk.tbl.exists[`PlainTable]; 0b]
+      `a set 1;
+      not .qtk.tbl.exists[`a]

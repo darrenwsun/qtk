@@ -4,7 +4,7 @@ feature Create a new plain table with given data.
     .qtk.import.loadModule["tbl";`qtk];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should create a new plain table with empty data
     expect a new plain table created with empty data
