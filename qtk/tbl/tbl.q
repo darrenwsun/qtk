@@ -1035,17 +1035,6 @@
  };
 
 // @kind function
-// @subcategory tbl
-// @overview Remove attribute from a column.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name of the table.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} where If `column` doesn't exist.
-.qtk.tbl.removeAttr:{[tableName;column]
-  .qtk.tbl.apply[tableName; column; `#]
- };
-
-// @kind function
 // @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.

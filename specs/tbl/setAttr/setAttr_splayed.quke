@@ -4,7 +4,7 @@ feature Add attribute to a column of a splayed table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_addAttr_splayed";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2; c2:`g#`a`b)];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -14,5 +14,9 @@ feature Add attribute to a column of a splayed table.
   should add an attribute to a column of a splayed table.
     expect the attribute added to the column.
       .qtk.tbl.setAttr[`SplayedTable; `c1; `p];
-      .qtk.db.reload[];
       .qu.compare[(meta[SplayedTable]`c1)`a; `p]
+
+  should remove an attribute to a column of a splayed table.
+    expect the attribute removed to the column.
+      .qtk.tbl.setAttr[`SplayedTable; `c2; `];
+      .qu.compare[(meta[SplayedTable]`c2)`a; `]

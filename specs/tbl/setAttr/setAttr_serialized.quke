@@ -4,7 +4,7 @@ feature Add attribute to a column of a serialized table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_addAttr_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2; c2:`g#`a`b)];
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
@@ -14,3 +14,8 @@ feature Add attribute to a column of a serialized table.
     expect the attribute added to the column.
       .qtk.tbl.setAttr[.qutils.tabRef; `c1; `p];
       .qu.compare[(meta[get .qutils.tabRef]`c1)`a; `p]
+
+  should remove an attribute to a column of a serialized table.
+    expect the attribute removed to the column.
+      .qtk.tbl.setAttr[.qutils.tabRef; `c2; `];
+      .qu.compare[(meta[get .qutils.tabRef]`c2)`a; `]
