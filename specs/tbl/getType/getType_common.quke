@@ -1,4 +1,4 @@
-feature Get table type of a partitioned table.
+feature Get table type of a table (erroneous cases).
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
@@ -9,16 +9,6 @@ feature Get table type of a partitioned table.
 
   after each
     .qtk.tbl.drop `PartitionedTable;
-
-  should return `Partitioned` for a partitioned table.
-    expect `Partitioned` for a partitioned table passed by value.
-      .qu.compare[.qtk.tbl.getType PartitionedTable; `Partitioned]
-
-    expect `Partitioned` for a partitioned table passed by name.
-      .qu.compare[.qtk.tbl.getType `PartitionedTable; `Partitioned]
-
-    expect `Partitioned` for a partitioned table passed by partitioned table ID.
-      .qu.compare[.qtk.tbl.getType .qutils.tabRef; `Partitioned]
 
   should raise error "ValueError: [*]" if the argument isn't a valid value.
     expect error "ValueError: [*]" if the argument is a symbol vector but its length isn't 3.

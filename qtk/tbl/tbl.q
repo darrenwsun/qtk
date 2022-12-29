@@ -7,17 +7,18 @@
 // @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
 // classified as Partitioned.
 //
-// See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
-// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table name, value, path, or a 3-element tuple consisting
-// of database directory, partition field, and table name.
+// - See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
 // @return {symbol} Table type.
-// @throws {ValueError: [*]} If `t` isn't a valid value.
-// @doctest A plain table.
+// @throws {ValueError} If `t` is a symbol vector but not a valid partitioned table ID.
+// @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 3);
+// tabRef:(`:/tmp/qtk/tbl/getType; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// `Plain=.qtk.tbl.getType t
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// `Partitioned=.qtk.tbl.getType tabRef
 .qtk.tbl.getType:{[t]
   v:$[-11h=type t;
       [
@@ -126,7 +127,7 @@
 // tabRef:(`:/tmp/qtk/tbl/drop; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.drop tabRef
 .qtk.tbl.drop:{[tabRef]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -405,7 +406,7 @@
 // tabRef:(`:/tmp/qtk/tbl/deleteRows; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:1 2 3)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.deleteRows[tabRef; enlist(=;`c1;3)]
 .qtk.tbl.deleteRows:{[tabRef;criteria]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -477,7 +478,7 @@
 // tabRef:(`:/tmp/qtk/tbl/columnExists; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // .qtk.tbl.columnExists[tabRef;`c1]
 .qtk.tbl.columnExists:{[tabRef;column]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -540,7 +541,7 @@
 // tabRef:(`:/tmp/qtk/tbl/addColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.addColumn[tabRef; `c2; 0n]
 .qtk.tbl.addColumn:{[tabRef;column;columnValue]
   .qtk.tbl._validateColumnName column;
@@ -614,7 +615,7 @@
 // tabRef:(`:/tmp/qtk/tbl/deleteColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.deleteColumn[tabRef; `c2]
 .qtk.tbl.deleteColumn:{[tabRef;column]
   tabRefDesc:.qtk.tbl._desc tabRef;
@@ -815,7 +816,7 @@
 // tabRef:(`:/tmp/qtk/tbl/copyColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // .qtk.tbl.copyColumn[tabRef; `c1; `c2];
 // .qtk.tbl.columnExists[tabRef; `c2]
 .qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
@@ -891,7 +892,7 @@
 // tabRef:(`:/tmp/qtk/tbl/apply; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.apply[tabRef; `c1; 2*]
 .qtk.tbl.apply:{[tabRef;column;function]
   .qtk.tbl._validateColumnExists[tabRef; column];
@@ -953,7 +954,7 @@
 // tabRef:(`:/tmp/qtk/tbl/castColumn; `date; `PartitionedTable);
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// // Or replace tabRef with PartitionedTable if the database is loaded
+// // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.castColumn[tabRef; `c1; `int]
 .qtk.tbl.castColumn:{[tabRef;column;newType]
   .qtk.tbl.apply[tabRef; column; newType$]

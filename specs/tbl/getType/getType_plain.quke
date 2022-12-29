@@ -2,10 +2,10 @@ feature Get table type of a plain table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    `PlainTable set ([] c1:1 2 3; c2:`a`b`c);
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should return `Plain` for a plain table.
     expect `Plain` for a plain table passed by value.

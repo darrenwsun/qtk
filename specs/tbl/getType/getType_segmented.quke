@@ -1,18 +1,17 @@
 feature Get table type of a segmented table.
 
-  before
+  before each
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_getType_segmented";
     .qutils.segment1:"/tmp/hdb_getType_segment1";
     .qutils.segment2:"/tmp/hdb_getType_segment2";
-    SegmentedTable:([] c1:1 2 3);
-    (hsym `$.qutils.segment1,"/2022.01.01/SegmentedTable/") set SegmentedTable;
-    (hsym `$.qutils.segment2,"/2022.01.02/SegmentedTable/") set SegmentedTable;
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
-  after
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+  after each
+    .qtk.tbl.drop `SegmentedTable;
 
   should return `Partitioned` for a segmented table.
     expect `Partitioned` for a segmented table passed by value.
@@ -20,3 +19,6 @@ feature Get table type of a segmented table.
 
     expect `Partitioned` for a segmented table passed by name.
       .qu.compare[.qtk.tbl.getType `SegmentedTable; `Partitioned]
+
+    expect `Partitioned` for a segmented table passed by partitioned table ID.
+      .qu.compare[.qtk.tbl.getType .qutils.tabRef; `Partitioned]

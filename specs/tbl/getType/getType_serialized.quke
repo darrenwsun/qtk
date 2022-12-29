@@ -3,11 +3,12 @@ feature Get table type of a serialized table.
   before each
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_getType_serialized";
-    (hsym `$.qutils.hdbRoot,"/SerializedTable") set ([] c1:1 2 3; c2:`a`b`c);
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   after each
-    system "rm -rf ",.qutils.hdbRoot;
+    .qtk.tbl.drop .qutils.tabRef;
 
   should return `Serialized` for a serialized table.
     expect `Serialized` for a serialized table specified by hsym.
-      .qu.compare[.qtk.tbl.getType hsym `$.qutils.hdbRoot,"/SerializedTable"; `Serialized]
+      .qu.compare[.qtk.tbl.getType .qutils.tabRef; `Serialized]
