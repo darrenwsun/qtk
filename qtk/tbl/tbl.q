@@ -59,7 +59,7 @@
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
 // // Or replace tabRef with `PartitionedTable if the database is loaded
-// ([c:`date`c1] t:"dj"; f:`; a:`)=.qtk.tbl.meta tabRef
+// ([c:`date`c1] t:"dj"; f:`; a:`)~.qtk.tbl.meta tabRef
 .qtk.tbl.meta:{[t]
   if[(tt:type t) in 98 99h; :meta t];
 
@@ -1129,30 +1129,50 @@
 // @kind function
 // @subcategory tbl
 // @overview Rename a table.
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param newName {symbol} New name of the table.
-// @return {symbol} New table name.
-.qtk.tbl.rename:{[tableName;newName]
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType=`Plain;
-    [
-      newName set get tableName;
-      ![`.; (); 0b; enlist tableName];
-      ];
-    tableType=`Serialized;
-    .qtk.os.move[tableName; newName];
-    tableType=`Splayed;
-    [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.tbl._rename[tablePath; newName];
-      ];
-    // tableType=`Partitioned
-    [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
-      .qtk.tbl._rename[; newName] each tablePaths;
-      ]
-   ];
-  newName
+// @return {symbol | hsym | (hsym; symbol; symbol)} New table reference.
+// @throws {TableNameError} If the table name is not valid, i.e. it collides with q's reserved words
+// @throws {NameExistsError} If the name is in use
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/rename; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// (`:/tmp/qtk/tbl/rename; `date; `NewPartitionedTable)~.qtk.tbl.rename[tabRef; `NewPartitionedTable]
+.qtk.tbl.rename:{[tabRef;newName]
+  .qtk.tbl._validateTableName newName;
+  .qtk.utils.raiseNameExists newName;
+
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  if[tableType=`Plain;
+     newName set get tabRef;
+     ![`.; (); 0b; enlist tabRef];
+     :newName];
+
+  if[tableType=`Serialized; :.qtk.tbl._rename[tabRef; newName]];
+
+  if[tableType=`Splayed;
+     dbDir:tabRefDesc`dbDir;
+     .qtk.tbl._rename[.Q.dd[dbDir;tableName]; newName];
+     if[dbDir=`:.;
+        ![`.; (); 0b; enlist tableName];
+        .qtk.db.reload[]];
+     :$[tabRef like "*/"; ` sv (dbDir;newName;`); newName]];
+
+  // tableType=`partitioned
+  dbDir:tabRefDesc`dbDir;
+  tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
+  .qtk.tbl._rename[; newName] each tablePaths;
+  if[dbDir=`:.;
+     ![`.; (); 0b; enlist tableName];
+     .qtk.db.reload[]];
+  $[11h=type tabRef; (dbDir; tabRefDesc`parField; newName); newName]
  };
 
 // @kind function
@@ -1162,7 +1182,18 @@
 // @param newName {hsym} New table name.
 // @return {hsym} Path to the renamed table in the partition.
 .qtk.tbl._rename:{[tablePath;newName]
-  newTablePath:.Q.dd[first[` vs tablePath]; newName];
+  newTablePath:.Q.dd[; newName] first ` vs tablePath;
   .qtk.os.move[tablePath; newTablePath];
   newTablePath
+ };
+
+// @kind function
+// @private
+// @overview Validate table name.
+// @param name {symbol} Table name.
+// @throws {TableNameError} If the table name is not valid.
+.qtk.tbl._validateTableName:{[name]
+  if[(name in .Q.res,key `.q) or name<>.Q.id name;
+     '.qtk.err.compose[`TableNameError; string name]
+   ];
  };

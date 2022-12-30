@@ -1,0 +1,33 @@
+feature Rename a table (erroneous cases).
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+    .qtk.tbl.create[`NewPlainTable; ([] c1:1 2)];
+
+  after each
+    delete PlainTable, NewPlainTable from `.;
+
+  should raise error "NameExistsError: NewPlainTable" if the name is in use.
+    expect error "NameExistsError: NewPlainTable".
+      .qu.compare[
+        .[.qtk.tbl.rename; `PlainTable`NewPlainTable; {x}];
+        "NameExistsError: NewPlainTable"
+      ]
+
+  should raise error "TableNameError: NewPlainTable" if the table name is not valid.
+    expect error "NameExistsError: 53".
+      .qu.compare[
+        .[.qtk.tbl.rename; `PlainTable`53; {x}];
+        "TableNameError: 53"
+      ]
+    expect error "NameExistsError: abs".
+      .qu.compare[
+        .[.qtk.tbl.rename; `PlainTable`abs; {x}];
+        "TableNameError: abs"
+      ]
+    expect error "NameExistsError: abs".
+      .qu.compare[
+        .[.qtk.tbl.rename; `PlainTable`aj; {x}];
+        "TableNameError: aj"
+      ]

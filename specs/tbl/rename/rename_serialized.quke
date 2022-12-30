@@ -8,12 +8,12 @@ feature Rename a serialized table.
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop .qutils.tabRefNew;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename a serialized table.
     expect new table to be created.
-      .qtk.tbl.rename[.qutils.tabRef; .qutils.tabRefNew];
+      .qtk.tbl.rename[.qutils.tabRef; `NewSerializedTable];
       .qu.compare[get .qutils.tabRefNew; ([] c1:1 2)]
     expect old table to be dropped.
       not .qtk.os.path.exists .qutils.tabRef

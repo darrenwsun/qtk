@@ -7,16 +7,28 @@ feature Rename a segmented table.
     .qutils.segment2:"/tmp/hdb_rename_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    .qutils.newTabRef:(hsym `$.qutils.hdbRoot; `date; `NewSegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop `NewSegmentedTable;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename a segmented table.
     expect new table to be created.
       .qtk.tbl.rename[`SegmentedTable; `NewSegmentedTable];
-      .qtk.db.reload[];
-      .qu.compare[select from NewSegmentedTable; ([] date:2022.01.01 2022.01.01; c1:1 2)]
-    expect old table to be dropped.
+      .qu.compare[select from NewSegmentedTable; ([] date:2022.01.01 2022.01.02; c1:1 2)]
+    expect old table name removed.
+      not .qtk.utils.nameExists `SegmentedTable
+    expect old table directory removed.
       not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/PartitionedTable"
+
+  should rename a segmented table, when the table is specified by partitioned table ID.
+    expect new table to be created.
+      .qtk.tbl.rename[(`:.; `date; `SegmentedTable); `NewSegmentedTable];
+      .qu.compare[select from NewSegmentedTable; ([] date:2022.01.01 2022.01.02; c1:1 2)]
+    expect old table name removed.
+      not .qtk.utils.nameExists `SegmentedTable
+    expect old table directory removed.
+      not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/SegmentedTable"

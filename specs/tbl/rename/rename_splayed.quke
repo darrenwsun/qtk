@@ -4,17 +4,28 @@ feature Rename a splayed table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_rename_splayed";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qutils.newTabRef:hsym `$.qutils.hdbRoot,"/NewSplayedTable/";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop `NewSplayedTable;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename a splayed table.
     expect new table to be created.
       .qtk.tbl.rename[`SplayedTable; `NewSplayedTable];
-      .qtk.db.reload[];
       .qu.compare[select from NewSplayedTable; ([] c1:1 2)]
-    expect old table to be dropped.
+    expect old table name removed.
+      not .qtk.utils.nameExists `SplayedTable
+    expect old table directory removed.
+      not .qtk.os.path.exists .qutils.tabRef
+
+  should rename a splayed table, when the table is specified by hsym.
+    expect new table to be created.
+      .qtk.tbl.rename[`:./SplayedTable/; `NewSplayedTable];
+      .qu.compare[select from NewSplayedTable; ([] c1:1 2)]
+    expect old table name removed.
+      not .qtk.utils.nameExists `SplayedTable
+    expect old table directory removed.
       not .qtk.os.path.exists .qutils.tabRef
