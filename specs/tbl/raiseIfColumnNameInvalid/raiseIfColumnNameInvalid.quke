@@ -1,0 +1,28 @@
+feature Raise ColumnNameError if a column name is not valid.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+
+  should raise ColumnNameError if a column name is not valid.
+    expect error "ColumnNameError: abs".
+      .qu.compare[
+        @[.qtk.tbl.raiseIfColumnNameInvalid; `abs; {x}];
+        "ColumnNameError: abs"
+      ]
+    expect error "ColumnNameError: aj".
+      .qu.compare[
+        @[.qtk.tbl.raiseIfColumnNameInvalid; `aj; {x}];
+        "ColumnNameError: aj"
+      ]
+    expect error "ColumnNameError: i".
+      .qu.compare[
+        @[.qtk.tbl.raiseIfColumnNameInvalid; `i; {x}];
+        "ColumnNameError: i"
+      ]
+
+  should not raise ColumnNameError if a column name is valid.
+    expect no error.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnNameInvalid `c1;
+        (::)
+      ]

@@ -593,6 +593,22 @@
 
 // @kind function
 // @subcategory tbl
+// @overview Raise ColumnNameError if a column name is not valid, i.e. it collides with q's reserved words and implicit column `i`.
+// @param name {symbol} A column name.
+// @throws {ColumnNameError} If the column name is not valid.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+//
+// "ColumnNameError: abs"~@[.qtk.tbl.raiseIfColumnNameInvalid; `abs; {x}]
+.qtk.tbl.raiseIfColumnNameInvalid:{[name]
+  if[(name in `i,.Q.res,key `.q) or name<>.Q.id name;
+     '.qtk.err.compose[`ColumnNameError; string name]
+   ];
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Check if a column exists in a table.
 // For splayed tables, column existence requires that the column appears in `.d` file and its data file exists.
 // For partitioned tables, it requires the condition holds for the latest partition.
@@ -655,7 +671,7 @@
 // @param column {symbol} Name of new column to be added.
 // @param columnValue {any} Value to be set on the new column.
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
-// @throws {NameError} If `column` is not a valid name.
+// @throws {ColumnNameError} If `column` is not a valid name.
 // @throws {ColumnExistsError} If `column` already exists.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
@@ -666,7 +682,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.addColumn[tabRef; `c2; 0n]
 .qtk.tbl.addColumn:{[tabRef;column;columnValue]
-  .qtk.tbl._validateColumnName column;
+  .qtk.tbl.raiseIfColumnNameInvalid column;
   .qtk.tbl.raiseIfColumnExists[tabRef; column];
 
   tabRefDesc:.qtk.tbl.describe tabRef;
@@ -819,7 +835,7 @@
 // tabRef~.qtk.tbl.renameColumns[tabRef; `c1`c2!`c3`c4]
 .qtk.tbl.renameColumns:{[tabRef;nameDict]
   .qtk.tbl.raiseIfColumnNotFound[tabRef;] each key nameDict;
-  .qtk.tbl._validateColumnName each value nameDict;
+  .qtk.tbl.raiseIfColumnNameInvalid each value nameDict;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -960,7 +976,7 @@
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError} If `sourceColumn` doesn't exist.
 // @throws {ColumnExistsError} If `targetColumn` exists.
-// @throws {NameError} If name of `targetColumn` is not valid.
+// @throws {ColumnNameError} If name of `targetColumn` is not valid.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
@@ -973,7 +989,7 @@
 .qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
   .qtk.tbl.raiseIfColumnNotFound[tabRef; sourceColumn];
   .qtk.tbl.raiseIfColumnExists[tabRef; targetColumn];
-  .qtk.tbl._validateColumnName targetColumn;
+  .qtk.tbl.raiseIfColumnNameInvalid targetColumn;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -1126,18 +1142,6 @@
 // `s=.qtk.tbl.meta[tabRef][`c1;`a]
 .qtk.tbl.setAttr:{[tabRef;column;attribute]
   .qtk.tbl.apply[tabRef; column; attribute#]
- };
-
-// @kind function
-// @private
-// @subcategory tbl
-// @overview Validate column name.
-// @param columnName {symbol} A column name.
-// @throws {ColumnNameError: invalid column name [*]} If the column name is not valid.
-.qtk.tbl._validateColumnName:{[columnName]
-  if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
-     '.qtk.err.compose[`ColumnNameError; string columnName]
-   ];
  };
 
 // @kind function
