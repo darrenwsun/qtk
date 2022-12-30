@@ -1,18 +1,22 @@
-feature Reorder columns of a table.
+feature Reorder columns of a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_renameColumns_partitioned";
+    .qutils.hdbRoot:"/tmp/hdb_reorderColumns_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:("aa";"bb";"cc"); c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop `PartitionedTable;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should reorder columns of a partitioned table.
     expect the columns reordered in the table.
       .qtk.tbl.reorderColumns[`PartitionedTable;`c2`c1];
-      .qtk.db.reload[];
+      .qu.compare[cols PartitionedTable; `date`c2`c1]
+
+  should reorder columns of a partitioned table, when the table is specified by partitioned table ID.
+    expect the columns reordered in the table.
+      .qtk.tbl.reorderColumns[(`:.; `date; `PartitionedTable);`c2`c1];
       .qu.compare[cols PartitionedTable; `date`c2`c1]

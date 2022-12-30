@@ -770,18 +770,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._renameColumns[tablePath; nameDict];
-      if[dbDir=`:.;
-         ![`.; (); 0b; enlist tableName];
-         .qtk.db.reload[]];
+      if[dbDir=`:.; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._renameColumns[; nameDict] each tablePaths;
-      if[dbDir=`:.;
-         ![`.; (); 0b; enlist tableName];
-         .qtk.db.reload[]];
+      if[dbDir=`:.; .qtk.db.reload[]];
       ]
    ];
 
@@ -838,28 +834,43 @@
 // @kind function
 // @subcategory tbl
 // @overview Reorder columns of a table.
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param firstColumns {symbol[]} First columns after reordering.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError: [*]} If some column in `firstColumns` doesn't exist.
-.qtk.tbl.reorderColumns:{[tableName;firstColumns]
-  .qtk.tbl._validateColumnExists[tableName;] each firstColumns;
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @throws {ColumnNotFoundError} If some column in `firstColumns` doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/reorderColumns; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.reorderColumns[tabRef; `c2]
+.qtk.tbl.reorderColumns:{[tabRef;firstColumns]
+  .qtk.tbl._validateColumnExists[tabRef;] each firstColumns;
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
   $[tableType in `Plain`Serialized;
-    tableName set firstColumns xcols get tableName;
+    tabRef set firstColumns xcols get tabRef;
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._reorderColumns[tablePath; firstColumns];
+      if[dbDir=`:.; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._reorderColumns[; firstColumns] each tablePaths;
+      if[dbDir=`:.; .qtk.db.reload[]];
       ]
    ];
-  tableName
+
+  tabRef
  };
 
 // @kind function

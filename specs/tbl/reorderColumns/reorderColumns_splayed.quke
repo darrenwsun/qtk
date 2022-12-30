@@ -13,5 +13,9 @@ feature Reorder columns of a splayed table.
   should reorder columns of a splayed table.
     expect the columns reordered in the table.
       .qtk.tbl.reorderColumns[`SplayedTable; `c2`c1];
-      .qtk.db.reload[];
+      .qu.compare[cols SplayedTable; `c2`c1]
+
+  should reorder columns of a splayed table, when the table is specified by hsym.
+    expect the columns reordered in the table.
+      .qtk.tbl.reorderColumns[`:./SplayedTable/; `c2`c1];
       .qu.compare[cols SplayedTable; `c2`c1]
