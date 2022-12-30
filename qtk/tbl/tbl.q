@@ -424,7 +424,7 @@
 // @subcategory tbl
 // @overview Select from a table similar to [functional select](https://code.kx.com/q/basics/funsql/#select)
 // but support all table types.
-// @param table {symbol | hsym | table} Table name, path or value.
+// @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param columns {dict} A mapping from column names to columns/expressions.
@@ -437,7 +437,7 @@
 // @subcategory tbl
 // @overview Select from a table similar to [rank-5 functional select](https://code.kx.com/q/basics/funsql/#rank-5)
 // but support all table types.
-// @param table {symbol | hsym | table} Table name, path or value.
+// @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param columns {dict} A mapping from column names to columns/expressions.
@@ -451,7 +451,7 @@
 // @subcategory tbl
 // @overview Select from a table similar to [rank-6 functional select](https://code.kx.com/q/basics/funsql/#rank-6)
 // but support all table types.
-// @param table {symbol | hsym | table} Table name, path or value.
+// @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
 // @param columns {dict} A mapping from column names to columns/expressions.
@@ -1059,7 +1059,7 @@
 // @kind function
 // @subcategory tbl
 // @overview Set an attribute to a column. See also [Set Attribute](https://code.kx.com/q/ref/set-attribute/).
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param column {symbol} A column name of the table.
 // @param attribute {symbol} Attribute to be added to the column.
 // @return {symbol} The table name.
@@ -1067,12 +1067,14 @@
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
-// `t set ([]c1:til 2);
+// tabRef:(`:/tmp/qtk/tbl/setAttr; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
-// .qtk.tbl.setAttr[`t;`c1;`s];
-// `s=meta[t][`c1;`a]
-.qtk.tbl.setAttr:{[tableName;column;attribute]
-  .qtk.tbl.apply[tableName; column; attribute#]
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// .qtk.tbl.setAttr[tabRef; `c1; `s];
+// `s=.qtk.tbl.meta[tabRef][`c1;`a]
+.qtk.tbl.setAttr:{[tabRef;column;attribute]
+  .qtk.tbl.apply[tabRef; column; attribute#]
  };
 
 // @kind function
@@ -1089,10 +1091,18 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Raise error if a column is not found.
+// @overview Raise ColumnNotFoundError if a column is not found.
 // @param table {table |	symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
 // @param column {symbol} A column name.
-// @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
+// @throws {ColumnNotFoundError} If the column doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnNotFound; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// "ColumnNotFoundError: c2"~.[.qtk.tbl.raiseIfColumnNotFound; (tabRef; `c2); {x}]
 .qtk.tbl.raiseIfColumnNotFound:{[table;column]
   if[not .qtk.tbl.columnExists[table; column];
      '.qtk.err.compose[`ColumnNotFoundError; string column]
