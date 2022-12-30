@@ -11,6 +11,7 @@ feature Add attribute to a column of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop `SegmentedTable;
     .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should add an attribute to a column of a segmented table.

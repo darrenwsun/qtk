@@ -11,8 +11,8 @@ feature Add a column to a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should add a column to a segmented table specified by table name.
     expect the column added to the table.

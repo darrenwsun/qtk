@@ -11,8 +11,8 @@ feature Cast the datatype of a column of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should cast a column of a partitioned table to a new type.
     expect the column to be casted to a new type specified by type name.

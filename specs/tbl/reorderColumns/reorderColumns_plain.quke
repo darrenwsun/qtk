@@ -5,7 +5,7 @@ feature Reorder columns of a plain table.
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should reorder columns of a plain table.
     expect the columns reordered in the table.

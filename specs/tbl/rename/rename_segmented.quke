@@ -13,7 +13,7 @@ feature Rename a segmented table.
 
   after each
     .qtk.tbl.drop `NewSegmentedTable;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should rename a segmented table.
     expect new table to be created.

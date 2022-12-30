@@ -11,8 +11,8 @@ feature Apply a function to a column of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should apply a function to a column of a segmented table specified by table name.
     expect the column has the function-applied values.

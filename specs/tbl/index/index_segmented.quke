@@ -11,9 +11,8 @@ feature Get entries at given indices of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    delete SegmentedTable from `.;
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should return empty table if the indices are empty.
     expect empty table if the indices are empty.

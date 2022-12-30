@@ -12,7 +12,7 @@ feature Get metadata of a segmented table.
 
   after each
     .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should metadata of a plain table, by value.
     expect metadata of the table.

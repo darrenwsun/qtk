@@ -11,6 +11,7 @@ feature Select from a segmented table based on given criteria, groupings, and co
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop `SegmentedTable;
     .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should select from a plain table based on given criteria, groupings, and column mappings.

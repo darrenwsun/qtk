@@ -5,7 +5,7 @@ feature Select from a plain table based on given criteria, groupings, and column
     .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should select from a plain table based on given criteria, groupings, and column mappings.
     expect proper data specified by criteria
@@ -22,4 +22,21 @@ feature Select from a plain table based on given criteria, groupings, and column
       .qu.compare[.qu.result; ([] c1:("aa";"bb"); c2:`a`b)]
     expect proper columns
       .qu.result:.qtk.tbl.select[`PlainTable; (); 0b; enlist[`c3]!enlist[`c2]];
+      .qu.compare[.qu.result; ([] c3:`a`b`a)]
+
+  should select from a plain table based on given criteria, groupings, and column mappings.
+    expect proper data specified by criteria
+      .qu.result:.qtk.tbl.select[PlainTable; enlist(=;`c2;enlist `b); 0b; ()];
+      .qu.compare[.qu.result; ([] c1:enlist "bb"; c2:`b)]
+    expect all data without criteria
+      .qu.result:.qtk.tbl.select[PlainTable; (); 0b; ()];
+      .qu.compare[.qu.result; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)]
+    expect proper data by groupings
+      .qu.result:.qtk.tbl.select[PlainTable; (); enlist[`c2]!enlist[`c2]; ()];
+      .qu.compare[.qu.result; ([c2:`a`b] c1:("aa";"bb"))]
+    expect proper distinct data
+      .qu.result:.qtk.tbl.select[PlainTable; (); 1b; ()];
+      .qu.compare[.qu.result; ([] c1:("aa";"bb"); c2:`a`b)]
+    expect proper columns
+      .qu.result:.qtk.tbl.select[PlainTable; (); 0b; enlist[`c3]!enlist[`c2]];
       .qu.compare[.qu.result; ([] c3:`a`b`a)]

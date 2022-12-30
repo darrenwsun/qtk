@@ -11,6 +11,7 @@ feature Update values in certain columns of a segmented table.
     system "l ",.qutils.hdbRoot;
 
   after each
+    .qtk.tbl.drop `SegmentedTable;
     .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should be able to change data type of a column.

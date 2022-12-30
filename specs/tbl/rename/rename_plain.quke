@@ -5,7 +5,7 @@ feature Rename a plain table.
     .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
 
   after each
-    delete NewPlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should rename a plain table.
     expect new table to be created.

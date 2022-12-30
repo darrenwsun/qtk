@@ -12,7 +12,7 @@ feature Rename columns of a partitioned table.
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should rename columns of a segmented table.
     expect the columns renamed in the table.

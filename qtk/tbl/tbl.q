@@ -406,13 +406,13 @@
 // @kind function
 // @subcategory tbl
 // @overview Select from a table based on given criteria, groupings, and column mappings, in a similar format to functional select.
-// @param table {symbol | table} Table name or value.
+// @param table {symbol | hsym | table} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
-// @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param assignment {dict} A mapping from column names to values of parse-tree form.
+// @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
+// @param columns {dict} A mapping from column names to columns/expressions.
 // @return {table} Selected data from the table.
-.qtk.tbl.select:{[tableName;criteria;groupings;assignment]
-  ?[tableName; criteria; groupings; assignment]
+.qtk.tbl.select:{[table;criteria;groupings;columns]
+  ?[table; criteria; groupings; columns]
  };
 
 // @kind function
