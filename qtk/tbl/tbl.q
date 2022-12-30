@@ -48,6 +48,7 @@
 // @kind function
 // @subcategory tbl
 // @overview Get metadata of a table. It's similar to [meta](https://code.kx.com/q/ref/meta/) but supports all table types.
+// For partitioned table, the latest partition is used.
 // @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
 // @return {table} Metadata of the table.
 // @doctest
