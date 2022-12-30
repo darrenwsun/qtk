@@ -47,9 +47,7 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Get metadata of a table.
-//
-// - See also [meta](https://code.kx.com/q/ref/meta/).
+// @overview Get metadata of a table. It's similar to [meta](https://code.kx.com/q/ref/meta/) but supports all table types.
 // @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
 // @return {table} Metadata of the table.
 // @doctest
@@ -73,7 +71,6 @@
     meta get t;
     tableType=`Splayed;
     [
-      if[type[t] in 98 99h; :meta t];
       if[not t like "*/"; :meta t];
       dbDir:tabRefDesc`dbDir;
       .qtk.db.loadSym[dbDir;`sym];
@@ -83,7 +80,6 @@
       ];
     // tableType=`Partitioned
     [
-      if[98h=tt:type t; :meta t];
       if[-11h=tt; :meta t];
       dbDir:tabRefDesc`dbDir;
       parField:tabRefDesc`parField;
@@ -1115,17 +1111,77 @@
  };
 
 // @kind function
+// @subcategory tbl
 // @overview Count rows of a table.
-// @param tab {symbol | table} Table, by name or value.
+// It's similar to [count](https://code.kx.com/q/ref/count/#count) but supports all table types.
+// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
 // @return {long} Row count of the table.
-.qtk.tbl.count:{[tab]
-  $[98h=type tab; count tab; count get tab]
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/count; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// 2=.qtk.tbl.count tabRef
+.qtk.tbl.count:{[table]
+  if[(tt:type table) in 98 99h; :count table];
+
+  tabRefDesc:.qtk.tbl._desc table;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  $[tableType in `Plain`Serialized;
+    count get table;
+    tableType=`Splayed;
+    [
+      if[not table like "*/"; :count get table];
+
+      dbDir:tabRefDesc`dbDir;
+      if[dbDir=`:.; :count get tableName];
+
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.tbl._count tablePath
+      ];
+    // tableType=`Partitioned
+    [
+      if[-11h=tt; :count get table];
+
+      dbDir:tabRefDesc`dbDir;
+      if[dbDir=`:.; :count get tableName];
+
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
+      sum .qtk.tbl._count each tablePaths
+      ]
+   ]
  };
 
 // @kind function
+// @subcategory tbl
+// @overview Count rows of an on-disk table. Only the first column is taken into consideration.
+// @param tablePath {hsym} Path to an on-disk table.
+// @return {long} Row count of the table.
+.qtk.tbl._count:{[tablePath]
+  firstColumn:first .qtk.db._getColumns tablePath;
+  count get .Q.dd[tablePath; firstColumn]
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Check if a table of given name exists.
+// For splayed table not in the current database, it's deemed existent if the directory exists.
+// For partitioned table not in the current database, it's deemed existent if the directory exists in either the first
+// or the last partition.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @return {boolean} `1b` if the table exists; `0b` otherwise.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/exists; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// .qtk.tbl.exists tabRef
 .qtk.tbl.exists:{[tabRef]
   tabRefDesc:.qtk.tbl._desc tabRef;
   tableType:tabRefDesc`type;
@@ -1134,16 +1190,20 @@
   $[tableType=`Plain;
     $[.qtk.utils.nameExists tabRef; .qtk.type.isTable tabRef; 0b];
     tableType=`Serialized;
-    .qtk.os.path.isFile tabRef;
+    $[.qtk.os.path.isFile tabRef; .qtk.type.isTable tabRef; 0b];
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
+      if[dbDir=`:.; :.qtk.utils.nameExists tableName];
+
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.os.path.isDir tablePath
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
+      if[dbDir=`:.; :.qtk.utils.nameExists tableName];
+
       tablePaths:.Q.par[dbDir; ; tableName] each (first;last) @\: .qtk.db.getPartitions dbDir;
       any .qtk.os.path.isDir each tablePaths
       ]

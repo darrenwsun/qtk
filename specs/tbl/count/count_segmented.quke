@@ -19,3 +19,5 @@ feature Count rows of a segmented table.
       .qu.compare[.qtk.tbl.count `SegmentedTable; 3]
     expect row count of a segmented table, passed by value
       .qu.compare[.qtk.tbl.count SegmentedTable; 3]
+    expect row count of a segmented table, passed by partitioned table ID
+      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]

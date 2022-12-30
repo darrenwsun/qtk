@@ -16,3 +16,5 @@ feature Count rows of a partitioned table.
       .qu.compare[.qtk.tbl.count `PartitionedTable; 3]
     expect row count of a partitioned table, passed by value
       .qu.compare[.qtk.tbl.count PartitionedTable; 3]
+    expect row count of a partitioned table, passed by partitioned table ID
+      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]

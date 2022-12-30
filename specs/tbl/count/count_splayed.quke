@@ -8,7 +8,7 @@ feature Count rows of a splayed table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop `SplayedTable;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should get row count of a splayed table
@@ -16,3 +16,5 @@ feature Count rows of a splayed table.
       .qu.compare[.qtk.tbl.count `SplayedTable; 3]
     expect row count of a splayed table, passed by value
       .qu.compare[.qtk.tbl.count SplayedTable; 3]
+    expect row count of a splayed table, passed by hsym
+      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]

@@ -8,13 +8,17 @@ feature Check if a splayed table of given name exists.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop `SplayedTable;
     .qtk.os.rmtree .qutils.hdbRoot;
 
-  should return `1b` if the table resolves to a simple table.
-    expect `1b` if the table exists.
-      .qtk.tbl.exists[`SplayedTable]
-
-  should return `1b` if the table exists, when the table is specified by hsym.
+  should return `1b` if the table exists.
     expect `1b`.
+      .qtk.tbl.exists `SplayedTable
+    expect `1b` when the table is specified by hsym.
       .qtk.tbl.exists .qutils.tabRef
+
+  should return `0b` if the table doesn't exist.
+    expect `0b`.
+      not .qtk.tbl.exists `SplayedTable1
+    expect `0b` when the table is specified by hsym.
+      not .qtk.tbl.exists ` sv `:.`SplayedTable1`
