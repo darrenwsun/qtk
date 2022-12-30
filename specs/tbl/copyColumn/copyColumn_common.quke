@@ -7,17 +7,17 @@ feature Copy an existing column to a new column (erroneous cases).
   after each
     delete PlainTable from `.;
 
-  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
-    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+  should raise error "ColumnNameError: 53" if the colum name is not valid.
+    expect error "ColumnNameError: 53" if the colum name is not valid.
       .qu.compare[
         @[.qtk.tbl.copyColumn[`PlainTable; `c2; ]; `$"53"; {x}];
-        "NameError: invalid column name [53]"]
+        "ColumnNameError: 53"]
 
-  should raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
-    expect raise error "ColumnNotFoundError: [*]" if `sourceColumn` doesn't exist.
+  should raise error "ColumnNotFoundError: c3" if `sourceColumn` doesn't exist.
+    expect raise error "ColumnNotFoundError: c3" if `sourceColumn` doesn't exist.
       .qu.compare[
         @[.qtk.tbl.copyColumn[`PlainTable; ; `c4]; `c3; {x}];
-        "ColumnNotFoundError: [c3]"]
+        "ColumnNotFoundError: c3"]
 
   should raise error "ColumnExistsError: [*]" if `targetColumn` exists.
     expect raise error "ColumnExistsError: [*]" if `targetColumn` exists.

@@ -1,17 +1,22 @@
 feature Rename column(s) of a splayed table.
 
-  before
+  before each
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_renameColumns_splayed";
-    system "cd ",.qutils.hdbRoot;
-    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 0; c2:10b)];
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
     system "l ",.qutils.hdbRoot;
 
-  after
-    system "rm -rf ",.qutils.hdbRoot;
+  after each
+    .qtk.tbl.drop `SplayedTable;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
   should rename columns of a splayed table.
     expect the columns renamed in the table.
       .qtk.tbl.renameColumns[`SplayedTable; `c1`c2!`c11`c12];
-      .qtk.db.reload[];
+      .qu.compare[cols SplayedTable; `c11`c12]
+
+  should rename columns of a splayed table.
+    expect the columns renamed in the table.
+      .qtk.tbl.renameColumns[`:./SplayedTable/; `c1`c2!`c11`c12];
       .qu.compare[cols SplayedTable; `c11`c12]

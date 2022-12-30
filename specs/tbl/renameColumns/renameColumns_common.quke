@@ -7,14 +7,14 @@ feature Rename columns of a table.
   after each
     delete PlainTable from `.;
 
-  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
-    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+  should raise error "ColumnNameError: 53" if the colum name is not valid.
+    expect error "ColumnNameError: 53" if the colum name is not valid.
       .qu.compare[
         @[.qtk.tbl.renameColumns[`PlainTable; ]; `c1`c2!`c11`53; {x}];
-        "NameError: invalid column name [53]"]
+        "ColumnNameError: 53"]
 
-  should raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
-    expect raise error "ColumnNotFoundError: [*]" if some column in `nameDict` doesn't exist.
+  should raise error "ColumnNotFoundError: c3" if some column in `nameDict` doesn't exist.
+    expect raise error "ColumnNotFoundError: c3" if some column in `nameDict` doesn't exist.
       .qu.compare[
         @[.qtk.tbl.renameColumns[`PlainTable; ]; `c1`c3!`c11`c33; {x}];
-        "ColumnNotFoundError: [c3]"]
+        "ColumnNotFoundError: c3"]

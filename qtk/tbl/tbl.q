@@ -742,30 +742,50 @@
 // @kind function
 // @subcategory tbl
 // @overview Rename column(s) from a table.
-// @param tableName {symbol} Table name.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table name.
 // @param nameDict {dict} A dictionary from existing name(s) to new name(s).
-// @return {symbol} The table name.
-// @throws {NameError: invalid column name [*]} If the column name is not valid.
-// @throws {ColumnNotFoundError: [*]} If some column in `nameDict` doesn't exist.
-.qtk.tbl.renameColumns:{[tableName;nameDict]
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @throws {ColumnNameError} If the column name is not valid.
+// @throws {ColumnNotFoundError} If some column doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/renameColumns; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.renameColumns[tabRef; `c1`c2!`c3`c4]
+.qtk.tbl.renameColumns:{[tabRef;nameDict]
+  .qtk.tbl._validateColumnExists[tabRef;] each key nameDict;
   .qtk.tbl._validateColumnName each value nameDict;
-  .qtk.tbl._validateColumnExists[tableName;] each key nameDict;
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
   $[tableType in `Plain`Serialized;
-    tableName set nameDict xcol get tableName;
+    tabRef set nameDict xcol get tabRef;
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._renameColumns[tablePath; nameDict];
+      if[dbDir=`:.;
+         ![`.; (); 0b; enlist tableName];
+         .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
-      tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[];
+      dbDir:tabRefDesc`dbDir;
+      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
       .qtk.tbl._renameColumns[; nameDict] each tablePaths;
+      if[dbDir=`:.;
+         ![`.; (); 0b; enlist tableName];
+         .qtk.db.reload[]];
       ]
    ];
-  tableName
+
+  tabRef
  };
 
 // @kind function
@@ -775,8 +795,7 @@
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
 // @return {hsym} The path to the table.
 .qtk.tbl._renameColumns:{[tablePath;nameDict]
-  renameOneColumn:.qtk.tbl._renameOneColumn[tablePath; ;];
-  renameOneColumn'[key nameDict; value nameDict];
+  .qtk.tbl._renameOneColumn[tablePath; ;]'[key nameDict; value nameDict];
   tablePath
  };
 
@@ -1038,10 +1057,10 @@
 // @private
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
-// @throws {NameError: invalid column name [*]} If the column name is not valid.
+// @throws {ColumnNameError: invalid column name [*]} If the column name is not valid.
 .qtk.tbl._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
-     '.qtk.err.compose[`NameError; "invalid column name [",string[columnName],"]"]
+     '.qtk.err.compose[`ColumnNameError; string columnName]
    ];
  };
 
@@ -1053,7 +1072,7 @@
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
 .qtk.tbl._validateColumnExists:{[tableName;column]
   if[not .qtk.tbl.columnExists[tableName; column];
-     '.qtk.err.compose[`ColumnNotFoundError; "[",string[column],"]"]
+     '.qtk.err.compose[`ColumnNotFoundError; string column]
    ];
  };
 

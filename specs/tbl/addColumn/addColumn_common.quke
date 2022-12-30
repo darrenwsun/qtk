@@ -7,11 +7,11 @@ feature Add a column to a table (erroneous cases).
   after each
     .qtk.tbl.drop `PlainTable;
 
-  should raise error "NameError: invalid column name [*]" if the colum name is not valid.
-    expect error "NameError: invalid column name [*]" if the colum name is not valid.
+  should raise error "ColumnNameError: 53" if the colum name is not valid.
+    expect error "ColumnNameError: 53" if the colum name is not valid.
       .qu.compare[
         @[.qtk.tbl.addColumn[`PlainTable; ; 0]; `$"53"; {x}];
-        "NameError: invalid column name [53]"]
+        "ColumnNameError: 53"]
 
   should raise error "ColumnExistsError: [*]" if the column exists.
     expect error "ColumnExistsError: [*]" if the column exists.

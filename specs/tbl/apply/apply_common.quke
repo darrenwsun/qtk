@@ -7,8 +7,8 @@ feature Apply a function to a column.
   after each
     .qtk.tbl.drop `PlainTable;
 
-  should raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
-    expect raise error "ColumnNotFoundError: [*]" if `column` doesn't exist.
+  should raise error "ColumnNotFoundError: c2" if `column` doesn't exist.
+    expect raise error "ColumnNotFoundError: c2" if `column` doesn't exist.
       .qu.compare[
-        @[.qtk.tbl.apply[`PlainTable; ; string]; `c3; {x}];
-        "ColumnNotFoundError: [c3]"]
+        @[.qtk.tbl.apply[`PlainTable; ; string]; `c2; {x}];
+        "ColumnNotFoundError: c2"]

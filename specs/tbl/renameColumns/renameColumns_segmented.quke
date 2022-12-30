@@ -11,10 +11,15 @@ feature Rename columns of a partitioned table.
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree .qutils.hdbRoot;
 
-  should rename columns of a partitioned table.
+  should rename columns of a segmented table.
     expect the columns renamed in the table.
       .qtk.tbl.renameColumns[`SegmentedTable;`c1`c2!`c11`c12];
-      .qtk.db.reload[];
+      .qu.compare[cols SegmentedTable; `date`c11`c12]
+
+  should rename columns of a segmented table, when the table is specified by partitioned table ID.
+    expect the columns renamed in the table.
+      .qtk.tbl.renameColumns[(`:.; `date; `SegmentedTable); `c1`c2!`c11`c12];
       .qu.compare[cols SegmentedTable; `date`c11`c12]

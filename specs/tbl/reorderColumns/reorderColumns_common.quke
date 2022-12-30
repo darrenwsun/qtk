@@ -7,8 +7,8 @@ feature Reorder columns of a table.
   after each
     delete PlainTable from `.;
 
-  should raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
-    expect raise error "ColumnNotFoundError: [*]" if some column in `firstColumns` doesn't exist.
+  should raise error "ColumnNotFoundError: c3" if some column in `firstColumns` doesn't exist.
+    expect raise error "ColumnNotFoundError: c3" if some column in `firstColumns` doesn't exist.
       .qu.compare[
         @[.qtk.tbl.reorderColumns[`PlainTable; ]; `c2`c3; {x}];
-        "ColumnNotFoundError: [c3]"]
+        "ColumnNotFoundError: c3"]
