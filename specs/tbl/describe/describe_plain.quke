@@ -1,0 +1,15 @@
+feature Describe a table reference of plain table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:`aa`bb)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should describe a table reference of plain table.
+    expect a dictionary that describes the table reference.
+      .qu.compare[
+        .qtk.tbl.describe `PlainTable;
+        `type`name`dbDir`parField!(`Plain;`PlainTable;`;`)
+      ]

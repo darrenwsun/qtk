@@ -1,0 +1,27 @@
+feature Describe a table reference of segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_describe_segmented";
+    .qutils.segment1:"/tmp/hdb_describe_segment1";
+    .qutils.segment2:"/tmp/hdb_describe_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:`aa`bb)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+
+  should describe a table reference of segmented table.
+    expect a dictionary that describes the table reference, by name.
+      .qu.compare[
+        .qtk.tbl.describe `SegmentedTable;
+        `type`name`dbDir`parField!(`Partitioned; `SegmentedTable; `:. ; `date)
+      ]
+    expect a dictionary that describes the table reference, by partitioned table ID.
+      .qu.compare[
+        .qtk.tbl.describe .qutils.tabRef;
+        `type`name`dbDir`parField!(`Partitioned; `SegmentedTable; hsym `$.qutils.hdbRoot; `date)
+      ]

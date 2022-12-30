@@ -1,0 +1,24 @@
+feature Describe a table reference of splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_describe_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should describe a table reference of splayed table.
+    expect a dictionary that describes the table reference, by name.
+      .qu.compare[
+        .qtk.tbl.describe `SplayedTable;
+        `type`name`dbDir`parField!(`Splayed; `SplayedTable; `:. ;`)
+      ]
+    expect a dictionary that describes the table reference, by hsym.
+      .qu.compare[
+        .qtk.tbl.describe .qutils.tabRef;
+        `type`name`dbDir`parField!(`Splayed; `SplayedTable; hsym `$.qutils.hdbRoot; `)
+      ]

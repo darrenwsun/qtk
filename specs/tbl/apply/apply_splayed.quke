@@ -2,7 +2,7 @@ feature Apply a function to a column of a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
+    .qutils.hdbRoot:"/tmp/hdb_apply_splayed";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb)];
     system "l ",.qutils.hdbRoot;

@@ -1,0 +1,18 @@
+feature Describe a table reference of serialized table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_describe_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb)];
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should describe a table reference of serialized table.
+    expect a dictionary that describes the table reference.
+      .qu.compare[
+        .qtk.tbl.describe .qutils.tabRef;
+        `type`name`dbDir`parField!(`Serialized; `SerializedTable; hsym `$.qutils.hdbRoot; `)
+      ]

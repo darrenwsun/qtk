@@ -61,7 +61,7 @@
 .qtk.tbl.meta:{[t]
   if[(tt:type t) in 98 99h; :meta t];
 
-  tabRefDesc:.qtk.tbl._desc t;
+  tabRefDesc:.qtk.tbl.describe t;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -106,7 +106,7 @@
 //
 // tabRef~.qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)]
 .qtk.tbl.create:{[tabRef;data]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -116,15 +116,15 @@
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      .qtk.tbl._addTable[dbDir; tablePath; data];
+      .qtk.tbl._addTable[tablePath; .Q.en[dbDir;data]];
       ];
     [
       dbDir:tabRefDesc`dbDir;
       parField:tabRefDesc`parField;
       parValues:distinct ?[data; (); (); parField];
       tablePaths:.Q.par[dbDir; ; tableName] each parValues;
-      dataByPartition:flip each value parField xgroup data;
-      .qtk.tbl._addTable[dbDir;;]'[tablePaths; dataByPartition];
+      dataByPartition:flip each value parField xgroup .Q.en[dbDir;data];
+      .qtk.tbl._addTable'[tablePaths; dataByPartition];
       ]
    ];
   tabRef
@@ -133,13 +133,12 @@
 // @kind function
 // @private
 // @subcategory tbl
-// @overview Add a table to a path.
-// @param dbDir {hsym} DB directory.
+// @overview Add an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param data {table} Table data.
+// @param data {table} Table data. Symbol columns must be enumerated and the table is not keyed.
 // @return {hsym} The path to the table.
-.qtk.tbl._addTable:{[dbDir;tablePath;data]
-  @[tablePath; `; :; .Q.en[dbDir; data]];
+.qtk.tbl._addTable:{[tablePath;data]
+  @[tablePath; `; :; data];
   tablePath
  };
 
@@ -179,7 +178,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.drop tabRef
 .qtk.tbl.drop:{[tabRef]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -207,14 +206,24 @@
  };
 
 // @kind function
-// @private
 // @subcategory tbl
 // @overview Describe a table reference.
-// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference. It's a symbol for plain table,
-// hsym for serialized and splayed table, or 3-element list composed of DB directory, partition field, and table name
-// @return {dict (type:symbol; name:symbol; dbDir:symbol; parField:symbol)} A dictionary describing the table reference.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @return description {dict (type:symbol; name:symbol; dbDir:hsym; parField:symbol)} A dictionary describing the table reference.
+// @desc description.type [Table type](#qtktblgettype).
+// @desc description.name Table name.
+// @desc description.dbDir Database directory, or null symbol if not applicable.
+// @desc description.parField Partition field or null symbol if not applicable.
 // @throws {TypeError} If `tabRef` is not of valid type.
-.qtk.tbl._desc:{[tabRef]
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/describe; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// (`type`name`dbDir`parField!(`Partitioned; `PartitionedTable; `:/tmp/qtk/tbl/describe ; `date))~.qtk.tbl.describe tabRef
+.qtk.tbl.describe:{[tabRef]
   if[11h<>abs type tabRef; '.qtk.err.compose[`TypeError; "expect symbol or symbol vector"]];
   tableType:.qtk.tbl.getType tabRef;
 
@@ -261,13 +270,12 @@
       ]
    ];
 
-  r:.[!;] flip (
+  .[!;] flip (
     (`type;tableType);
     (`name;tableName);
     (`dbDir;dbDir);
     (`parField;parField)
-    );
-  r
+  )
  };
 
 // @kind function
@@ -288,7 +296,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.insert[tabRef; ([] date:2022.01.03 2022.01.04; c1:3 4)]
 .qtk.tbl.insert:{[tabRef;data]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -340,7 +348,7 @@
 .qtk.tbl.update:{[tabRef;criteria;columns]
   .qtk.tbl._validateColumnExists[tabRef;] each key columns;
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType=`Plain;
@@ -476,7 +484,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.deleteRows[tabRef; enlist(=;`c1;3)]
 .qtk.tbl.deleteRows:{[tabRef;criteria]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -549,7 +557,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // .qtk.tbl.columnExists[tabRef;`c1]
 .qtk.tbl.columnExists:{[tabRef;column]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -583,7 +591,7 @@
 // @kind function
 // @private
 // @subcategory tbl
-// @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
+// @overview Check if a column exists in an on-disk table. A column exists if it's listed in `.d` file and
 // there is a file of the same name in the table path.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column name.
@@ -616,7 +624,7 @@
   .qtk.tbl._validateColumnName column;
   .qtk.tbl._validateColumnNotExists[tabRef; column];
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType=`Plain;
@@ -652,7 +660,7 @@
 // @overview Add a column to an on-disk table with a given value.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} Name of new column to be added.
-// @param columnValue {any} Value to be set on the new column.
+// @param columnValue {any} Value to be set on the new column. It must be enumerated if it's a symbol or symbol vector.
 // @return {hsym} The path to the table.
 .qtk.tbl._addColumn:{[tablePath;column;columnValue]
   allColumns:.qtk.db._getColumns tablePath;
@@ -677,7 +685,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.deleteColumn[tabRef; `c2]
 .qtk.tbl.deleteColumn:{[tabRef;column]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -732,8 +740,9 @@
 // @kind function
 // @private
 // @subcategory tbl
-// @overview Delete a column on disk.
-// @param columnPath {symbol} A file symbol representing an existing column.
+// @overview Delete a column on disk, including accompanying # and ## files (if any).
+// @param columnPath {hsym} Path to a column of an on-disk table.
+// @return {hsym} The path to the column.
 .qtk.tbl._deleteColumnData:{[columnPath]
   if[.qtk.os.path.isFile columnPath;
      .qtk.os.remove columnPath
@@ -744,6 +753,7 @@
   if[.qtk.os.path.isFile dataFile:`$string[columnPath],"##";
      .qtk.os.remove dataFile
    ];
+  columnPath
  };
 
 // @kind function
@@ -766,7 +776,7 @@
   .qtk.tbl._validateColumnExists[tabRef;] each key nameDict;
   .qtk.tbl._validateColumnName each value nameDict;
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -859,7 +869,7 @@
 .qtk.tbl.reorderColumns:{[tabRef;firstColumns]
   .qtk.tbl._validateColumnExists[tabRef;] each firstColumns;
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType in `Plain`Serialized;
@@ -920,7 +930,7 @@
   .qtk.tbl._validateColumnNotExists[tabRef; targetColumn];
   .qtk.tbl._validateColumnName targetColumn;
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType=`Plain;
@@ -949,31 +959,23 @@
 // @subcategory tbl
 // @overview Copy an existing column of an on-disk table to a new column.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param sourceColumn {symbol} Source column.
-// @param targetColumn {symbol} Target column.
+// @param sourceColumn {symbol} Source column to copy from.
+// @param targetColumn {symbol} Target column to copy to.
 // @return {hsym} The path to the table.
 .qtk.tbl._copyColumn:{[tablePath;sourceColumn;targetColumn]
   sourceColumnPath:.Q.dd[tablePath; sourceColumn];
   targetColumnPath:.Q.dd[tablePath; targetColumn];
-  .qtk.tbl._copyColumnOnDisk[sourceColumnPath; targetColumnPath];
+
+  .qtk.os.copy[sourceColumnPath; targetColumnPath];
+  if[.qtk.os.path.isFile dataFile:`$string[sourceColumnPath],"#";
+     .qtk.os.copy[dataFile; `$string[targetColumnPath],"#"]
+   ];
+  if[.qtk.os.path.isFile dataFile:`$string[sourceColumnPath],"##";
+     .qtk.os.copy[dataFile; `$string[targetColumnPath],"##"]
+   ];
+
   @[tablePath; `.d; ,; targetColumn];
   tablePath
- };
-
-// @kind function
-// @private
-// @subcategory tbl
-// @overview Copy a column on disk.
-// @param oldColumnPath {symbol} A file symbol representing an existing column.
-// @param newColumnPath {symbol} A file symbol representing a new column.
-.qtk.tbl._copyColumnOnDisk:{[oldColumnPath;newColumnPath]
-  .qtk.os.copy[oldColumnPath; newColumnPath];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .qtk.os.copy[dataFile; `$string[newColumnPath],"#"]
-   ];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .qtk.os.copy[dataFile; `$string[newColumnPath],"##"]
-   ];
  };
 
 // @kind function
@@ -995,7 +997,7 @@
 .qtk.tbl.apply:{[tabRef;column;function]
   .qtk.tbl._validateColumnExists[tabRef; column];
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType=`Plain;
@@ -1026,7 +1028,7 @@
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column name of the table.
-// @param function {function} Function to be applied to the column.
+// @param function {fn(any[]) -> any[]} Function to be applied to the column.
 // @return {hsym} The path to the table.
 .qtk.tbl._apply:{[dbDir;tablePath;column;function]
   columnPath:.Q.dd[tablePath; column];
@@ -1134,7 +1136,7 @@
 .qtk.tbl.count:{[table]
   if[(tt:type table) in 98 99h; :count table];
 
-  tabRefDesc:.qtk.tbl._desc table;
+  tabRefDesc:.qtk.tbl.describe table;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -1190,7 +1192,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // .qtk.tbl.exists tabRef
 .qtk.tbl.exists:{[tabRef]
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -1233,7 +1235,7 @@
         .qtk.tbl._safeAt[`:.;table;indices];
         select from table where i in indices]];
 
-  tabRefDesc:.qtk.tbl._desc table;
+  tabRefDesc:.qtk.tbl.describe table;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
@@ -1284,7 +1286,7 @@
   .qtk.tbl._validateTableName newName;
   .qtk.utils.raiseNameExists newName;
 
-  tabRefDesc:.qtk.tbl._desc tabRef;
+  tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
