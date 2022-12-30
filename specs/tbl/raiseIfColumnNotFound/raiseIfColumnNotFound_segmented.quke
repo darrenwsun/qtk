@@ -2,44 +2,47 @@ feature Check if a column exists in a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnNotFound_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
+    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnNotFound_segmented";
+    .qutils.segment1:"/tmp/hdb_raiseIfColumnNotFound_segment1";
+    .qutils.segment2:"/tmp/hdb_raiseIfColumnNotFound_segment2";
+    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
   should raise "ColumnNotFoundError" if a column is not found.
     expect error "ColumnNotFoundError: c3".
       .qu.compare[
-        .[.qtk.tbl.raiseIfColumnNotFound; (PartitionedTable;`c3); {x}];
+        .[.qtk.tbl.raiseIfColumnNotFound; (SegmentedTable;`c3); {x}];
         "ColumnNotFoundError: c3"
       ]
     expect error "ColumnNotFoundError: c3" when the table is passed by name.
       .qu.compare[
-        .[.qtk.tbl.raiseIfColumnNotFound; (`PartitionedTable;`c3); {x}];
-        "ColumnNotFoundError: c3"
+        .[.qtk.tbl.raiseIfColumnNotFound; (`SegmentedTable;`c3); {x}];
+        "ColumnNotFoundError: c3 on SegmentedTable"
       ]
     expect error "ColumnNotFoundError: c3" when the table is passed by partitioned table ID.
       .qu.compare[
         .[.qtk.tbl.raiseIfColumnNotFound; (.qutils.tabRef;`c3); {x}];
-        "ColumnNotFoundError: c3"
+        "ColumnNotFoundError: c3 on ",string ` sv .qutils.tabRef
       ]
 
   should not raise "ColumnNotFoundError" if a column is found.
     expect no error.
       .qu.compare[
-        .qtk.tbl.raiseIfColumnNotFound[PartitionedTable;`c1];
+        .qtk.tbl.raiseIfColumnNotFound[SegmentedTable;`c1];
         (::)
       ]
-    expect no error.
+    expect no error when the table is passed by name.
       .qu.compare[
-        .qtk.tbl.raiseIfColumnNotFound[`PartitionedTable;`c1];
+        .qtk.tbl.raiseIfColumnNotFound[`SegmentedTable;`c1];
         (::)
       ]
-    expect no error.
+    expect no error when the table is passed by partitioned table ID.
       .qu.compare[
         .qtk.tbl.raiseIfColumnNotFound[.qutils.tabRef;`c1];
         (::)

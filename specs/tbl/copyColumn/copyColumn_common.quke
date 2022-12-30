@@ -13,14 +13,14 @@ feature Copy an existing column to a new column (erroneous cases).
         @[.qtk.tbl.copyColumn[`PlainTable; `c2; ]; `$"53"; {x}];
         "ColumnNameError: 53"]
 
-  should raise error "ColumnNotFoundError: c3" if `sourceColumn` doesn't exist.
-    expect raise error "ColumnNotFoundError: c3" if `sourceColumn` doesn't exist.
+  should raise ColumnNotFoundError if source column doesn't exist.
+    expect raise error "ColumnNotFoundError: c3 on PlainTable" if `sourceColumn` doesn't exist.
       .qu.compare[
         @[.qtk.tbl.copyColumn[`PlainTable; ; `c4]; `c3; {x}];
-        "ColumnNotFoundError: c3"]
+        "ColumnNotFoundError: c3 on PlainTable"]
 
-  should raise error "ColumnExistsError: [*]" if `targetColumn` exists.
-    expect raise error "ColumnExistsError: [*]" if `targetColumn` exists.
+  should raise ColumnExistsError if target column exists.
+    expect raise error "ColumnExistsError: c2 on PlainTable" if `targetColumn` exists.
       .qu.compare[
         @[.qtk.tbl.copyColumn[`PlainTable; `c1; ]; `c2; {x}];
-        "ColumnExistsError: [c2]"]
+        "ColumnExistsError: c2 on PlainTable"]

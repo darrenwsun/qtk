@@ -20,7 +20,12 @@ feature Check if a column exists in a splayed table.
     expect error "ColumnNotFoundError: c2" when the table is passed by name.
       .qu.compare[
         .[.qtk.tbl.raiseIfColumnNotFound; (`SplayedTable;`c2); {x}];
-        "ColumnNotFoundError: c2"
+        "ColumnNotFoundError: c2 on SplayedTable"
+      ]
+    expect error "ColumnNotFoundError: c2" when the table is passed by partitioned table ID.
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnNotFound; (.qutils.tabRef;`c2); {x}];
+        "ColumnNotFoundError: c2 on ",string .qutils.tabRef
       ]
 
   should not raise "ColumnNotFoundError" if a column is found.

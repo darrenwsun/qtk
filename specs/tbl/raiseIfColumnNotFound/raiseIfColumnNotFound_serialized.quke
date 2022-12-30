@@ -14,7 +14,7 @@ feature Check if a column exists in a serialized table.
     expect error "ColumnNotFoundError: c2".
       .qu.compare[
         .[.qtk.tbl.raiseIfColumnNotFound; (.qutils.tabRef;`c2); {x}];
-        "ColumnNotFoundError: c2"
+        "ColumnNotFoundError: c2 on ",string .qutils.tabRef
       ]
 
   should not raise "ColumnNotFoundError" if a column is found.

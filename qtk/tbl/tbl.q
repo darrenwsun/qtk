@@ -543,6 +543,56 @@
 
 // @kind function
 // @subcategory tbl
+// @overview Raise ColumnNotFoundError if a column is not found from a table.
+// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
+// @param column {symbol} A column name.
+// @throws {ColumnNotFoundError} If the column doesn't exist.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnNotFound; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// "ColumnNotFoundError: c2 on :/tmp/qtk/tbl/raiseIfColumnNotFound/date/PartitionedTable"~.[.qtk.tbl.raiseIfColumnNotFound; (tabRef; `c2); {x}]
+.qtk.tbl.raiseIfColumnNotFound:{[table;column]
+  if[not .qtk.tbl.columnExists[table; column];
+     '.qtk.err.compose[`ColumnNotFoundError; string[column],
+     $[-11h=(tt:type table); " on ",string[table];
+       11h=tt; " on ",string[` sv table];
+       ""
+      ]
+       ]
+   ];
+ };
+
+// @kind function
+// @subcategory tbl
+// @overview Raise ColumnExistsError if a column exists in a table.
+// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
+// @param column {symbol} A column name.
+// @throws {ColumnExistsError} If the column exists.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnExists; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// "ColumnExistsError: c1 on :/tmp/qtk/tbl/raiseIfColumnExists/date/PartitionedTable"~.[.qtk.tbl.raiseIfColumnExists; (tabRef; `c1); {x}]
+.qtk.tbl.raiseIfColumnExists:{[table;column]
+  if[.qtk.tbl.columnExists[table; column];
+     '.qtk.err.compose[`ColumnExistsError; string[column],
+     $[-11h=(tt:type table); " on ",string[table];
+       11h=tt; " on ",string[` sv table];
+       ""
+      ]
+       ]
+   ];
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Check if a column exists in a table.
 // For splayed tables, column existence requires that the column appears in `.d` file and its data file exists.
 // For partitioned tables, it requires the condition holds for the latest partition.
@@ -617,7 +667,7 @@
 // tabRef~.qtk.tbl.addColumn[tabRef; `c2; 0n]
 .qtk.tbl.addColumn:{[tabRef;column;columnValue]
   .qtk.tbl._validateColumnName column;
-  .qtk.tbl._validateColumnNotExists[tabRef; column];
+  .qtk.tbl.raiseIfColumnExists[tabRef; column];
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -922,7 +972,7 @@
 // .qtk.tbl.columnExists[tabRef; `c2]
 .qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
   .qtk.tbl.raiseIfColumnNotFound[tabRef; sourceColumn];
-  .qtk.tbl._validateColumnNotExists[tabRef; targetColumn];
+  .qtk.tbl.raiseIfColumnExists[tabRef; targetColumn];
   .qtk.tbl._validateColumnName targetColumn;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
@@ -1087,39 +1137,6 @@
 .qtk.tbl._validateColumnName:{[columnName]
   if[(columnName in `i,.Q.res,key `.q) or columnName<>.Q.id columnName;
      '.qtk.err.compose[`ColumnNameError; string columnName]
-   ];
- };
-
-// @kind function
-// @subcategory tbl
-// @overview Raise ColumnNotFoundError if a column is not found.
-// @param table {table |	symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
-// @param column {symbol} A column name.
-// @throws {ColumnNotFoundError} If the column doesn't exist.
-// @doctest
-// system "l ",getenv[`QTK],"/init.q";
-// .qtk.import.loadModule["tbl";`qtk];
-// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnNotFound; `date; `PartitionedTable);
-// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
-//
-// // Or replace tabRef with `PartitionedTable if the database is loaded
-// "ColumnNotFoundError: c2"~.[.qtk.tbl.raiseIfColumnNotFound; (tabRef; `c2); {x}]
-.qtk.tbl.raiseIfColumnNotFound:{[table;column]
-  if[not .qtk.tbl.columnExists[table; column];
-     '.qtk.err.compose[`ColumnNotFoundError; string column]
-   ];
- };
-
-// @kind function
-// @private
-// @subcategory tbl
-// @overview Validate that a column doesn't exist, either header or data or neither.
-// @param tableName {symbol} Table name.
-// @param column {symbol} A column name.
-// @throws {ColumnExistsError: [*]} If the column exists.
-.qtk.tbl._validateColumnNotExists:{[tableName;column]
-  if[.qtk.tbl.columnExists[tableName; column];
-     '.qtk.err.compose[`ColumnExistsError; "[",string[column],"]"]
    ];
  };
 

@@ -16,7 +16,7 @@ feature Raise error if a column is not found.
     expect error "ColumnNotFoundError: c2" when the table is passed by name.
       .qu.compare[
         .[.qtk.tbl.raiseIfColumnNotFound; (`PlainTable;`c2); {x}];
-        "ColumnNotFoundError: c2"
+        "ColumnNotFoundError: c2 on PlainTable"
       ]
 
   should not raise "ColumnNotFoundError" if a column is found.

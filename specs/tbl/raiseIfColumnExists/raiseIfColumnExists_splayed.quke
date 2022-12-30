@@ -1,0 +1,41 @@
+feature Check if a column exists in a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnExists_splayed";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    system "l ",.qutils.hdbRoot;
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should raise "ColumnExistsError" if a column exists.
+    expect error "ColumnExistsError: c1".
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnExists; (SplayedTable;`c1); {x}];
+        "ColumnExistsError: c1"
+      ]
+    expect error "ColumnExistsError: c1" when the table is passed by name.
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnExists; (`SplayedTable;`c1); {x}];
+        "ColumnExistsError: c1 on SplayedTable"
+      ]
+    expect error "ColumnExistsError: c1" when the table is passed by partitioned table ID.
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnExists; (.qutils.tabRef;`c1); {x}];
+        "ColumnExistsError: c1 on ",string .qutils.tabRef
+      ]
+
+  should not raise "ColumnExistsError" if a column doesn't exist.
+    expect no error.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnExists[SplayedTable;`c2];
+        (::)
+      ]
+    expect no error when the table is passed by name.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnExists[`SplayedTable;`c2];
+        (::)
+      ]

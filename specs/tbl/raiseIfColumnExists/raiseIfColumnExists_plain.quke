@@ -1,0 +1,32 @@
+feature Raise error if a column is not found.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should raise "ColumnExistsError" if a column exists.
+    expect error "ColumnExistsError: c1".
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnExists; (PlainTable;`c1); {x}];
+        "ColumnExistsError: c1"
+      ]
+    expect error "ColumnExistsError: c1" when the table is passed by name.
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnExists; (`PlainTable;`c1); {x}];
+        "ColumnExistsError: c1 on PlainTable"
+      ]
+
+  should not raise "ColumnExistsError" if a column doesn't exist.
+    expect no error.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnExists[PlainTable;`c2];
+        (::)
+      ]
+    expect no error when the table is passed by name.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnExists[`PlainTable;`c2];
+        (::)
+      ]

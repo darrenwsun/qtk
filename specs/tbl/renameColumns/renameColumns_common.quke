@@ -13,8 +13,8 @@ feature Rename columns of a table.
         @[.qtk.tbl.renameColumns[`PlainTable; ]; `c1`c2!`c11`53; {x}];
         "ColumnNameError: 53"]
 
-  should raise error "ColumnNotFoundError: c3" if some column in `nameDict` doesn't exist.
-    expect raise error "ColumnNotFoundError: c3" if some column in `nameDict` doesn't exist.
+  should raise ColumnNotFoundError if some column in `nameDict` doesn't exist.
+    expect raise error "ColumnNotFoundError: c3 on PlainTable" if some column in `nameDict` doesn't exist.
       .qu.compare[
         @[.qtk.tbl.renameColumns[`PlainTable; ]; `c1`c3!`c11`c33; {x}];
-        "ColumnNotFoundError: c3"]
+        "ColumnNotFoundError: c3 on PlainTable"]

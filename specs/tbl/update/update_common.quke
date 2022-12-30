@@ -7,9 +7,9 @@ feature Update values in certain columns of a plain table.
   after each
     .qtk.tbl.drop `PlainTable;
 
-  should raise error "ColumnNotFoundError: c2" if a column doesn't exist
-    expect error "ColumnNotFoundError: c2"
+  should raise ColumnNotFoundError if a column doesn't exist
+    expect error "ColumnNotFoundError: c2 on PlainTable"
       .qu.compare[
         .[.qtk.tbl.update; (`PlainTable; (); (enlist`c2)!(enlist 0N)); {x}];
-        "ColumnNotFoundError: c2"
+        "ColumnNotFoundError: c2 on PlainTable"
       ]

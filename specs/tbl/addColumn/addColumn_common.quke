@@ -13,8 +13,8 @@ feature Add a column to a table (erroneous cases).
         @[.qtk.tbl.addColumn[`PlainTable; ; 0]; `$"53"; {x}];
         "ColumnNameError: 53"]
 
-  should raise error "ColumnExistsError: [*]" if the column exists.
-    expect error "ColumnExistsError: [*]" if the column exists.
+  should raise ColumnExistsError if the column exists.
+    expect error "ColumnExistsError: c1 on PlainTable" if the column exists.
       .qu.compare[
         @[.qtk.tbl.addColumn[`PlainTable; ; 0]; `c1; {x}];
-        "ColumnExistsError: [c1]"]
+        "ColumnExistsError: c1 on PlainTable"]
