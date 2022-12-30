@@ -10,14 +10,18 @@ feature Get entries at given indices of a serialized table.
     .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
-  should return empty table if the indices are empty.
+  should return empty table if the indices are empty or out of bound.
     expect empty table if the indices are empty.
       .qu.compare[
-        .qtk.tbl.index[.qutils.tabRef; `int$()];
+        .qtk.tbl.at[.qutils.tabRef; `int$()];
+        ([] c1:(); c2:`$())]
+    expect empty table if the indices are out of bound.
+      .qu.compare[
+        .qtk.tbl.at[.qutils.tabRef; 4 5];
         ([] c1:(); c2:`$())]
 
   should return entries at the specified indices if the indices are non-empty.
     expect entries at the specified indices if the indices are non-empty.
       .qu.compare[
-        .qtk.tbl.index[.qutils.tabRef; 0 2];
+        .qtk.tbl.at[.qutils.tabRef; 0 2];
         ([] c1:("aa";"cc"); c2:`a`c)]

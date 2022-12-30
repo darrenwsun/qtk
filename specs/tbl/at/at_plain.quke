@@ -7,14 +7,18 @@ feature Get entries at given indices of a plain table.
   after each
     delete PlainTable from `.;
 
-  should return empty table if the indices are empty.
+  should return empty table if the indices are empty or out of bound.
     expect empty table if the indices are empty.
       .qu.compare[
-        .qtk.tbl.index[`PlainTable; `int$()];
+        .qtk.tbl.at[`PlainTable; `int$()];
+        ([] c1:(); c2:`$())]
+    expect empty table if the indices are empty.
+      .qu.compare[
+        .qtk.tbl.at[`PlainTable; 4 5];
         ([] c1:(); c2:`$())]
 
   should return entries at the specified indices if the indices are non-empty.
     expect entries at the specified indices if the indices are non-empty.
       .qu.compare[
-        .qtk.tbl.index[`PlainTable; 0 2];
+        .qtk.tbl.at[`PlainTable; 0 2];
         ([] c1:("aa";"cc"); c2:`a`c)]

@@ -1211,24 +1211,50 @@
  };
 
 // @kind function
+// @subcategory tbl
 // @overview Get entries at given indices of a table.
-// @param tblName {symbol} Table name.
-// @param indices {int[] | long[]} Indices.
-// @return {table} `1b` if the table exists; `0b` otherwise.
-.qtk.tbl.index:{[tblName;indices]
-  tabRefDesc:.qtk.tbl._desc tblName;
+// It's similar to [.Q.ind](https://code.kx.com/q/ref/dotq/#qind-partitioned-index) but has the following differences:
+//
+// - if `indices` are empty, an empty table of conforming schema is returned rather than an empty list.
+// - if `indices` go out of bound, an empty table of conforming schema is returned rather than raising 'par error
+// @param table {symbol | hsym | table} Table name, path or value.
+// @param indices {int[] | long[]} Indices to select from.
+// @return {table} Table at the given indices.
+.qtk.tbl.at:{[table;indices]
+  if[type[table] in 98 99h;
+     :$[1b~.Q.qp table;
+        .qtk.tbl._safeAt[`:.;table;indices];
+        select from table where i in indices]];
+
+  tabRefDesc:.qtk.tbl._desc table;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
-  result:$[tableType in `Plain`Serialized`Splayed;
-           select from tblName where i in indices;
-           // tableType in `Partitioned`Segmented
-           [
-             r:.Q.ind[get tableName; indices];
-             $[r~(); .Q.en[`:.; ] .qtk.tbl._empty meta tableName; r]
-             ]
-   ];
-  result
+  $[tableType in `Plain`Serialized`Splayed;
+    select from table where i in indices;
+    // tableType=`Partitioned
+    [
+      dbDir:tabRefDesc`dbDir;
+      .qtk.tbl._safeAt[dbDir; get tableName; indices]
+      ]
+   ]
+ };
+
+// @kind function
+// @private
+// @subcategory tbl
+// @overview Get entries at given indices of a partitioned table.
+// It's similar to [.Q.ind](https://code.kx.com/q/ref/dotq/#qind-partitioned-index) but has the following differences:
+//
+// - if `indices` are empty, an empty table of conforming schema is returned rather than an empty list.
+// - if `indices` go out of bound, an empty table of conforming schema is returned rather than raising 'par error
+// @param dbDir {hsym} DB directory.
+// @param table {table} Partitioned table.
+// @param indices {int[] | long[]} Indices to select from.
+// @return {table} Table at the given indices.
+.qtk.tbl._safeAt:{[dbDir;table;indices]
+  r:.[.Q.ind; (table;indices); ()];   // trap 'par error when indices are out of bound
+  $[r~(); .Q.en[dbDir;] .qtk.tbl._empty .qtk.tbl.meta table; r]
  };
 
 // @kind function

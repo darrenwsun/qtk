@@ -14,14 +14,22 @@ feature Get entries at given indices of a partitioned table.
     .qtk.tbl.drop `SegmentedTable;
     .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
 
-  should return empty table if the indices are empty.
+  should return empty table if the indices are empty or out of bound.
     expect empty table if the indices are empty.
       .qu.compare[
-        .qtk.tbl.index[`SegmentedTable; `int$()];
+        .qtk.tbl.at[SegmentedTable; `int$()];
+        .Q.en[`:.; ] ([] date:`date$(); c1:(); c2:`$())]
+    expect empty table if the indices are empty when the table is passed by name.
+      .qu.compare[
+        .qtk.tbl.at[`SegmentedTable; `int$()];
+        .Q.en[`:.; ] ([] date:`date$(); c1:(); c2:`$())]
+    expect empty table if the indices are out of bound.
+      .qu.compare[
+        .qtk.tbl.at[SegmentedTable; 4 5];
         .Q.en[`:.; ] ([] date:`date$(); c1:(); c2:`$())]
 
   should return entries at the specified indices if the indices are non-empty.
     expect entries at the specified indices if the indices are non-empty.
       .qu.compare[
-        .qtk.tbl.index[`SegmentedTable; 0 2];
+        .qtk.tbl.at[`SegmentedTable; 0 2];
         .Q.en[`:.; ] ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)]

@@ -12,24 +12,30 @@ feature Get entries at given indices of a splayed table.
     .qtk.tbl.drop .qutils.tabRef;
     .qtk.os.rmtree .qutils.hdbRoot;
 
-  should return empty table if the indices are empty.
+  should return empty table if the indices are empty or out of bound.
     expect empty table if the indices are empty.
       .qu.compare[
-        .qtk.tbl.index[.qutils.tabRef; `int$()];
+        .qtk.tbl.at[SplayedTable; `int$()];
         .Q.en[`:.; ] ([] c1:(); c2:`$())]
-
-    expect empty table if the indices are empty.
+    expect empty table if the indices are empty, when the table is passed by name.
       .qu.compare[
-        .qtk.tbl.index[`SplayedTable; `int$()];
+        .qtk.tbl.at[`SplayedTable; `int$()];
+        .Q.en[`:.; ] ([] c1:(); c2:`$())]
+    expect empty table if the indices are empty, when the table is passed by hsym.
+      .qu.compare[
+        .qtk.tbl.at[.qutils.tabRef; `int$()];
+        .Q.en[`:.; ] ([] c1:(); c2:`$())]
+    expect empty table if the indices are out of bound.
+      .qu.compare[
+        .qtk.tbl.at[SplayedTable; 4 5];
         .Q.en[`:.; ] ([] c1:(); c2:`$())]
 
   should return entries at the specified indices if the indices are non-empty.
     expect entries at the specified indices if the indices are non-empty.
       .qu.compare[
-        .qtk.tbl.index[.qutils.tabRef; 0 2];
+        .qtk.tbl.at[.qutils.tabRef; 0 2];
         .Q.en[`:.; ] ([] c1:("aa";"cc"); c2:`a`c)]
-
     expect entries at the specified indices if the indices are non-empty.
       .qu.compare[
-        .qtk.tbl.index[`SplayedTable; 0 2];
+        .qtk.tbl.at[`SplayedTable; 0 2];
         .Q.en[`:.; ] ([] c1:("aa";"cc"); c2:`a`c)]
