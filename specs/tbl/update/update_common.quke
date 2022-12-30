@@ -5,7 +5,7 @@ feature Update values in certain columns of a plain table.
     `PlainTable set ([] c1:1 2 3 4 5);
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should raise error "ColumnNotFoundError: c2" if a column doesn't exist
     expect error "ColumnNotFoundError: c2"

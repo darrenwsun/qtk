@@ -331,71 +331,82 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Update values in certain columns of a table, in a similar format to functional update.
-// @param table {symbol | table} Table name or value.
-// @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
-// @param assignment {dict} A mapping from column names to values of parse-tree form
-// @return {symbol} The table name.
+// @overview Update values in certain columns of a table, similar to [functional update](https://code.kx.com/q/basics/funsql/#update)
+// but support all table types.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
+// For partitioned tables, if partition field is included in the criteria, it has to be the first in the list.
+// @param groupings {dict | 0b} A mapping of grouping columns, or `0b` for no grouping.
+// @param columns {dict} A mapping from column names to columns/expressions.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
-.qtk.tbl.update:{[tableName;criteria;assignment]
-  .qtk.tbl._validateColumnExists[tableName;] each key assignment;
+.qtk.tbl.update:{[tabRef;criteria;columns]
+  .qtk.tbl._validateColumnExists[tabRef;] each key columns;
 
-  tableType:.qtk.tbl.getType tableName;
+  tabRefDesc:.qtk.tbl._desc tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
   $[tableType=`Plain;
-    ![tableName; criteria; 0b; assignment];
+    ![tabRef; criteria; 0b; columns];
+    tableType=`Serialized;
+    tabRef set ![get tabRef; criteria; 0b; columns];
     tableType=`Splayed;
     [
-      tablePath:.Q.dd[`:.; tableName];
-      .qtk.tbl._update[tablePath; criteria; assignment];
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.dd[dbDir; tableName];
+      .qtk.tbl._update[dbDir; tablePath; criteria; columns];
+      if[dbDir=`:.; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
-      partitionField:.qtk.db.getCurrentPartitionField[];
-      $[(first criteria)[1]~partitionField;
-        [
-          partitions:?[tableName; enlist first criteria; 0b; (enlist partitionField)!(enlist partitionField)] partitionField;
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.tbl._update[; 1_criteria; assignment] each tablePaths;
-          ];
-        [
-          partitions:.qtk.db.getCurrentPartitions[];
-          tablePaths:{.Q.par[`:.; x; y]}[; tableName] each partitions;
-          .qtk.tbl._update[; criteria; assignment] each tablePaths;
-          ]
+      dbDir:tabRefDesc`dbDir;
+      partitions:.qtk.db.getPartitions dbDir;
+      parField:.qtk.db.getPartitionField dbDir;
+
+      if[(first criteria)[1]~parField;
+         partitions:?[flip enlist[parField]!enlist[partitions]; enlist first criteria; (); parField];
+         criteria:1_criteria
        ];
+
+      tablePaths:.Q.par[dbDir; ; tableName] each partitions;
+      .qtk.tbl._update[dbDir; ; criteria; columns] each tablePaths;
+      if[dbDir=`:.; .qtk.db.reload[]];
       ]
    ];
 
-  tableName
+  tabRef
  };
 
 // @kind function
 // @private
-// @overview Update values in certain columns of an on-disk table, in a similar format to functional update.
+// @overview Update values in certain columns of an on-disk table.
+// @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
 // @param assignment {dict} A mapping from column names to values
 // @return {hsym} The path to the table.
-// @throws {type} If it's a partial update and the new values are not type-compatible with existing values.
-.qtk.tbl._update:{[tablePath;criteria;assignment]
-  updated:?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
+// @throws {TypeError} If it's a partial update and the new values don't have the same type as other values.
+.qtk.tbl._update:{[dbDir;tablePath;criteria;assignment]
+  updated:.Q.en[dbDir;] ?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
   if[0=count updated; :tablePath];
 
   i:0;
   allColumns:.qtk.db._getColumns tablePath;
   do[count assignment;
      column:key[assignment] [i];
-     columnVal:.qtk.db._enumerate updated column;
+     columnVal:updated column;
      $[column in allColumns;
        [
+         // update an existing column
          columnPath:.Q.dd[tablePath; column];
          $[criteria~();
-           .[columnPath; (); :; columnVal];                   // rewrite the whole column
+           .[columnPath; (); :; columnVal];             // rewrite the whole column
            .Q.ty[columnVal]=.Q.ty[get columnPath];
-           @[columnPath; updated`index; :; columnVal];                   // update values at certain indices
+           @[columnPath; updated`index; :; columnVal];  // update values at certain indices
            '"type"
           ];
          ];
+        // new column
        .qtk.tbl._addColumn[tablePath; column; columnVal]
       ];
      i +: 1;
@@ -405,7 +416,8 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Select from a table based on given criteria, groupings, and column mappings, in a similar format to functional select.
+// @overview Select from a table similar to [functional select](https://code.kx.com/q/basics/funsql/#select)
+// but support all table types.
 // @param table {symbol | hsym | table} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
@@ -417,30 +429,32 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Similar to `.qtk.tbl.select` but with a limit on rows.
-// @param tableName {symbol | table} Table name or value.
+// @overview Select from a table similar to [rank-5 functional select](https://code.kx.com/q/basics/funsql/#rank-5)
+// but support all table types.
+// @param table {symbol | hsym | table} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
-// @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param assignment {dict} A mapping from column names to values of parse-tree form.
+// @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
+// @param columns {dict} A mapping from column names to columns/expressions.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
 // @return {table} Selected data from the table.
-.qtk.tbl.selectLimit:{[tableName;criteria;groupings;assignment;limit]
-  select[limit] from ?[tableName; criteria; groupings; assignment]
+.qtk.tbl.selectLimit:{[table;criteria;groupings;columns;limit]
+  select[limit] from ?[table; criteria; groupings; columns]
  };
 
 // @kind function
 // @subcategory tbl
-// @overview Similar to `.qtk.tbl.selectLimit` but with sorting.
-// @param tableName {symbol | table} Table name or value.
+// @overview Select from a table similar to [rank-6 functional select](https://code.kx.com/q/basics/funsql/#rank-6)
+// but support all table types.
+// @param table {symbol | hsym | table} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
-// @param groupings {*} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param assignment {dict} A mapping from column names to values of parse-tree form.
+// @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
+// @param columns {dict} A mapping from column names to columns/expressions.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
 // @param sort {any[]} Sort the result by a column. The format is `(op;col)` where `op` is `>:` for descending and
 //   `<:` for ascending, and `col` is the column to be ordered by.
 // @return {table} Selected data from the table.
-.qtk.tbl.selectLimitSort:{[tableName;criteria;groupings;assignment;limit;sort]
-  ?[?[tableName; criteria; groupings; assignment];
+.qtk.tbl.selectLimitSort:{[table;criteria;groupings;columns;limit;sort]
+  ?[?[table; criteria; groupings; columns];
     ();
     0b;
     ();
@@ -1009,6 +1023,7 @@
 // @kind function
 // @private
 // @overview Apply a function to a column of an on-disk table.
+// @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column name of the table.
 // @param function {function} Function to be applied to the column.

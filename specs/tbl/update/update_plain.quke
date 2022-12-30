@@ -5,7 +5,7 @@ feature Update values in certain columns of a plain table.
     `PlainTable set ([] c1:1 2 3 4 5);
 
   after each
-    delete PlainTable from `.;
+    .qtk.tbl.drop `PlainTable;
 
   should be able to change data type of a column.
     expect data type of the column is updated.
@@ -17,7 +17,7 @@ feature Update values in certain columns of a plain table.
       .qtk.tbl.update[`PlainTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
       .qu.compare[PlainTable; ([] c1:1 2 3 8 10)]
 
-  should raise error "type" if it's a partial update and the new values are not type-compatible with existing values.
+  should raise error "type" if it's a partial update and the new values don't have the same type as other values.
     expect error "type"
       .qu.compare[
         .[.qtk.tbl.update; (`PlainTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];

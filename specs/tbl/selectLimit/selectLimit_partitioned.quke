@@ -8,7 +8,7 @@ feature Select from a partitioned table based on given criteria, groupings, and 
     system "l ",.qutils.hdbRoot;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.tbl.drop `PartitionedTable;
     .qtk.os.rmtree .qutils.hdbRoot;
 
   should select from a plain table based on given criteria, groupings, and column mappings.
