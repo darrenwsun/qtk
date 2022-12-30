@@ -132,6 +132,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Add a table to a path.
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
@@ -375,6 +376,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Update values in certain columns of an on-disk table.
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
@@ -508,6 +510,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Delete rows of an on-disk table given certain criteria, in a similar format to functional delete.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {any[]} A list of criteria where matching rows will be deleted, or empty list if it's applied to the whole table.
@@ -579,6 +582,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Check if a column exists in an on-disk table. A column exists if it's listed in .d file and
 // there is a file of the same name in the table path.
 // @param tablePath {hsym} Path to an on-disk table.
@@ -644,27 +648,17 @@
 
 // @kind function
 // @private
-// @overview Add a column to a table specified by a path, using a default value unless
-// a length- and type-compliant column data file exists.
+// @subcategory tbl
+// @overview Add a column to an on-disk table with a given value.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} Name of new column to be added.
-// @param defaultValue {*} Value to be set on the new column.
+// @param columnValue {any} Value to be set on the new column.
 // @return {hsym} The path to the table.
-.qtk.tbl._addColumn:{[tablePath;column;defaultValue]
+.qtk.tbl._addColumn:{[tablePath;column;columnValue]
   allColumns:.qtk.db._getColumns tablePath;
-  countInPath:count get .Q.dd[tablePath; first allColumns];
-  columnPath:.Q.dd[tablePath; column];
-
-  // if the column file exists and it's type- and length-compliant, use it as-is;
-  // otherwise create the file using defaultValue
-  $[.qtk.os.path.isFile columnPath;
-    if[not (count[tablePath column]=countInPath) and (type[defaultValue]=type[.qtk.db._defaultValue[tablePath; column]]);
-       .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
-     ];
-    .[.Q.dd[tablePath; column]; (); :; countInPath#defaultValue]
-   ];
+  countInPath:.qtk.tbl._count tablePath;
+  .[.Q.dd[tablePath; column]; (); :; countInPath#columnValue];
   @[tablePath; `.d; :; distinct allColumns,column];
-
   tablePath
  };
 
@@ -710,6 +704,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Delete a column of an on-disk table and its data.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
@@ -723,6 +718,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Delete a column header of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param column {symbol} A column to be deleted.
@@ -735,6 +731,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Delete a column on disk.
 // @param columnPath {symbol} A file symbol representing an existing column.
 .qtk.tbl._deleteColumnData:{[columnPath]
@@ -796,6 +793,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Rename column(s) of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param nameDict {dict} A dictionary from old name(s) to new name(s).
@@ -807,6 +805,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Rename a column of an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param oldName {symbol} A column name of the table.
@@ -828,16 +827,17 @@
 
 // @kind function
 // @private
-// @overview Rename a column on disk.
-// @param oldColumnPath {symbol} A file symbol representing an existing column.
-// @param newColumnPath {symbol} A file symbol representing a new column.
-.qtk.db._renameColumnOnDisk:{[oldColumnPath;newColumnPath]
-  .qtk.os.move[oldColumnPath; newColumnPath];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"#";
-     .qtk.os.move[dataFile; `$string[newColumnPath],"#"]
+// @subcategory tbl
+// @overview Rename a column on disk. Column data along with accompanying # and ## files are moved.
+// @param oldPath {hsym} A file symbol representing an existing column.
+// @param newPath {hsym} A file symbol representing a new column.
+.qtk.db._renameColumnOnDisk:{[oldPath;newPath]
+  .qtk.os.move[oldPath; newPath];
+  if[.qtk.os.path.isFile dataFile:`$string[oldPath],"#";
+     .qtk.os.move[dataFile; `$string[newPath],"#"]
    ];
-  if[.qtk.os.path.isFile dataFile:`$string[oldColumnPath],"##";
-     .qtk.os.move[dataFile; `$string[newColumnPath],"##"]
+  if[.qtk.os.path.isFile dataFile:`$string[oldPath],"##";
+     .qtk.os.move[dataFile; `$string[newPath],"##"]
    ];
  };
 
@@ -885,6 +885,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Reorder columns of an on-disk table with specified first columns.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param firstColumns {dict} First columns after reordering.
@@ -945,6 +946,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Copy an existing column of an on-disk table to a new column.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param sourceColumn {symbol} Source column.
@@ -960,6 +962,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Copy a column on disk.
 // @param oldColumnPath {symbol} A file symbol representing an existing column.
 // @param newColumnPath {symbol} A file symbol representing a new column.
@@ -1018,6 +1021,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Apply a function to a column of an on-disk table.
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
@@ -1077,6 +1081,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Validate column name.
 // @param columnName {symbol} A column name.
 // @throws {ColumnNameError: invalid column name [*]} If the column name is not valid.
@@ -1088,6 +1093,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Validate that a column exists, including header and data.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
@@ -1100,6 +1106,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Validate that a column doesn't exist, either header or data or neither.
 // @param tableName {symbol} Table name.
 // @param column {symbol} A column name.
@@ -1308,6 +1315,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Rename an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param newName {hsym} New table name.
@@ -1320,6 +1328,7 @@
 
 // @kind function
 // @private
+// @subcategory tbl
 // @overview Validate table name.
 // @param name {symbol} Table name.
 // @throws {TableNameError} If the table name is not valid.
