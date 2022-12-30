@@ -335,7 +335,7 @@
 // @kind function
 // @private
 // @overview Enumerate a value against sym.
-// @param val {*} A value.
+// @param val {any} A value.
 // @return {enum} Enumerated value against sym file in the current directory if the value is a symbol or a symbol vector;
 //   otherwise the same value as-is.
 .qtk.db._enumerate:{[val]
@@ -346,7 +346,7 @@
 // @private
 // @overview Enumerate a value against a domain.
 // @param dir {hsym} Handle to a directory.
-// @param val {*} A value.
+// @param val {any} A value.
 // @param domain {symbol} Name of domain.
 // @return {enum} Enumerated value against the domain in the directory if the value is a symbol or a symbol vector;
 //   otherwise the same value as-is.
@@ -448,7 +448,7 @@
 // null if it's a simple column, an empty typed list if it's a compound column, or an empty general list.
 // @param tablePath {symbol} A file symbol to a partitioned table.
 // @param column {symbol} A column name of the table.
-// @return {*} Default value of the column.
+// @return {any} Default value of the column.
 .qtk.db._defaultValue:{[tablePath;column]
   columnValue:tablePath column;
   columnType:.Q.ty columnValue;

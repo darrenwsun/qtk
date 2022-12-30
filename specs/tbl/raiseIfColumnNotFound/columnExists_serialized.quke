@@ -1,0 +1,25 @@
+feature Check if a column exists in a serialized table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnNotFound_serialized";
+    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
+    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+
+  after each
+    .qtk.tbl.drop .qutils.tabRef;
+    .qtk.os.rmtree .qutils.hdbRoot;
+
+  should raise "ColumnNotFoundError" if a column is not found.
+    expect error "ColumnNotFoundError: c2".
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnNotFound; (.qutils.tabRef;`c2); {x}];
+        "ColumnNotFoundError: c2"
+      ]
+
+  should not raise "ColumnNotFoundError" if a column is found.
+    expect no error.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnNotFound[.qutils.tabRef;`c1];
+        (::)
+      ]

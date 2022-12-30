@@ -42,7 +42,7 @@
 // @kind function
 // @subcategory type
 // @overview Rename a table.
-// @param v {*} Any q object.
+// @param v {any} Any q object.
 // @return {boolean} `1b` if `v` is a simple or keyed table, or name of a simple or keyed table; `0b` otherwise.
 .qtk.type.isTable:{[v]
   val:$[-11h=type v; get v; v];

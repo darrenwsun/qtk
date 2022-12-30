@@ -11,7 +11,7 @@
 // @overview Raise NameExistsError if a name is in use.
 // @param name {symbol} Variable name.
 // @throws {NameExistsError} If the name is in use.
-.qtk.utils.raiseNameExists:{[name]
+.qtk.utils.raiseIfNameExists:{[name]
   if[.qtk.utils.nameExists name;
      '.qtk.err.compose[`NameExistsError; string name]
    ];

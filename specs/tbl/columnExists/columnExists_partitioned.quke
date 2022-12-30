@@ -4,7 +4,7 @@ feature Check if a column exists in a partitioned table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_columnExists_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -17,23 +17,23 @@ feature Check if a column exists in a partitioned table.
 
   should return `0b` if a column doesn't exist at all.
     expect `0b`.
-      not .qtk.tbl.columnExists[`PartitionedTable; `c2]
+      not .qtk.tbl.columnExists[`PartitionedTable; `c3]
 
   should return `1b` if a column exists, when the table is specified by partitioned table ID.
     expect `1b`.
       .qtk.tbl.columnExists[.qutils.tabRef; `c1]
 
-  should return `0b` if a column doesn't exist in `.d` file in some partition.
+  should return `0b` if a column doesn't exist in `.d` file in the latest partition.
     expect `0b`.
-      tablePath:.Q.par[`:.; 2022.01.01; `PartitionedTable];
+      tablePath:.Q.par[`:.; 2022.01.02; `PartitionedTable];
       allColumns:.qtk.db._getColumns tablePath;
       @[tablePath; `.d; :; allColumns except `c1];
       .qtk.db.reload[];
       not .qtk.tbl.columnExists[`PartitionedTable; `c1]
 
-  should return `0b` if a column doesn't exist in the filesystem in some partition.
+  should return `0b` if a column doesn't exist in the filesystem in the latest partition.
     expect `0b`.
-      columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `PartitionedTable]; `c1];
+      columnPath:.Q.dd[.Q.par[`:.; 2022.01.02; `PartitionedTable]; `c1];
       .qtk.tbl._deleteColumnData columnPath;
       .qtk.db.reload[];
       not .qtk.tbl.columnExists[`PartitionedTable; `c1]

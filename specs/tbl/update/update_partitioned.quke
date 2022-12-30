@@ -32,9 +32,9 @@ feature Update values in certain columns of a partitioned table.
       .qtk.tbl.update[`PartitionedTable; ((=;`date;2022.01.01); (>;`c1;3)); (enlist`c1)!(enlist (*;`c1;2))];
       .qu.compare[select c1 from PartitionedTable; ([] c1:1 2 3 8 10 1 2 3 4 5)]
 
-  should raise error "type" if it's a partial update and the new values don't have the same type as other values.
-    expect error "type"
+  should raise error "TypeError" if it's a partial update and the new values don't have the same type as other values.
+    expect error "TypeError: mix type s with j on column c1"
       .qu.compare[
         .[.qtk.tbl.update; (`PartitionedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
-        "type"
+        "TypeError: mix type s with j on column c1"
       ]

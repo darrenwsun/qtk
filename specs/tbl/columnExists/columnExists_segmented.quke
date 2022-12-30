@@ -7,7 +7,7 @@ feature Check if a column exists in a partitioned table.
     .qutils.segment2:"/tmp/hdb_columnExists_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -20,23 +20,23 @@ feature Check if a column exists in a partitioned table.
 
   should return `0b` if a column doesn't exist at all.
     expect `0b`.
-      not .qtk.tbl.columnExists[`SegmentedTable; `c2]
+      not .qtk.tbl.columnExists[`SegmentedTable; `c3]
 
   should return `1b` if a column exists, when the table is specified by partitioned table ID.
     expect `1b`.
       .qtk.tbl.columnExists[.qutils.tabRef; `c1]
 
-  should return `0b` if a column doesn't exist in `.d` file in some partition.
+  should return `0b` if a column doesn't exist in `.d` file in the latest partition.
     expect `0b`.
-      tablePath:.Q.par[`:.; 2022.01.01; `SegmentedTable];
+      tablePath:.Q.par[`:.; 2022.01.02; `SegmentedTable];
       allColumns:.qtk.db._getColumns tablePath;
       @[tablePath; `.d; :; allColumns except `c1];
       .qtk.db.reload[];
       not .qtk.tbl.columnExists[`SegmentedTable; `c1]
 
-  should return `0b` if a column doesn't exist in the filesystem in some partition.
+  should return `0b` if a column doesn't exist in the filesystem in the latest partition.
     expect `0b`.
-      columnPath:.Q.dd[.Q.par[`:.; 2022.01.01; `SegmentedTable]; `c1];
+      columnPath:.Q.dd[.Q.par[`:.; 2022.01.02; `SegmentedTable]; `c1];
       .qtk.tbl._deleteColumnData columnPath;
       .qtk.db.reload[];
       not .qtk.tbl.columnExists[`SegmentedTable; `c1]

@@ -1,0 +1,32 @@
+feature Raise error if a column is not found.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:1 2)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should raise "ColumnNotFoundError" if a column is not found.
+    expect error "ColumnNotFoundError: c2".
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnNotFound; (PlainTable;`c2); {x}];
+        "ColumnNotFoundError: c2"
+      ]
+    expect error "ColumnNotFoundError: c2" when the table is passed by name.
+      .qu.compare[
+        .[.qtk.tbl.raiseIfColumnNotFound; (`PlainTable;`c2); {x}];
+        "ColumnNotFoundError: c2"
+      ]
+
+  should not raise "ColumnNotFoundError" if a column is found.
+    expect no error.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnNotFound[PlainTable;`c1];
+        (::)
+      ]
+    expect no error when the table is passed by name.
+      .qu.compare[
+        .qtk.tbl.raiseIfColumnNotFound[`PlainTable;`c1];
+        (::)
+      ]

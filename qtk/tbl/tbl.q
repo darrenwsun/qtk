@@ -146,8 +146,8 @@
 // @private
 // @subcategory tbl
 // @overview Return a table with a single row that matches a given table schema.
-// @param tabMeta {table)} Metadata of a table.
-// @return {table} An empty table with a single row that matches the metadata.
+// @param tabMeta {table} Metadata of a table.
+// @return {table} A table with a single row that matches the metadata.
 .qtk.tbl._singleton:{[tabMeta]
   tabMeta:0!tabMeta;
   v:enlist each .qtk.type.defaults raze string tabMeta`t;
@@ -158,7 +158,7 @@
 // @private
 // @subcategory tbl
 // @overview Return an empty table that matches a given table schema.
-// @param tabMeta {table)} Metadata of a table.
+// @param tabMeta {table} Metadata of a table.
 // @return {table} An empty table that matches the metadata.
 .qtk.tbl._empty:{[tabMeta]
   0#.qtk.tbl._singleton tabMeta
@@ -306,18 +306,18 @@
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      completeData:1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
-      .qtk.tbl._insert[dbDir; tablePath; completeData]
+      completeData:.Q.en[dbDir;] 1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
+      .qtk.tbl._insert[tablePath; completeData]
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      completeData:1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
+      completeData:.Q.en[dbDir;] 1 _ (.qtk.tbl._singleton .qtk.tbl.meta tabRef) upsert data;     // in case data have partial columns
       parField:tabRefDesc`parField;
       parValues:?[completeData; (); (); (distinct;parField)];
       tablePaths:.Q.par[dbDir; ; tableName] each parValues;
       dataByPartition:flip each value parField xgroup completeData;
-      .qtk.tbl._insert[dbDir;;]'[tablePaths; dataByPartition];
+      .qtk.tbl._insert'[tablePaths; dataByPartition];
       ]
    ];
   tabRef
@@ -328,10 +328,10 @@
 // @subcategory tbl
 // @overview Insert data into a table.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param data {table} Table data.
-// @return {hsym} `tablePath` itself.
-.qtk.tbl._insert:{[dbDir;tablePath;data]
-  .Q.dd[tablePath; `] upsert .Q.en[dbDir; data]
+// @param data {table} Table data. Symbol columns must be enumerated and the table is not keyed.
+// @return {hsym} The path to the table.
+.qtk.tbl._insert:{[tablePath;data]
+  .Q.dd[tablePath; `] upsert data
  };
 
 // @kind function
@@ -346,7 +346,7 @@
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
 .qtk.tbl.update:{[tabRef;criteria;columns]
-  .qtk.tbl._validateColumnExists[tabRef;] each key columns;
+  .qtk.tbl.raiseIfColumnNotFound[tabRef;] each key columns;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -389,9 +389,9 @@
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
-// @param assignment {dict} A mapping from column names to values
+// @param assignment {dict} A mapping from column names to values.
 // @return {hsym} The path to the table.
-// @throws {TypeError} If it's a partial update and the new values don't have the same type as other values.
+// @throws {TypeError | type} If it's a partial update and the new values don't have the same type as other values.
 .qtk.tbl._update:{[dbDir;tablePath;criteria;assignment]
   updated:.Q.en[dbDir;] ?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
   if[0=count updated; :tablePath];
@@ -407,9 +407,9 @@
          columnPath:.Q.dd[tablePath; column];
          $[criteria~();
            .[columnPath; (); :; columnVal];             // rewrite the whole column
-           .Q.ty[columnVal]=.Q.ty[get columnPath];
+           (newType:.Q.ty[columnVal])=oldType:.Q.ty[get columnPath];
            @[columnPath; updated`index; :; columnVal];  // update values at certain indices
-           '"type"
+           '.qtk.err.compose[`TypeError; "mix type ",newType," with ",oldType," on column ",string column]
           ];
          ];
         // new column
@@ -544,8 +544,8 @@
 // @subcategory tbl
 // @overview Check if a column exists in a table.
 // For splayed tables, column existence requires that the column appears in `.d` file and its data file exists.
-// For partitioned tables, it requires the condition holds for all partitions.
-// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// For partitioned tables, it requires the condition holds for the latest partition.
+// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
 // @param column {symbol} Column name.
 // @return {boolean} `1b` if the column exists in the table; `0b` otherwise.
 // @doctest
@@ -556,15 +556,17 @@
 //
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // .qtk.tbl.columnExists[tabRef;`c1]
-.qtk.tbl.columnExists:{[tabRef;column]
-  tabRefDesc:.qtk.tbl.describe tabRef;
+.qtk.tbl.columnExists:{[table;column]
+  if[type[table] in 98 99h; :column in cols table];
+
+  tabRefDesc:.qtk.tbl.describe table;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
 
   $[tableType=`Plain;
-    column in cols tabRef;
+    column in cols table;
     tableType=`Serialized;
-    column in cols get tabRef;
+    column in cols get table;
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
@@ -574,16 +576,8 @@
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions dbDir;
-      // Can make the following part simpler by `all .qtk.tbl._columnExists[...]` at the cost of performance, due to inability
-      // to return early
-      partitionCount:count tablePaths;
-      i:0;
-      while[i<partitionCount;
-            if[not .qtk.tbl._columnExists[tablePaths[i]; column]; :0b];
-            i+:1
-       ];
-      1b
+      tablePath:.Q.par[dbDir; ; tableName] last .qtk.db.getPartitions dbDir;
+      .qtk.tbl._columnExists[tablePath; column]
       ]
    ]
  };
@@ -773,7 +767,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.renameColumns[tabRef; `c1`c2!`c3`c4]
 .qtk.tbl.renameColumns:{[tabRef;nameDict]
-  .qtk.tbl._validateColumnExists[tabRef;] each key nameDict;
+  .qtk.tbl.raiseIfColumnNotFound[tabRef;] each key nameDict;
   .qtk.tbl._validateColumnName each value nameDict;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
@@ -867,7 +861,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.reorderColumns[tabRef; `c2]
 .qtk.tbl.reorderColumns:{[tabRef;firstColumns]
-  .qtk.tbl._validateColumnExists[tabRef;] each firstColumns;
+  .qtk.tbl.raiseIfColumnNotFound[tabRef;] each firstColumns;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -926,7 +920,7 @@
 // .qtk.tbl.copyColumn[tabRef; `c1; `c2];
 // .qtk.tbl.columnExists[tabRef; `c2]
 .qtk.tbl.copyColumn:{[tabRef;sourceColumn;targetColumn]
-  .qtk.tbl._validateColumnExists[tabRef; sourceColumn];
+  .qtk.tbl.raiseIfColumnNotFound[tabRef; sourceColumn];
   .qtk.tbl._validateColumnNotExists[tabRef; targetColumn];
   .qtk.tbl._validateColumnName targetColumn;
 
@@ -995,7 +989,7 @@
 // // Or replace tabRef with `PartitionedTable if the database is loaded
 // tabRef~.qtk.tbl.apply[tabRef; `c1; 2*]
 .qtk.tbl.apply:{[tabRef;column;function]
-  .qtk.tbl._validateColumnExists[tabRef; column];
+  .qtk.tbl.raiseIfColumnNotFound[tabRef; column];
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -1094,14 +1088,13 @@
  };
 
 // @kind function
-// @private
 // @subcategory tbl
-// @overview Validate that a column exists, including header and data.
-// @param tableName {symbol} Table name.
+// @overview Raise error if a column is not found.
+// @param table {table |	symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
 // @param column {symbol} A column name.
 // @throws {ColumnNotFoundError: [*]} If the column doesn't exist.
-.qtk.tbl._validateColumnExists:{[tableName;column]
-  if[not .qtk.tbl.columnExists[tableName; column];
+.qtk.tbl.raiseIfColumnNotFound:{[table;column]
+  if[not .qtk.tbl.columnExists[table; column];
      '.qtk.err.compose[`ColumnNotFoundError; string column]
    ];
  };
@@ -1232,7 +1225,7 @@
 .qtk.tbl.at:{[table;indices]
   if[type[table] in 98 99h;
      :$[1b~.Q.qp table;
-        .qtk.tbl._safeAt[`:.;table;indices];
+        .qtk.tbl._atSafe[`:.;table;indices];
         select from table where i in indices]];
 
   tabRefDesc:.qtk.tbl.describe table;
@@ -1244,7 +1237,7 @@
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      .qtk.tbl._safeAt[dbDir; get tableName; indices]
+      .qtk.tbl._atSafe[dbDir; get tableName; indices]
       ]
    ]
  };
@@ -1261,7 +1254,7 @@
 // @param table {table} Partitioned table.
 // @param indices {int[] | long[]} Indices to select from.
 // @return {table} Table at the given indices.
-.qtk.tbl._safeAt:{[dbDir;table;indices]
+.qtk.tbl._atSafe:{[dbDir;table;indices]
   r:.[.Q.ind; (table;indices); ()];   // trap 'par error when indices are out of bound
   $[r~(); .Q.en[dbDir;] .qtk.tbl._empty .qtk.tbl.meta table; r]
  };
@@ -1284,7 +1277,7 @@
 // (`:/tmp/qtk/tbl/rename; `date; `NewPartitionedTable)~.qtk.tbl.rename[tabRef; `NewPartitionedTable]
 .qtk.tbl.rename:{[tabRef;newName]
   .qtk.tbl._validateTableName newName;
-  .qtk.utils.raiseNameExists newName;
+  .qtk.utils.raiseIfNameExists newName;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
@@ -1320,8 +1313,8 @@
 // @subcategory tbl
 // @overview Rename an on-disk table.
 // @param tablePath {hsym} Path to an on-disk table.
-// @param newName {hsym} New table name.
-// @return {hsym} Path to the renamed table in the partition.
+// @param newName {symbol} New table name.
+// @return {hsym} Path to the renamed table.
 .qtk.tbl._rename:{[tablePath;newName]
   newTablePath:.Q.dd[; newName] first ` vs tablePath;
   .qtk.os.move[tablePath; newTablePath];
