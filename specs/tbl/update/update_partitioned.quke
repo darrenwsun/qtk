@@ -4,8 +4,7 @@ feature Update values in certain columns of a partitioned table.
     .qtk.import.loadModule["tbl";`qtk];
     .qutils.hdbRoot:"/tmp/hdb_update_partitioned";
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    (hsym `$.qutils.hdbRoot,"/2022.01.01/PartitionedTable/") set ([] c1:1 2 3 4 5);
-    (hsym `$.qutils.hdbRoot,"/2022.01.02/PartitionedTable/") set ([] c1:1 2 3 4 5);
+    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:`a`a`b`b; c2:1 2 3 4)];
     system "l ",.qutils.hdbRoot;
 
   after each
@@ -14,27 +13,32 @@ feature Update values in certain columns of a partitioned table.
 
   should be able to change data type of a column.
     expect data type of the column is updated.
-      .qtk.tbl.update[`PartitionedTable; (); (enlist`c1)!(enlist enlist`a)];
-      .qu.compare[select c1 from PartitionedTable; ([] c1:`sym$10#`a)]
+      .qtk.tbl.update[`PartitionedTable; (); 0b; (enlist`c2)!(enlist enlist`a)];
+      .qu.compare[select c2 from PartitionedTable; .Q.en[`:.;] ([] c2:4#`a)]
 
   should be able to change data type of a column, when the table is specified by partitioned table ID.
     expect data type of the column is updated.
-      .qtk.tbl.update[(`:.; `date; `PartitionedTable); (); (enlist`c1)!(enlist enlist`a)];
-      .qu.compare[select c1 from PartitionedTable; ([] c1:`sym$10#`a)]
+      .qtk.tbl.update[(`:.; `date; `PartitionedTable); (); 0b; (enlist`c2)!(enlist enlist`a)];
+      .qu.compare[select c2 from PartitionedTable; .Q.en[`:.;] ([] c2:4#`a)]
 
   should be able to change certain indices of a column.
     expect certain indices of the column is updated.
-      .qtk.tbl.update[`PartitionedTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
-      .qu.compare[select c1 from PartitionedTable; ([] c1:1 2 3 8 10 1 2 3 8 10)]
+      .qtk.tbl.update[`PartitionedTable; enlist (>;`c2;3); 0b; (enlist`c2)!(enlist (*;`c2;2))];
+      .qu.compare[select c2 from PartitionedTable; ([] c2:1 2 3 8)]
 
-  should be able to change certain indices of a column.
+  should be able to change certain indices of a column, when partitioned field is used in the first criterion.
     expect certain indices of the column is updated.
-      .qtk.tbl.update[`PartitionedTable; ((=;`date;2022.01.01); (>;`c1;3)); (enlist`c1)!(enlist (*;`c1;2))];
-      .qu.compare[select c1 from PartitionedTable; ([] c1:1 2 3 8 10 1 2 3 4 5)]
+      .qtk.tbl.update[`PartitionedTable; ((=;`date;2022.01.01); (>;`c2;1)); 0b; (enlist`c2)!(enlist (*;`c2;2))];
+      .qu.compare[select c2 from PartitionedTable; ([] c2:1 4 3 4)]
+
+  should be able to change a column by grouping.
+    expect certain indices of the column is updated.
+      .qtk.tbl.update[`PartitionedTable; (); (enlist`c1)!(enlist`c1); (enlist`c2)!(enlist (max;`c2))];
+      .qu.compare[select c2 from PartitionedTable; ([] c2:2 2 4 4)]
 
   should raise error "TypeError" if it's a partial update and the new values don't have the same type as other values.
     expect error "TypeError: mix type s with j on column c1"
       .qu.compare[
-        .[.qtk.tbl.update; (`PartitionedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
-        "TypeError: mix type s with j on column c1"
+        .[.qtk.tbl.update; (`PartitionedTable; enlist (>;`c2;3); 0b; (enlist`c2)!(enlist enlist `a)); {x}];
+        "TypeError: mix type s with j on column c2"
       ]

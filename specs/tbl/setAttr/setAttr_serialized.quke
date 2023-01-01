@@ -2,7 +2,7 @@ feature Add attribute to a column of a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_addAttr_serialized";
+    .qutils.hdbRoot:"/tmp/hdb_setAttr_serialized";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2; c2:`g#`a`b)];
 

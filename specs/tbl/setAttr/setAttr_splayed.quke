@@ -2,7 +2,7 @@ feature Add attribute to a column of a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_addAttr_splayed";
+    .qutils.hdbRoot:"/tmp/hdb_setAttr_splayed";
     .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
     .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2; c2:`g#`a`b)];
     system "l ",.qutils.hdbRoot;

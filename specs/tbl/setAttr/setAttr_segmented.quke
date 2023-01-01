@@ -2,9 +2,9 @@ feature Add attribute to a column of a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_addAttr_segmented";
-    .qutils.segment1:"/tmp/hdb_addAttr_segment1";
-    .qutils.segment2:"/tmp/hdb_addAttr_segment2";
+    .qutils.hdbRoot:"/tmp/hdb_setAttr_segmented";
+    .qutils.segment1:"/tmp/hdb_setAttr_segment1";
+    .qutils.segment2:"/tmp/hdb_setAttr_segment2";
     .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
     .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
     .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`g#`a`b)];

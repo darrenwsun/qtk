@@ -343,24 +343,24 @@
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // For partitioned tables, if partition field is included in the criteria, it has to be the first in the list.
 // @param groupings {dict | 0b} A mapping of grouping columns, or `0b` for no grouping.
-// @param columns {dict} A mapping from column names to columns/expressions.
+// @param columns {dict} Mappings from column names to columns/expressions.
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
 // @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
-.qtk.tbl.update:{[tabRef;criteria;columns]
+.qtk.tbl.update:{[tabRef;criteria;groupings;columns]
   .qtk.tbl.raiseIfColumnNotFound[tabRef;] each key columns;
 
   tabRefDesc:.qtk.tbl.describe tabRef;
   tableType:tabRefDesc`type;
   tableName:tabRefDesc`name;
   $[tableType=`Plain;
-    ![tabRef; criteria; 0b; columns];
+    ![tabRef; criteria; groupings; columns];
     tableType=`Serialized;
-    tabRef set ![get tabRef; criteria; 0b; columns];
+    tabRef set ![get tabRef; criteria; groupings; columns];
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
-      .qtk.tbl._update[dbDir; tablePath; criteria; columns];
+      .qtk.tbl._update[dbDir; tablePath; criteria; groupings; columns];
       if[dbDir=`:.; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
@@ -375,7 +375,7 @@
        ];
 
       tablePaths:.Q.par[dbDir; ; tableName] each partitions;
-      .qtk.tbl._update[dbDir; ; criteria; columns] each tablePaths;
+      .qtk.tbl._update[dbDir; ; criteria; groupings; columns] each tablePaths;
       if[dbDir=`:.; .qtk.db.reload[]];
       ]
    ];
@@ -390,17 +390,19 @@
 // @param dbDir {hsym} DB directory.
 // @param tablePath {hsym} Path to an on-disk table.
 // @param criteria {any[]} A list of criteria where the update is applied to, or empty list if it's applied to the whole table.
-// @param assignment {dict} A mapping from column names to values.
+// @param groupings {dict | 0b} A mapping of grouping columns, or `0b` for no grouping.
+// @param columns {dict} Mappings from column names to columns/expressions.
 // @return {hsym} The path to the table.
 // @throws {TypeError | type} If it's a partial update and the new values don't have the same type as other values.
-.qtk.tbl._update:{[dbDir;tablePath;criteria;assignment]
-  updated:.Q.en[dbDir;] ?[tablePath; criteria; 0b; assignment,((enlist `index)!(enlist `i))];
+.qtk.tbl._update:{[dbDir;tablePath;criteria;groupings;columns]
+  updated:?[tablePath; criteria; groupings; columns,((enlist `index)!(enlist `i))];
+  updated:.Q.en[dbDir;] $[99h=type updated; ungroup value updated; updated];
   if[0=count updated; :tablePath];
 
   i:0;
   allColumns:.qtk.db._getColumns tablePath;
-  do[count assignment;
-     column:key[assignment] [i];
+  do[count columns;
+     column:key[columns] [i];
      columnVal:updated column;
      $[column in allColumns;
        [
@@ -408,8 +410,8 @@
          columnPath:.Q.dd[tablePath; column];
          $[criteria~();
            .[columnPath; (); :; columnVal];             // rewrite the whole column
-           (newType:.Q.ty[columnVal])=oldType:.Q.ty[get columnPath];
-           @[columnPath; updated`index; :; columnVal];  // update values at certain indices
+           (newType:.Q.ty[columnVal])=oldType:.Q.ty[columnData:get columnPath];
+           columnPath set @[columnData; updated`index; :; columnVal];  // update values at certain indices
            '.qtk.err.compose[`TypeError; "mix type ",newType," with ",oldType," on column ",string column]
           ];
          ];
@@ -428,7 +430,7 @@
 // @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param columns {dict} A mapping from column names to columns/expressions.
+// @param columns {dict} Mappings from column names to columns/expressions.
 // @return {table} Selected data from the table.
 .qtk.tbl.select:{[table;criteria;groupings;columns]
   ?[table; criteria; groupings; columns]
@@ -441,7 +443,7 @@
 // @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param columns {dict} A mapping from column names to columns/expressions.
+// @param columns {dict} Mappings from column names to columns/expressions.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
 // @return {table} Selected data from the table.
 .qtk.tbl.selectLimit:{[table;criteria;groupings;columns;limit]
@@ -455,7 +457,7 @@
 // @param table {table | symbol | hsym} Table name, path or value.
 // @param criteria {any[]} A list of criteria where the select is applied to, or empty list for the whole table.
 // @param groupings {dict | boolean} A mapping of grouping columns, or `0b` for no grouping, `1b` for distinct.
-// @param columns {dict} A mapping from column names to columns/expressions.
+// @param columns {dict} Mappings from column names to columns/expressions.
 // @param limit {int | long | (int;int) | (long;long)} Limit on rows to return.
 // @param sort {any[]} Sort the result by a column. The format is `(op;col)` where `op` is `>:` for descending and
 //   `<:` for ascending, and `col` is the column to be ordered by.
@@ -568,47 +570,6 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Raise ColumnExistsError if a column exists in a table.
-// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
-// @param column {symbol} A column name.
-// @throws {ColumnExistsError} If the column exists.
-// @doctest
-// system "l ",getenv[`QTK],"/init.q";
-// .qtk.import.loadModule["tbl";`qtk];
-// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnExists; `date; `PartitionedTable);
-// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
-//
-// // Or replace tabRef with `PartitionedTable if the database is loaded
-// "ColumnExistsError: c1 on :/tmp/qtk/tbl/raiseIfColumnExists/date/PartitionedTable"~.[.qtk.tbl.raiseIfColumnExists; (tabRef; `c1); {x}]
-.qtk.tbl.raiseIfColumnExists:{[table;column]
-  if[.qtk.tbl.columnExists[table; column];
-     '.qtk.err.compose[`ColumnExistsError; string[column],
-     $[-11h=(tt:type table); " on ",string[table];
-       11h=tt; " on ",string[` sv table];
-       ""
-      ]
-       ]
-   ];
- };
-
-// @kind function
-// @subcategory tbl
-// @overview Raise ColumnNameError if a column name is not valid, i.e. it collides with q's reserved words and implicit column `i`.
-// @param name {symbol} A column name.
-// @throws {ColumnNameError} If the column name is not valid.
-// @doctest
-// system "l ",getenv[`QTK],"/init.q";
-// .qtk.import.loadModule["tbl";`qtk];
-//
-// "ColumnNameError: abs"~@[.qtk.tbl.raiseIfColumnNameInvalid; `abs; {x}]
-.qtk.tbl.raiseIfColumnNameInvalid:{[name]
-  if[(name in `i,.Q.res,key `.q) or name<>.Q.id name;
-     '.qtk.err.compose[`ColumnNameError; string name]
-   ];
- };
-
-// @kind function
-// @subcategory tbl
 // @overview Check if a column exists in a table.
 // For splayed tables, column existence requires that the column appears in `.d` file and its data file exists.
 // For partitioned tables, it requires the condition holds for the latest partition.
@@ -662,6 +623,31 @@
   if[not column in allColumns; :0b];
   columnPath:.Q.dd[tablePath; column];
   .qtk.os.path.isFile columnPath
+ };
+
+// @kind function
+// @subcategory tbl
+// @overview Raise ColumnExistsError if a column exists in a table.
+// @param table {table | symbol | hsym | (hsym; symbol; symbol)} Table value or reference.
+// @param column {symbol} A column name.
+// @throws {ColumnExistsError} If the column exists.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/raiseIfColumnExists; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// "ColumnExistsError: c1 on :/tmp/qtk/tbl/raiseIfColumnExists/date/PartitionedTable"~.[.qtk.tbl.raiseIfColumnExists; (tabRef; `c1); {x}]
+.qtk.tbl.raiseIfColumnExists:{[table;column]
+  if[.qtk.tbl.columnExists[table; column];
+     '.qtk.err.compose[`ColumnExistsError; string[column],
+     $[-11h=(tt:type table); " on ",string[table];
+       11h=tt; " on ",string[` sv table];
+       ""
+      ]
+       ]
+   ];
  };
 
 // @kind function
@@ -729,6 +715,22 @@
   .[.Q.dd[tablePath; column]; (); :; countInPath#columnValue];
   @[tablePath; `.d; :; distinct allColumns,column];
   tablePath
+ };
+
+// @kind function
+// @subcategory tbl
+// @overview Raise ColumnNameError if a column name is not valid, i.e. it collides with q's reserved words and implicit column `i`.
+// @param name {symbol} A column name.
+// @throws {ColumnNameError} If the column name is not valid.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+//
+// "ColumnNameError: abs"~@[.qtk.tbl.raiseIfColumnNameInvalid; `abs; {x}]
+.qtk.tbl.raiseIfColumnNameInvalid:{[name]
+  if[(name in `i,.Q.res,key `.q) or name<>.Q.id name;
+     '.qtk.err.compose[`ColumnNameError; string name]
+   ];
  };
 
 // @kind function

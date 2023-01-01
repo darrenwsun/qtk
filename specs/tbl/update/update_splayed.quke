@@ -12,22 +12,22 @@ feature Update values in certain columns of a splayed table.
 
   should be able to change data type of a column.
     expect data type of the column is updated.
-      .qtk.tbl.update[`SplayedTable; (); (enlist`c1)!(enlist enlist`a)];
+      .qtk.tbl.update[`SplayedTable; (); 0b; (enlist`c1)!(enlist enlist`a)];
       .qu.compare[select c1 from SplayedTable; ([] c1:`sym$5#`a)]
 
   should be able to change data type of a column, when the table is specified by hsym.
     expect data type of the column is updated.
-      .qtk.tbl.update[`:./SplayedTable/; (); (enlist`c1)!(enlist enlist`a)];
+      .qtk.tbl.update[`:./SplayedTable/; (); 0b; (enlist`c1)!(enlist enlist`a)];
       .qu.compare[select c1 from SplayedTable; ([] c1:`sym$5#`a)]
 
   should be able to change certain indices of a column.
     expect certain indices of the column is updated.
-      .qtk.tbl.update[`SplayedTable; enlist (>;`c1;3); (enlist`c1)!(enlist (*;`c1;2))];
+      .qtk.tbl.update[`SplayedTable; enlist (>;`c1;3); 0b; (enlist`c1)!(enlist (*;`c1;2))];
       .qu.compare[select c1 from SplayedTable; ([] c1:1 2 3 8 10)]
 
   should raise error "TypeError" if it's a partial update and the new values don't have the same type as other values.
     expect error "TypeError: mix type s with j on column c1"
       .qu.compare[
-        .[.qtk.tbl.update; (`SplayedTable; enlist (>;`c1;3); (enlist`c1)!(enlist enlist `a)); {x}];
+        .[.qtk.tbl.update; (`SplayedTable; enlist (>;`c1;3); 0b; (enlist`c1)!(enlist enlist `a)); {x}];
         "TypeError: mix type s with j on column c1"
       ]
