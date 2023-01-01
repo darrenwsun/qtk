@@ -3,13 +3,14 @@
 ## Installation
 
 1. Download the zipped file from the latest release.
-2. Unzip it.
+2. Unzip and cd into the extracted directory.
 
         unzip qtk-0.1.zip
+        cd qtk-0.1
 
 3. Export `QTK` environment variable and point it to the absolute path.
 
-        export QTK=$(readlink -f qtk-0.1)
+        export QTK=$(readlink -f .)
 
 4. Start a `q` session and load `init.q`.
 

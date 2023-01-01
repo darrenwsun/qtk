@@ -5,6 +5,11 @@ markdown_extensions:
         permalink: true
         baselevel: 1
         toc_depth: 3
+    - pymdownx.highlight:
+        anchor_linenums: true
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+    - pymdownx.superfences
 theme:
     name: material
 

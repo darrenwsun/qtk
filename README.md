@@ -12,6 +12,14 @@
 
 # Overview
 
+Q Toolkit (QTK) is a set of libraries that ease development by q, a language for [kdb+](https://code.kx.com/q/). It provides the following tools:
+
+- simple package/module management
+- uniform APIs to interact with tables regardless of whether they are in-memory or on-disk
+- database management utilities
+- file system utilities
+- structured error raising
+
 # Getting Started
 
 ## Installation
@@ -20,10 +28,11 @@
 2. Unzip it.
    ```shell
    unzip qtk-0.1.zip
+   cd qtk-0.1
    ```
 3. Export `QTK` environment variable and point it to the absolute path.
    ```shell
-   export QTK=$(readlink -f qtk-0.1)
+   export QTK=$(readlink -f .)
    ```
 4. Start a `q` session and load `init.q`.
    ```shell
