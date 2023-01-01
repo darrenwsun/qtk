@@ -2,14 +2,14 @@ feature Add a column to a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_addColumn_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_addColumn_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should add a column to a partitioned table specified by table name.
     expect the column added to the table.
@@ -19,6 +19,6 @@ feature Add a column to a partitioned table.
 
   should add a column to a partitioned table specified by partitioned table ID.
     expect the column added to the table.
-      .qtk.tbl.addColumn[.qutils.tabRef; `c2; `test];
+      .qtk.tbl.addColumn[.qtk.test.tabRef; `c2; `test];
       .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c1`c2]

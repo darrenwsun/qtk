@@ -2,14 +2,14 @@ feature Get table type of a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_getType_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.test.dbDir:"/tmp/hdb_getType_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should return `Serialized` for a serialized table.
     expect `Serialized` for a serialized table specified by hsym.
-      .qu.compare[.qtk.tbl.getType .qutils.tabRef; `Serialized]
+      .qu.compare[.qtk.tbl.getType .qtk.test.tabRef; `Serialized]

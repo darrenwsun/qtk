@@ -3,14 +3,14 @@ feature Get all partitions when `int` is the partition field.
   before
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_getPartitions_int";
+    .qtk.test.dbDir:"/tmp/hdb_getPartitions_int";
     Table:([] c1:`boolean$(); c2:`long$());
-    (hsym `$.qutils.hdbRoot,"/1/Table/") set Table;
-    (hsym `$.qutils.hdbRoot,"/2/Table/") set Table;
-    system "l ",.qutils.hdbRoot;
+    (hsym `$.qtk.test.dbDir,"/1/Table/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2/Table/") set Table;
+    system "l ",.qtk.test.dbDir;
 
   after
-    system "rm -rf ",.qutils.hdbRoot;
+    system "rm -rf ",.qtk.test.dbDir;
 
   should give all int partitions of a partitioned database.
     expect int partitions of the current database.

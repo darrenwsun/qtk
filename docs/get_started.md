@@ -20,9 +20,9 @@
 
 ## Usage
 
-Browse the docs and search for what you may need. The following is a CRUD example.
+Browse the [docs](https://qtk.readthedocs.io/en/latest/index.html) and search for what you may need. The following is a CRUD example for partitioned tables.
 
-```
+```q
 .qtk.import.loadModule["tbl";`qtk];  // Import module tbl from package qtk
 
 // Create the partitioned table with given data

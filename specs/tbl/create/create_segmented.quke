@@ -2,20 +2,20 @@ feature Create a new segmented table with given data.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_create_segmented";
-    .qutils.segment1:"/tmp/hdb_create_segment1";
-    .qutils.segment2:"/tmp/hdb_create_segment2";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
+    .qtk.test.dbDir:"/tmp/hdb_create_segmented";
+    .qtk.test.seg1:"/tmp/hdb_create_segment1";
+    .qtk.test.seg2:"/tmp/hdb_create_segment2";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should create a new segmented table with non-empty data
     expect a new segmented table created with non-empty data
-      .qu.result:.qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
-      system "l ",.qutils.hdbRoot;
+      .qu.result:.qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+      system "l ",.qtk.test.dbDir;
       .qu.compare[select from SegmentedTable; .Q.en[`:.] ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)]
     expect the table name is returned
-      .qu.compare[.qu.result; .qutils.tabRef]
+      .qu.compare[.qu.result; .qtk.test.tabRef]

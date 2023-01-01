@@ -2,17 +2,17 @@ feature Count rows of a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_count_segmented";
-    .qutils.segment1:"/tmp/hdb_count_segment1";
-    .qutils.segment2:"/tmp/hdb_count_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_count_segmented";
+    .qtk.test.seg1:"/tmp/hdb_count_segment1";
+    .qtk.test.seg2:"/tmp/hdb_count_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should get row count of a plain table
     expect row count of a segmented table, passed by reference
@@ -20,4 +20,4 @@ feature Count rows of a segmented table.
     expect row count of a segmented table, passed by value
       .qu.compare[.qtk.tbl.count SegmentedTable; 3]
     expect row count of a segmented table, passed by partitioned table ID
-      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]
+      .qu.compare[.qtk.tbl.count .qtk.test.tabRef; 3]

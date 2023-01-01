@@ -2,14 +2,14 @@ feature Copy an existing column to a new column for a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_copyColumn_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_copyColumn_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`c)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should copy a column to a new column for a splayed table.
     expect the new column have the same value as the specified column.
@@ -19,6 +19,6 @@ feature Copy an existing column to a new column for a splayed table.
 
   should copy a column to a new column for a splayed table, when the table is specified by hsym.
     expect the new column have the same value as the specified column.
-      .qtk.tbl.copyColumn[.qutils.tabRef; `c2; `c3];
+      .qtk.tbl.copyColumn[.qtk.test.tabRef; `c2; `c3];
       .qtk.db.reload[];
       .qu.compare[exec c3 from SplayedTable; exec c2 from SplayedTable]

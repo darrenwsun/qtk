@@ -2,18 +2,18 @@ feature Check if a column exists in a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_columnExists_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.test.dbDir:"/tmp/hdb_columnExists_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should return `1b` if a column exists.
     expect `1b`.
-      .qtk.tbl.columnExists[.qutils.tabRef; `c1]
+      .qtk.tbl.columnExists[.qtk.test.tabRef; `c1]
 
   should return `0b` if a column doesn't exist.
     expect `0b`.
-      not .qtk.tbl.columnExists[.qutils.tabRef; `c2]
+      not .qtk.tbl.columnExists[.qtk.test.tabRef; `c2]

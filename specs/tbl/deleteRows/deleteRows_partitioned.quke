@@ -2,14 +2,14 @@ feature Delete rows of a partitioned table given certain criteria.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_deleteRows_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:`a`b`c)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_deleteRows_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.02; c1:`a`b`c)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should delete all rows if the criteria is empty.
     expect all rows deleted.
@@ -18,7 +18,7 @@ feature Delete rows of a partitioned table given certain criteria.
 
   should delete all rows if the criteria is empty, when the table is specified by partitioned table ID.
     expect all rows deleted.
-      .qtk.tbl.deleteRows[.qutils.tabRef; ()];
+      .qtk.tbl.deleteRows[.qtk.test.tabRef; ()];
       .qu.compare[select from PartitionedTable; .Q.en[`:.;] ([] date:`date$(); c1:`$())]
 
   should delete some rows if they match the criteria, for the case that partition key is not used in the criteria.

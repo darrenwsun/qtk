@@ -2,14 +2,14 @@ feature Count rows of a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_count_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_count_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02 2022.01.01; c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should get row count of a partitioned table
     expect row count of a partitioned table, passed by reference
@@ -17,4 +17,4 @@ feature Count rows of a partitioned table.
     expect row count of a partitioned table, passed by value
       .qu.compare[.qtk.tbl.count PartitionedTable; 3]
     expect row count of a partitioned table, passed by partitioned table ID
-      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]
+      .qu.compare[.qtk.tbl.count .qtk.test.tabRef; 3]

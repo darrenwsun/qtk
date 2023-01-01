@@ -2,14 +2,14 @@ feature Add a column to a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_addColumn_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"))];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_addColumn_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb"))];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should add a column to an splayed table specified by table name.
     expect the column added to the table.
@@ -19,6 +19,6 @@ feature Add a column to a splayed table.
 
   should add a column to an splayed table specified by hsym.
     expect the column added to the table.
-      .qtk.tbl.addColumn[.qutils.tabRef;`c2;`test];
+      .qtk.tbl.addColumn[.qtk.test.tabRef;`c2;`test];
       .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c1`c2]

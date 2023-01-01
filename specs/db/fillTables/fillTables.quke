@@ -3,15 +3,15 @@ feature Fill all tables missing in some partitions.
   before each
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_fillTables";
+    .qtk.test.dbDir:"/tmp/hdb_fillTables";
     Table:([] c1:10b; c2:1 2);
-    (hsym `$.qutils.hdbRoot,"/2022.01.01/T1/") set Table;
-    (hsym `$.qutils.hdbRoot,"/2022.01.02/T1/") set Table;
-    (hsym `$.qutils.hdbRoot,"/2022.01.02/T2/") set Table;
-    system "l ",.qutils.hdbRoot;
+    (hsym `$.qtk.test.dbDir,"/2022.01.01/T1/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2022.01.02/T1/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2022.01.02/T2/") set Table;
+    system "l ",.qtk.test.dbDir;
 
   after each
-    system "rm -rf ",.qutils.hdbRoot;
+    system "rm -rf ",.qtk.test.dbDir;
 
   should fill tables missing in some partitions.
     expect tables missing in some partitions filled.

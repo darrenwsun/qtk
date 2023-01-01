@@ -2,18 +2,18 @@ feature Cast the datatype of a column of a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_castColumn_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.test.dbDir:"/tmp/hdb_castColumn_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should cast a column of a serialized table to a new type.
     expect the column to be casted to a new type specified by type name.
-      .qtk.tbl.castColumn[.qutils.tabRef; `c1; `float];
-      .qu.compare[.Q.ty get[.qutils.tabRef]`c1; "f"]
+      .qtk.tbl.castColumn[.qtk.test.tabRef; `c1; `float];
+      .qu.compare[.Q.ty get[.qtk.test.tabRef]`c1; "f"]
     expect the column to be casted to a new type specified by type character.
-      .qtk.tbl.castColumn[.qutils.tabRef; `c1; "f"];
-      .qu.compare[.Q.ty get[.qutils.tabRef]`c1; "f"]
+      .qtk.tbl.castColumn[.qtk.test.tabRef; `c1; "f"];
+      .qu.compare[.Q.ty get[.qtk.test.tabRef]`c1; "f"]

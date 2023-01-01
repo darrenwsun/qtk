@@ -2,13 +2,13 @@ feature Update values in certain columns of a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_update_splayed";
-    system "cd ",.qutils.hdbRoot;
-    .qtk.tbl.create[hsym `$.qutils.hdbRoot,"/SplayedTable/"; ([] c1:1 2 3 4 5)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_update_splayed";
+    system "cd ",.qtk.test.dbDir;
+    .qtk.tbl.create[hsym `$.qtk.test.dbDir,"/SplayedTable/"; ([] c1:1 2 3 4 5)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    system "rm -rf ",.qutils.hdbRoot;
+    system "rm -rf ",.qtk.test.dbDir;
 
   should be able to change data type of a column.
     expect data type of the column is updated.

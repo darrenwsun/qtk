@@ -2,27 +2,27 @@ feature Drop a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_drop_segmented";
-    .qutils.segment1:"/tmp/hdb_drop_segment1";
-    .qutils.segment2:"/tmp/hdb_drop_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_drop_segmented";
+    .qtk.test.seg1:"/tmp/hdb_drop_segment1";
+    .qtk.test.seg2:"/tmp/hdb_drop_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should drop a segmented table.
     expect the segmented table dropped.
       .qtk.tbl.drop `SegmentedTable;
       .qu.compare[key `SegmentedTable; ()]
     expect the corresponding directories deleted
-      not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/SegmentedTable"
+      not .qtk.os.path.exists .qtk.test.seg1,"/2022.01.01/SegmentedTable"
 
   should drop a segmented table, when the table is specified by partitioned table ID.
     expect the segmented table dropped.
       .qtk.tbl.drop (`:.; `date; `SegmentedTable);
       .qu.compare[key `SegmentedTable; ()]
     expect the corresponding directories deleted
-      not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/PartitionedTable"
+      not .qtk.os.path.exists .qtk.test.seg1,"/2022.01.01/PartitionedTable"

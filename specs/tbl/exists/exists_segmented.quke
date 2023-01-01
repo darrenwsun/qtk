@@ -2,26 +2,26 @@ feature Check if a partitioned table of given name exists.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_exists_segmented";
-    .qutils.segment1:"/tmp/hdb_exists_segment1";
-    .qutils.segment2:"/tmp/hdb_exists_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_exists_segmented";
+    .qtk.test.seg1:"/tmp/hdb_exists_segment1";
+    .qtk.test.seg2:"/tmp/hdb_exists_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should return `1b` if the table exists.
     expect `1b`.
       .qtk.tbl.exists `SegmentedTable
     expect `1b` when the table is specified by partitioned table ID.
-      .qtk.tbl.exists .qutils.tabRef
+      .qtk.tbl.exists .qtk.test.tabRef
 
   should return `0b` if the table doesn't exist.
     expect `0b`.
       not .qtk.tbl.exists `SegmentedTable1
     expect `0b` when the table is specified by partitioned table ID.
-      not .qtk.tbl.exists (hsym `$.qutils.hdbRoot; `date; `SegmentedTable1)
+      not .qtk.tbl.exists (hsym `$.qtk.test.dbDir; `date; `SegmentedTable1)

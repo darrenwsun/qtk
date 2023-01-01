@@ -2,22 +2,22 @@ feature Check if a serialized table of given name exists.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_exists_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.test.dbDir:"/tmp/hdb_exists_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should return `1b` if the table exists.
     expect `1b`
-      .qtk.tbl.exists[.qutils.tabRef]
+      .qtk.tbl.exists[.qtk.test.tabRef]
 
   should return `0b` if the table doesn't exist.
     expect `0b` for non-existent path.
-      not .qtk.tbl.exists[hsym `$.qutils.hdbRoot,"/SerializedTable1"]
+      not .qtk.tbl.exists[hsym `$.qtk.test.dbDir,"/SerializedTable1"]
     expect `0b` if the name doesn't resolve to a table.
-      path:.Q.dd[hsym `$.qutils.hdbRoot; `a];
+      path:.Q.dd[hsym `$.qtk.test.dbDir; `a];
       path set 1;
       not .qtk.tbl.exists[path]

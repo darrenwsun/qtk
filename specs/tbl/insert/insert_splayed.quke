@@ -2,14 +2,14 @@ feature Insert data into a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_insert_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_insert_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should insert full data into a splayed table.
     expect given data inserted into the table
@@ -19,7 +19,7 @@ feature Insert data into a splayed table.
 
   should insert full data into a splayed table, when the table is specified by hsym.
     expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] c1:("cc";"dd"); c2:`c`d)];
+      .qu.result:.qtk.tbl.insert[.qtk.test.tabRef; ([] c1:("cc";"dd"); c2:`c`d)];
       .qtk.db.reload[];
       .qu.compare[select from SplayedTable; .Q.en[`:.; ] ([] c1:("aa";"bb";"cc";"dd"); c2:`a`b`c`d)]
 

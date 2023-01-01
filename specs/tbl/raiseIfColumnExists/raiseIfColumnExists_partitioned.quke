@@ -2,14 +2,14 @@ feature Check if a column exists in a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnExists_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_raiseIfColumnExists_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should raise "ColumnExistsError" if a column exists.
     expect error "ColumnExistsError: c1".
@@ -24,8 +24,8 @@ feature Check if a column exists in a partitioned table.
       ]
     expect error "ColumnExistsError: c1" when the table is passed by partitioned table ID.
       .qu.compare[
-        .[.qtk.tbl.raiseIfColumnExists; (.qutils.tabRef;`c1); {x}];
-        "ColumnExistsError: c1 on ",string ` sv .qutils.tabRef
+        .[.qtk.tbl.raiseIfColumnExists; (.qtk.test.tabRef;`c1); {x}];
+        "ColumnExistsError: c1 on ",string ` sv .qtk.test.tabRef
       ]
 
   should not raise "ColumnExistsError" if a column doesn't exist.
@@ -41,6 +41,6 @@ feature Check if a column exists in a partitioned table.
       ]
     expect no error.
       .qu.compare[
-        .qtk.tbl.raiseIfColumnExists[.qutils.tabRef;`c3];
+        .qtk.tbl.raiseIfColumnExists[.qtk.test.tabRef;`c3];
         (::)
       ]

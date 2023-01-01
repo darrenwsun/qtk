@@ -3,18 +3,18 @@ feature Get all segments.
   before each
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_getSegment";
-    .qutils.segment1:"/tmp/hdb_segment1";
-    .qutils.segment2:"/tmp/hdb_segment2";
+    .qtk.test.dbDir:"/tmp/hdb_getSegment";
+    .qtk.test.seg1:"/tmp/hdb_segment1";
+    .qtk.test.seg2:"/tmp/hdb_segment2";
     Table:([] c1:10b; c2:1 2);
-    (hsym `$.qutils.segment1,"/2022.01.01/Table/") set Table;
-    (hsym `$.qutils.segment2,"/2022.01.02/Table/") set Table;
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    system "l ",.qutils.hdbRoot;
+    (hsym `$.qtk.test.seg1,"/2022.01.01/Table/") set Table;
+    (hsym `$.qtk.test.seg2,"/2022.01.02/Table/") set Table;
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should return all segments.
     expect all segments returned.
-      .qu.compare[.qtk.db.getSegments[]; {hsym `$x} each (.qutils.segment1; .qutils.segment2)]
+      .qu.compare[.qtk.db.getSegments[]; {hsym `$x} each (.qtk.test.seg1; .qtk.test.seg2)]

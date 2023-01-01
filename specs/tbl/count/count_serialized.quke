@@ -2,14 +2,14 @@ feature Count rows of a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_count_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    .qtk.test.dbDir:"/tmp/hdb_count_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should get row count of a serialized table
     expect row count of a serialized table, passed by reference
-      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]
+      .qu.compare[.qtk.tbl.count .qtk.test.tabRef; 3]

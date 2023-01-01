@@ -2,14 +2,14 @@ feature Insert data into a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_insert_partitioned";
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `PartitionedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_insert_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should insert full data into a partitioned table.
     expect given data inserted into the table
@@ -21,7 +21,7 @@ feature Insert data into a partitioned table.
 
   should insert full data into a partitioned table, when the table is specified by partitioned table ID.
     expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
+      .qu.result:.qtk.tbl.insert[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
       .qtk.db.reload[];
       .qu.compare[
         select from PartitionedTable;

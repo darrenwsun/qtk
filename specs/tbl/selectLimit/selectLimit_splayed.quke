@@ -2,22 +2,22 @@ feature Select from a splayed table based on given criteria, groupings, and colu
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_selectLimit_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`a)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_selectLimit_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb";"cc"); c2:`a`b`a)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SplayedTable;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should select from a plain table based on given criteria, groupings, and column mappings.
     expect proper data with a positive limit
-      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1];
+      .qu.result:.qtk.tbl.selectLimit[.qtk.test.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1];
       .qu.compare[.qu.result; .Q.en[`:.; ] ([] c1:enlist "aa"; c2:`a)]
     expect proper data with a negative limit
-      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); -1];
+      .qu.result:.qtk.tbl.selectLimit[.qtk.test.tabRef; enlist(=;`c2;enlist `a); 0b; (); -1];
       .qu.compare[.qu.result; .Q.en[`:.; ] ([] c1:enlist "cc"; c2:`a)]
     expect proper data with a pair limit
-      .qu.result:.qtk.tbl.selectLimit[.qutils.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1 1];
+      .qu.result:.qtk.tbl.selectLimit[.qtk.test.tabRef; enlist(=;`c2;enlist `a); 0b; (); 1 1];
       .qu.compare[.qu.result; .Q.en[`:.; ] ([] c1:enlist "cc"; c2:`a)]

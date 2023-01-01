@@ -2,17 +2,17 @@ feature Select from a segmented table based on given criteria, groupings, and co
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_selectLimitSort_segmented";
-    .qutils.segment1:"/tmp/hdb_selectLimitSort_segment1";
-    .qutils.segment2:"/tmp/hdb_selectLimitSort_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("bb";"aa";"cc";"dd"); c2:`b`a`c`d)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_selectLimitSort_segmented";
+    .qtk.test.seg1:"/tmp/hdb_selectLimitSort_segment1";
+    .qtk.test.seg2:"/tmp/hdb_selectLimitSort_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.01 2022.01.02 2022.01.02; c1:("bb";"aa";"cc";"dd"); c2:`b`a`c`d)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should select from a plain table based on given criteria, groupings, and column mappings.
     expect data sorted by column c2 in ascending order

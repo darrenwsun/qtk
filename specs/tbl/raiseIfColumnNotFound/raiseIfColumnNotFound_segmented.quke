@@ -2,17 +2,17 @@ feature Check if a column exists in a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_raiseIfColumnNotFound_segmented";
-    .qutils.segment1:"/tmp/hdb_raiseIfColumnNotFound_segment1";
-    .qutils.segment2:"/tmp/hdb_raiseIfColumnNotFound_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_raiseIfColumnNotFound_segmented";
+    .qtk.test.seg1:"/tmp/hdb_raiseIfColumnNotFound_segment1";
+    .qtk.test.seg2:"/tmp/hdb_raiseIfColumnNotFound_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should raise "ColumnNotFoundError" if a column is not found.
     expect error "ColumnNotFoundError: c3".
@@ -27,8 +27,8 @@ feature Check if a column exists in a partitioned table.
       ]
     expect error "ColumnNotFoundError: c3" when the table is passed by partitioned table ID.
       .qu.compare[
-        .[.qtk.tbl.raiseIfColumnNotFound; (.qutils.tabRef;`c3); {x}];
-        "ColumnNotFoundError: c3 on ",string ` sv .qutils.tabRef
+        .[.qtk.tbl.raiseIfColumnNotFound; (.qtk.test.tabRef;`c3); {x}];
+        "ColumnNotFoundError: c3 on ",string ` sv .qtk.test.tabRef
       ]
 
   should not raise "ColumnNotFoundError" if a column is found.
@@ -44,6 +44,6 @@ feature Check if a column exists in a partitioned table.
       ]
     expect no error when the table is passed by partitioned table ID.
       .qu.compare[
-        .qtk.tbl.raiseIfColumnNotFound[.qutils.tabRef;`c1];
+        .qtk.tbl.raiseIfColumnNotFound[.qtk.test.tabRef;`c1];
         (::)
       ]

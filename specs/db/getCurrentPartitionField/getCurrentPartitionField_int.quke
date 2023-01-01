@@ -3,14 +3,14 @@ feature Get partition field of int.
   before
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_getCurrentPartitionField_long";
+    .qtk.test.dbDir:"/tmp/hdb_getCurrentPartitionField_long";
     Table:([] c1:`boolean$(); c2:`long$());
-    (hsym `$.qutils.hdbRoot,"/1/Table/") set Table;
-    (hsym `$.qutils.hdbRoot,"/2/Table/") set Table;
-    system "l ",.qutils.hdbRoot;
+    (hsym `$.qtk.test.dbDir,"/1/Table/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2/Table/") set Table;
+    system "l ",.qtk.test.dbDir;
 
   after
-    system "rm -rf ",.qutils.hdbRoot;
+    system "rm -rf ",.qtk.test.dbDir;
 
   should give partition field of a partitioned database.
     expect partition field of the current database.

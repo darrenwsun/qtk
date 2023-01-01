@@ -2,25 +2,25 @@ feature Create a new splayed table with given data.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_create_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
+    .qtk.test.dbDir:"/tmp/hdb_create_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should create a new splayed table with empty data.
     expect a new splayed table created with empty data.
-      .qu.result:.qtk.tbl.create[.qutils.tabRef; ([] c1:(); c2:`$())];
-      system "l ",.qutils.hdbRoot;
+      .qu.result:.qtk.tbl.create[.qtk.test.tabRef; ([] c1:(); c2:`$())];
+      system "l ",.qtk.test.dbDir;
       .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:(); c2:`$())]
     expect the table name is returned
-      .qu.compare[.qu.result; .qutils.tabRef]
+      .qu.compare[.qu.result; .qtk.test.tabRef]
 
   should create a new splayed table with non-empty data
     expect a new splayed table created with non-empty data
-      .qu.result:.qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
-      system "l ",.qutils.hdbRoot;
+      .qu.result:.qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+      system "l ",.qtk.test.dbDir;
       .qu.compare[select from SplayedTable; .Q.en[`:.] ([] c1:("aa";"bb"); c2:`a`b)]
     expect the table name is returned
-      .qu.compare[.qu.result; .qutils.tabRef]
+      .qu.compare[.qu.result; .qtk.test.tabRef]

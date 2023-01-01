@@ -2,18 +2,18 @@ feature Rename a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_rename_serialized";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SerializedTable";
-    .qutils.tabRefNew:hsym `$.qutils.hdbRoot,"/NewSerializedTable";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
+    .qtk.test.dbDir:"/tmp/hdb_rename_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.test.tabRefNew:hsym `$.qtk.test.dbDir,"/NewSerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
 
   after each
-    .qtk.tbl.drop .qutils.tabRefNew;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRefNew;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should rename a serialized table.
     expect new table to be created.
-      .qtk.tbl.rename[.qutils.tabRef; `NewSerializedTable];
-      .qu.compare[get .qutils.tabRefNew; ([] c1:1 2)]
+      .qtk.tbl.rename[.qtk.test.tabRef; `NewSerializedTable];
+      .qu.compare[get .qtk.test.tabRefNew; ([] c1:1 2)]
     expect old table to be dropped.
-      not .qtk.os.path.exists .qutils.tabRef
+      not .qtk.os.path.exists .qtk.test.tabRef

@@ -2,15 +2,15 @@ feature Rename a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_rename_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qutils.newTabRef:hsym `$.qutils.hdbRoot,"/NewSplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:1 2)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_rename_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.test.newTabRef:hsym `$.qtk.test.dbDir,"/NewSplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `NewSplayedTable;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should rename a splayed table.
     expect new table to be created.
@@ -19,7 +19,7 @@ feature Rename a splayed table.
     expect old table name removed.
       not .qtk.utils.nameExists `SplayedTable
     expect old table directory removed.
-      not .qtk.os.path.exists .qutils.tabRef
+      not .qtk.os.path.exists .qtk.test.tabRef
 
   should rename a splayed table, when the table is specified by hsym.
     expect new table to be created.
@@ -28,4 +28,4 @@ feature Rename a splayed table.
     expect old table name removed.
       not .qtk.utils.nameExists `SplayedTable
     expect old table directory removed.
-      not .qtk.os.path.exists .qutils.tabRef
+      not .qtk.os.path.exists .qtk.test.tabRef

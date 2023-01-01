@@ -3,17 +3,17 @@ feature Slice a segmented table.
   before
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_slice_segmented";
-    .qutils.segment1:"/tmp/hdb_slice_segment1";
-    .qutils.segment2:"/tmp/hdb_slice_segment2";
+    .qtk.test.dbDir:"/tmp/hdb_slice_segmented";
+    .qtk.test.seg1:"/tmp/hdb_slice_segment1";
+    .qtk.test.seg2:"/tmp/hdb_slice_segment2";
     SegmentedTable:([] c1:1 2 3);
-    (hsym `$.qutils.segment1,"/2022.01.01/SegmentedTable/") set SegmentedTable;
-    (hsym `$.qutils.segment2,"/2022.01.02/SegmentedTable/") set SegmentedTable;
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    system "l ",.qutils.hdbRoot;
+    (hsym `$.qtk.test.seg1,"/2022.01.01/SegmentedTable/") set SegmentedTable;
+    (hsym `$.qtk.test.seg2,"/2022.01.02/SegmentedTable/") set SegmentedTable;
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    system "l ",.qtk.test.dbDir;
 
   after
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should slice a segmented table by given start and end indices
     expect a slice of the table within the given start and end indices

@@ -2,14 +2,14 @@ feature Count rows of a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_select_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_select_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb";"aa"); c2:`a`b`a)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SplayedTable;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should get row count of a splayed table
     expect row count of a splayed table, passed by reference
@@ -17,4 +17,4 @@ feature Count rows of a splayed table.
     expect row count of a splayed table, passed by value
       .qu.compare[.qtk.tbl.count SplayedTable; 3]
     expect row count of a splayed table, passed by hsym
-      .qu.compare[.qtk.tbl.count .qutils.tabRef; 3]
+      .qu.compare[.qtk.tbl.count .qtk.test.tabRef; 3]

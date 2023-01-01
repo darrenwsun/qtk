@@ -2,18 +2,18 @@ feature Rename a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_rename_segmented";
-    .qutils.segment1:"/tmp/hdb_rename_segment1";
-    .qutils.segment2:"/tmp/hdb_rename_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qutils.newTabRef:(hsym `$.qutils.hdbRoot; `date; `NewSegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_rename_segmented";
+    .qtk.test.seg1:"/tmp/hdb_rename_segment1";
+    .qtk.test.seg2:"/tmp/hdb_rename_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.test.newTabRef:(hsym `$.qtk.test.dbDir; `date; `NewSegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `NewSegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should rename a segmented table.
     expect new table to be created.
@@ -22,7 +22,7 @@ feature Rename a segmented table.
     expect old table name removed.
       not .qtk.utils.nameExists `SegmentedTable
     expect old table directory removed.
-      not .qtk.os.path.exists .qutils.segment1,"/2022.01.01/PartitionedTable"
+      not .qtk.os.path.exists .qtk.test.seg1,"/2022.01.01/PartitionedTable"
 
   should rename a segmented table, when the table is specified by partitioned table ID.
     expect new table to be created.
@@ -31,4 +31,4 @@ feature Rename a segmented table.
     expect old table name removed.
       not .qtk.utils.nameExists `SegmentedTable
     expect old table directory removed.
-      not .qtk.os.path.exists .qutils.hdbRoot,"/2022.01.01/SegmentedTable"
+      not .qtk.os.path.exists .qtk.test.dbDir,"/2022.01.01/SegmentedTable"

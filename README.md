@@ -1,6 +1,6 @@
-<h1 align="center">Q Toolkit</h1>
+<h1 style="text-align:center">Q Toolkit</h1>
 <p>
-  <a href="https://darrenwsun.github.io/qtk/" target="_blank">
+  <a href="https://qtk.readthedocs.io/en/latest/index.html" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>
   <a href="https://github.com/darrenwsun/qtk/blob/master/LICENSE" target="_blank">
@@ -18,26 +18,28 @@
 
 1. Download the zipped file from the latest release.
 2. Unzip it.
-   ```
+   ```shell
    unzip qtk-0.1.zip
    ```
 3. Export `QTK` environment variable and point it to the absolute path.
-   ```
+   ```shell
    export QTK=$(readlink -f qtk-0.1)
    ```
 4. Start a `q` session and load `init.q`.
-   ```
+   ```shell
    # load the script via command line
    q init.q
-   # Alternatively load the script within a q session
-   # system "l ",getenv[`QTK],"/init.q";
+   ```
+   Alternatively load the script within a q session
+   ```q
+   system "l ",getenv[`QTK],"/init.q";
    ```
 
 ## Usage
 
-Browse the docs and search for what you may need. The following is a CRUD example.
+Browse the [docs](https://qtk.readthedocs.io/en/latest/index.html) and search for what you may need. The following is a CRUD example.
 
-```
+```q
 .qtk.import.loadModule["tbl";`qtk];  // Import tbl module from qtk package
 tabRef:(`:/tmp/qtk/db; `date; `Table);  // A partitioned table ID that specifies database directory, partition field, and table name
 .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)]  // Create the partitioned table with given data

@@ -2,14 +2,14 @@ feature Delete a column from a splayed table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_deleteColumn_splayed";
-    .qutils.tabRef:hsym `$.qutils.hdbRoot,"/SplayedTable/";
-    .qtk.tbl.create[.qutils.tabRef; ([] c1:`aa`bb; c2:("aa";"bb"))];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_deleteColumn_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:`aa`bb; c2:("aa";"bb"))];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree .qutils.hdbRoot;
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
 
   should delete a column from a splayed table.
     expect the column deleted from the table.
@@ -19,6 +19,6 @@ feature Delete a column from a splayed table.
 
   should delete a column from a segmented table, when the table is specified by hsym.
     expect the column deleted from the table.
-      .qtk.tbl.deleteColumn[.qutils.tabRef;`c2];
+      .qtk.tbl.deleteColumn[.qtk.test.tabRef;`c2];
       .qtk.db.reload[];
       .qu.compare[cols SplayedTable; enlist`c1]

@@ -2,17 +2,17 @@ feature Insert data into a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_insert_segmented";
-    .qutils.segment1:"/tmp/hdb_insert_segment1";
-    .qutils.segment2:"/tmp/hdb_insert_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_insert_segmented";
+    .qtk.test.seg1:"/tmp/hdb_insert_segment1";
+    .qtk.test.seg2:"/tmp/hdb_insert_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"cc"); c2:`a`c)];
+    system "l ",.qtk.test.dbDir;
 
   after each
-    .qtk.tbl.drop .qutils.tabRef;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should insert full data into a segmented table.
     expect given data inserted into the table
@@ -24,7 +24,7 @@ feature Insert data into a segmented table.
 
   should insert full data into a segmented table, when the table is specified by partitioned table ID.
     expect given data inserted into the table
-      .qu.result:.qtk.tbl.insert[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
+      .qu.result:.qtk.tbl.insert[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("bb";"dd"); c2:`b`d)];
       .qtk.db.reload[];
       .qu.compare[
         select from SegmentedTable;

@@ -2,17 +2,17 @@ feature Apply a function to a column of a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qutils.hdbRoot:"/tmp/hdb_apply_segmented";
-    .qutils.segment1:"/tmp/hdb_apply_segment1";
-    .qutils.segment2:"/tmp/hdb_apply_segment2";
-    .Q.dd[hsym `$.qutils.hdbRoot; `par.txt] 0: (.qutils.segment1; .qutils.segment2);
-    .qutils.tabRef:(hsym `$.qutils.hdbRoot; `date; `SegmentedTable);
-    .qtk.tbl.create[.qutils.tabRef; ([] date:2022.01.01 2022.01.02; c1:`aa`bb)];
-    system "l ",.qutils.hdbRoot;
+    .qtk.test.dbDir:"/tmp/hdb_apply_segmented";
+    .qtk.test.seg1:"/tmp/hdb_apply_segment1";
+    .qtk.test.seg2:"/tmp/hdb_apply_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:`aa`bb)];
+    system "l ",.qtk.test.dbDir;
 
   after each
     .qtk.tbl.drop `SegmentedTable;
-    .qtk.os.rmtree each (.qutils.hdbRoot; .qutils.segment1; .qutils.segment2);
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
   should apply a function to a column of a segmented table specified by table name.
     expect the column has the function-applied values.
@@ -22,6 +22,6 @@ feature Apply a function to a column of a segmented table.
 
   should apply a function to a column of a segmented table specified by partitioned table ID.
     expect the column has the function-applied values.
-      .qtk.tbl.apply[.qutils.tabRef; `c1; string];
+      .qtk.tbl.apply[.qtk.test.tabRef; `c1; string];
       .qtk.db.reload[];
       .qu.compare[exec c1 from select c1 from SegmentedTable; ("aa";"bb")]
