@@ -345,7 +345,7 @@
 // @param groupings {dict | 0b} A mapping of grouping columns, or `0b` for no grouping.
 // @param columns {dict} Mappings from column names to columns/expressions.
 // @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
-// @throws {ColumnNotFoundError: [*]} If a column doesn't exist.
+// @throws {ColumnNotFoundError} If a column from `columns` doesn't exist.
 .qtk.tbl.update:{[tabRef;criteria;groupings;columns]
   .qtk.tbl.raiseIfColumnNotFound[tabRef;] each key columns;
 

@@ -1,3 +1,5 @@
+.qtk.version:"0.1"
+
 // mandatory scripts to be loaded in the usual way
 system "l ",getenv[`QTK],"/err/err.q";
 system "l ",getenv[`QTK],"/os/os.q";
