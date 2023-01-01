@@ -68,28 +68,6 @@ Enumerate a value against a domain.
 |---|---|
 |enum|Enumerated value against the domain in the directory if the value is a symbol or a symbol vector;    otherwise the same value as-is.|
 
-## .qtk.db._fixTable **_(private)_**
-
-Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
-  - create `.d` file if missing
-  - add missing columns to `.d` file
-  - add missing data files to disk
-  - remove excessive columns from `.d` file but leave data files untouched
-  - put columns in the right order
-
-**Parameters:**
-
-|Name|Type|Description|
-|---|---|---|
-|tablePath|hsym|Path to an on-disk table.|
-|columnDefaults|dict|A mapping between columns and their default values.|
-
-**Returns:**
-
-|Type|Description|
-|---|---|
-|hsym|The path to the table.|
-
 ## .qtk.db._getColumns **_(private)_**
 
 Get all columns of an on-disk table.
@@ -336,6 +314,29 @@ remove a directory and all nested items within it.
 |Name|Type|Description|
 |---|---|---|
 |dir|symbol \| string|Directory path, of either symbol, file symbol, or string format.|
+
+## .qtk.tbl._fix **_(private)_**
+
+Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
+
+  - add `.d` file if missing
+  - add missing columns to `.d` file
+  - add missing data files to disk filled by nulls for simple columns or empty lists for compound columns
+  - remove excessive columns from `.d` file but leave data files untouched
+  - put columns in the right order
+
+**Parameters:**
+
+|Name|Type|Description|
+|---|---|---|
+|tablePath|hsym|Path to an on-disk table.|
+|columnDefaults|dict|A mapping between columns and their default values.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|hsym|The path to the table.|
 
 ## .qtk.type.defaults
 

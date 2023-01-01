@@ -1,0 +1,52 @@
+feature Fix a partitioned table based on a good partition.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_fix_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `PartitionedTable;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should add `.d` file if it's missing.
+    expect `.d` file added if it's missing.
+      .qtk.os.remove .qtk.test.dbDir,"/2022.01.02/Table/.d";
+      .qtk.tbl.fix[`PartitionedTable; 2022.01.01];
+      .qu.compare[select from PartitionedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)]
+
+  should add missing columns in `.d` file
+    expect missing columns added.
+      tablePath:.Q.par[`:.; 2022.01.02; `PartitionedTable];
+      .qtk.tbl._deleteColumn[tablePath; `c2];
+      .qtk.db.reload[];
+
+      .qtk.tbl.fix[`PartitionedTable; 2022.01.01];
+      .qu.compare[select from PartitionedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`)]
+
+  should remove excessive columns in `.d` file
+    expect excessive column headers removed.
+      tablePath:.Q.par[`:.; 2022.01.02; `PartitionedTable];
+      .qtk.tbl._addColumn[tablePath; `c3; 0];
+      .qtk.db.reload[];
+
+      .qtk.tbl.fix[`PartitionedTable; 2022.01.01];
+      .qu.compare[select from PartitionedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)]
+
+  should put columns in right order
+    expect out-of-order columns to be reordered.
+      tablePath:.Q.par[`:.; 2022.01.02; `PartitionedTable];
+      @[tablePath; `.d; reverse];
+      .qtk.db.reload[];
+
+      .qtk.tbl.fix[`PartitionedTable; 2022.01.01];
+      .qu.compare[select from PartitionedTable; .Q.en[`:.;] ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)]
+
+  should raise NotAPartitionedTableError if the table is not a partitioned table.
+    expect error "NotAPartitionedTableError: PlainTable" if the table is not a partitioned table.
+      .qu.compare[
+        @[.qtk.tbl.fix[`PlainTable; ]; 2022.01.01; {x}];
+        "NotAPartitionedTableError: PlainTable"
+      ]

@@ -777,6 +777,48 @@ or the last partition.
  .qtk.tbl.exists tabRef
 ```
 
+## .qtk.tbl.fix
+
+Fix a partitioned table based on a good partition. Fixable issues include:
+
+  - add `.d` file if missing
+  - add missing columns to `.d` file
+  - add missing data files to disk filled by nulls for simple columns or empty lists for compound columns
+  - remove excessive columns from `.d` file but leave data files untouched
+  - put columns in the right order
+
+**Parameters:**
+
+|Name|Type|Description|
+|---|---|---|
+|tabRef|symbol \| (hsym; symbol; symbol)|Table reference.|
+|refPartition|date \| month \| int|A good partition to which the fixing refers.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|symbol \| (hsym; symbol; symbol)|The table reference.|
+
+**Throws:**
+
+|Type|Description|
+|---|---|
+|NotAPartitionedTableError|If the table is not a partitioned table.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["tbl";`qtk];
+ tabRef:(`:/tmp/qtk/tbl/fix; `date; `PartitionedTable);
+ .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+ .qtk.os.remove "/tmp/qtk/tbl/fix/2022.01.02/Table/.d";
+
+ // Or replace tabRef with `PartitionedTable if the database is loaded
+ tabRef~.qtk.tbl.fix[tabRef; 2022.01.01]
+```
+
 ## .qtk.tbl.getType
 
 Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are

@@ -5,8 +5,9 @@
 .qtk.err.Error:`u#
   `ColumnExistsError`ColumnNameError`ColumnNotFoundError,
   `DirectoryNotFoundError`FileNotFoundError`ImportError,
-  `ModuleNameError`ModuleNotFoundError`NameExistsError`NotADirectoryError`PackageNotFoundError`RuntimeError`ValueError`SchemaError,
-  `TableNameError`TableTypeError`TypeError`UnknownError;
+  `ModuleNameError`ModuleNotFoundError`NameExistsError,
+  `NotADirectoryError`NotAPartitionedTableError`PackageNotFoundError`RuntimeError`ValueError`SchemaError,
+  `TableNameError`TypeError`UnknownError;
 
 
 // @kind function

@@ -1366,3 +1366,91 @@
      '.qtk.err.compose[`TableNameError; string name]
    ];
  };
+
+// @kind function
+// @subcategory tbl
+// @overview Fix a partitioned table based on a good partition. Fixable issues include:
+//
+//   - add `.d` file if missing
+//   - add missing columns to `.d` file
+//   - add missing data files to disk filled by nulls for simple columns or empty lists for compound columns
+//   - remove excessive columns from `.d` file but leave data files untouched
+//   - put columns in the right order
+// @param tabRef {symbol | (hsym; symbol; symbol)} Table reference.
+// @param refPartition {date | month | int} A good partition to which the fixing refers.
+// @return {symbol | (hsym; symbol; symbol)} The table reference.
+// @throws {NotAPartitionedTableError} If the table is not a partitioned table.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/fix; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+// .qtk.os.remove "/tmp/qtk/tbl/fix/2022.01.02/Table/.d";
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// tabRef~.qtk.tbl.fix[tabRef; 2022.01.01]
+.qtk.tbl.fix:{[tabRef;refPartition]
+  tabRefDesc:.qtk.tbl.describe tabRef;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+
+  if[tableType<>`Partitioned;
+     '.qtk.err.compose[`NotAPartitionedTableError; $[-11h=type tabRef; string tabRef; string ` sv tabRef]]
+   ];
+
+  dbDir:tabRefDesc`dbDir;
+  refTablePath:.Q.par[dbDir; refPartition; tableName];
+  refColumns:.qtk.db._getColumns refTablePath;
+  defaultValues:.qtk.db._defaultValue[refTablePath;] each refColumns;
+  tablePaths:.Q.par[dbDir; ; tableName] each .qtk.db.getPartitions[dbDir] except refPartition;
+  .qtk.tbl._fix[; refColumns!defaultValues] each tablePaths;
+
+  if[dbDir=`:.; .qtk.db.reload[]];
+  tabRef
+ };
+
+// @kind function
+// @private
+// @overview Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
+//
+//   - add `.d` file if missing
+//   - add missing columns to `.d` file
+//   - add missing data files to disk filled by nulls for simple columns or empty lists for compound columns
+//   - remove excessive columns from `.d` file but leave data files untouched
+//   - put columns in the right order
+// @param tablePath {hsym} Path to an on-disk table.
+// @param columnDefaults {dict} A mapping between columns and their default values.
+// @return {hsym} The path to the table.
+.qtk.tbl._fix:{[tablePath;columnDefaults]
+  filesInPartition:.qtk.os.listDir tablePath;
+  addColumnFunc:.qtk.tbl._addColumn[tablePath; ;];
+  expectedColumns:key columnDefaults;
+
+  if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];
+
+  // add missing columns
+  allColumns:.qtk.db._getColumns tablePath;
+  if[count missingColumns:expectedColumns except allColumns;
+     addColumnFunc'[missingColumns; columnDefaults missingColumns]
+   ];
+
+  // add missing data files
+  allColumns:.qtk.db._getColumns tablePath;
+  if[count missingDataColumns:allColumns except filesInPartition;
+     addColumnFunc'[missingDataColumns; columnDefaults missingDataColumns]
+   ];
+
+  // remove excessive columns
+  allColumns:.qtk.db._getColumns tablePath;
+  if[count excessiveColumns:allColumns except expectedColumns;
+     .qtk.tbl._deleteColumnHeader[tablePath;] each excessiveColumns;
+   ];
+
+  // fix column order
+  allColumns:.qtk.db._getColumns tablePath;
+  if[not allColumns~expectedColumns;
+     .qtk.tbl._reorderColumns[tablePath; expectedColumns]
+   ];
+
+  tablePath
+ };

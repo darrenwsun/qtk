@@ -49,44 +49,19 @@ Get segment paths of a segmented database.
 ## .qtk.db.fillTables
 
 Fill all tables missing in some partitions, using the most recent partition as a template.
-See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
+A rename of [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|dbDir|hsym|Database directory.|
 
 **Returns:**
 
 |Type|Description|
 |---|---|
 |any[]|Partitions that are filled with missing tables.|
-
-**Throws:**
-
-|Type|Description|
-|---|---|
-|TableTypeError: not a partitioned table [*]|If the table is not a partitioned table.|
-
-## .qtk.db.fixTable
-
-Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.
-
-**Parameters:**
-
-|Name|Type|Description|
-|---|---|---|
-|tableName|symbol|Table name.|
-|refPartition|date \| month \| int|A partition to which the other partitions refer.|
-
-**Returns:**
-
-|Type|Description|
-|---|---|
-|symbol|The table name.|
-
-**Throws:**
-
-|Type|Description|
-|---|---|
-|TableTypeError: not a partitioned table [*]|If the table is not a partitioned table.|
-
-**See Also:** [ .qtk.db._fixTable ]( qtk.md#qtkdb_fixtable )
 
 ## .qtk.db.getCurrentPartitionField
 
@@ -231,7 +206,7 @@ Row count of a table per partition.
 
 |Type|Description|
 |---|---|
-|TableTypeError: not a partitioned table [*]|If the table is not a partitioned table.|
+|NotAPartitionedTableError|If the table is not a partitioned table.|
 
 ## .qtk.db.rowCountPerTablePerPartition
 
@@ -277,22 +252,3 @@ See [`.Q.dpft`](https://code.kx.com/q/ref/dotq/#qdpft-save-table).
 |---|---|
 |SchemaError: mismatch between actual columns [*] and expected ones [*]|If column names in the data table    don't match those in the on-disk table (if exists).|
 |SchemaError: mismatch between actual types [*] and expected ones [*]|If column types in the data table    don't match those in the on-disk table (if exists).|
-
-## .qtk.db.slice
-
-Get a slice of a table.
-See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
-
-**Parameters:**
-
-|Name|Type|Description|
-|---|---|---|
-|tableName|symbol|Table name.|
-|startIndex|integer|Index of the first element in the slice.|
-|endIndex|integer|Index of the next element after the last element in the slice.|
-
-**Returns:**
-
-|Type|Description|
-|---|---|
-|table|A slice of the table within the given range.|

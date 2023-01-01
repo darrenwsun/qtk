@@ -114,13 +114,13 @@
 // @overview Row count of a table per partition.
 // @param tableName {symbol} A partitioned table by name.
 // @return {dict} A dictionary from partitions to row count of the table in each partition.
-// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
+// @throws {NotAPartitionedTableError} If the table is not a partitioned table.
 .qtk.db.rowCountPerPartition:{[tableName]
   rowCounts:
     @[.Q.cn get@;
       tableName;
       {[msg;tableName]
-        '.qtk.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
+        '.qtk.err.compose[`NotAPartitionedTableError; string[tableName]]
       }[; tableName]
      ];
   .qtk.db.getModifiedPartitions[]!rowCounts
@@ -178,49 +178,12 @@
 
 // @kind function
 // @subcategory db
-// @overview Fix table based on a good partition. See `.qtk.db._fixTable` for fixable issues.
-// @param tableName {symbol} Table name.
-// @param refPartition {date | month | int} A partition to which the other partitions refer.
-// @return {symbol} The table name.
-// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
-// @see .qtk.db._fixTable
-.qtk.db.fixTable:{[tableName;refPartition]
-  if[not tableName in .qtk.db.getPartitionedTables[];
-     '.qtk.err.compose[`TableTypeError; "not a partitioned table [",string[tableName],"]"]
-   ];
-  tablePath:.Q.par[`:.; refPartition; tableName];
-  refColumns:.qtk.db._getColumns tablePath;
-  defaultValues:.qtk.db._defaultValue[tablePath;] each refColumns;
-  tablePaths:{.Q.par[`:.; x; y]}[; tableName] each .qtk.db.getCurrentPartitions[] except refPartition;
-  .qtk.db._fixTable[; refColumns!defaultValues] each tablePaths;
-  tableName
- };
-
-// @kind function
-// @subcategory db
 // @overview Fill all tables missing in some partitions, using the most recent partition as a template.
-// See [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
+// A rename of [`.Q.chk`](https://code.kx.com/q/ref/dotq/#qchk-fill-hdb).
+// @param dbDir {hsym} Database directory.
 // @return {any[]} Partitions that are filled with missing tables.
-// @throws {TableTypeError: not a partitioned table [*]} If the table is not a partitioned table.
-.qtk.db.fillTables:{
-  .Q.chk[`:.]
- };
-
-// @kind function
-// @subcategory db
-// @overview Get a slice of a table.
-// See [`.Q.ind`](https://code.kx.com/q/ref/dotq/#qind-partitioned-index).
-// @param tableName {symbol} Table name.
-// @param startIndex {integer} Index of the first element in the slice.
-// @param endIndex {integer} Index of the next element after the last element in the slice.
-// @return {table} A slice of the table within the given range.
-.qtk.db.slice:{[tableName;startIndex;endIndex]
-  tableType:.qtk.tbl.getType tableName;
-  $[tableType in `Plain`Splayed;
-    (endIndex-startIndex)#startIndex _get tableName;
-    // tableType=`Partitioned
-    .Q.ind[get tableName; startIndex+til endIndex-startIndex]
-   ]
+.qtk.db.fillTables:{[dbDir]
+  .Q.chk dbDir
  };
 
 // @kind function
@@ -362,51 +325,6 @@
 // @return {symbol[]} Columns of the table.
 .qtk.db._getColumns:{[tablePath]
   get .Q.dd[tablePath; `.d]
- };
-
-// @kind function
-// @private
-// @overview Fix an on-disk table based on a mapping between columns and their default values. Fixable issues include:
-//   - create `.d` file if missing
-//   - add missing columns to `.d` file
-//   - add missing data files to disk
-//   - remove excessive columns from `.d` file but leave data files untouched
-//   - put columns in the right order
-// @param tablePath {hsym} Path to an on-disk table.
-// @param columnDefaults {dict} A mapping between columns and their default values.
-// @return {hsym} The path to the table.
-.qtk.db._fixTable:{[tablePath;columnDefaults]
-  filesInPartition:.qtk.os.listDir tablePath;
-  addColumnProjection:.qtk.tbl._addColumn[tablePath; ;];
-  expectedColumns:key columnDefaults;
-
-  if[not .qtk.db._dotDExists tablePath; @[tablePath; `.d; :; expectedColumns]];
-
-  // add missing columns
-  allColumns:.qtk.db._getColumns tablePath;
-  if[count missingColumns:expectedColumns except allColumns;
-     addColumnProjection'[missingColumns; columnDefaults missingColumns]
-   ];
-
-  // add missing data files
-  allColumns:.qtk.db._getColumns tablePath;
-  if[count missingDataColumns:allColumns except filesInPartition;
-     addColumnProjection'[missingDataColumns; columnDefaults missingDataColumns]
-   ];
-
-  // remove excessive columns
-  allColumns:.qtk.db._getColumns tablePath;
-  if[count excessiveColumns:allColumns except expectedColumns;
-     .qtk.tbl._deleteColumnHeader[tablePath;] each excessiveColumns;
-   ];
-
-  // fix column order
-  allColumns:.qtk.db._getColumns tablePath;
-  if[not allColumns~expectedColumns;
-     .qtk.tbl._reorderColumns[tablePath; expectedColumns]
-   ];
-
-  tablePath
  };
 
 // @kind function

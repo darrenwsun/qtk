@@ -2,7 +2,7 @@
 
 ## .qtk.err.Error
 
-A list of error types.
+A list of supported error types.
 
 ## .qtk.err.compose
 
@@ -25,4 +25,4 @@ Compose an error message composed of error type and description.
 
 |Type|Description|
 |---|---|
-|UnknownError|If `errorType` is not one of `.qtk.err.Error`.|
+|UnknownError|If `errorType` is not supported.|
