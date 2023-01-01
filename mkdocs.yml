@@ -10,8 +10,11 @@ theme:
 
 nav:
     - Home: 'index.md'
+    - 'Getting Started': 'get_started.md'
     - 'API Reference':
-        - '.qtk.db': 'qtk_db.md'
-        - '.qtk.tbl': 'qtk_tbl.md'
-        - '.qtk.err': 'qtk_err.md'
-        - '.qtk.os': 'qtk_os.md'
+        - '.qtk.db': 'api/qtk_db.md'
+        - '.qtk.err': 'api/qtk_err.md'
+        - '.qtk.import': 'api/qtk_import.md'
+        - '.qtk.os': 'api/qtk_os.md'
+        - '.qtk.tbl': 'api/qtk_tbl.md'
+        - '.qtk.type': 'api/qtk_type.md'

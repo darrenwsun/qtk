@@ -1,7 +1,7 @@
 
-
 // @kind data
-// @overview Error types.
+// @subcategory err
+// @overview A list of supported error types.
 .qtk.err.Error:`u#
   `ColumnExistsError`ColumnNameError`ColumnNotFoundError,
   `DirectoryNotFoundError`FileNotFoundError`ImportError,
@@ -11,12 +11,12 @@
 
 // @kind function
 // @subcategory err
-// @overview Compose an error message.
-// @param errorType {symbol} Error type, which should be one of `.qtk.err.Error`.
+// @overview Compose an error message composed of error type and description.
+// @param errorType {symbol} Error type, which should be one of [.qtk.err.Error](#qtkerrerror).
 // @param description {string} Error description.
 // @return {string} An error message of format "{errorType}: {msg}".
-// @throws {UnknownError: error type [*] not in .qtk.err.Error} If `errorType` is not one of `.qtk.err.Error`.
+// @throws {UnknownError} If `errorType` is not supported.
 .qtk.err.compose:{[errorType;description]
-  if[not errorType in .qtk.err.Error; '"UnknownError: error type [",string[errorType],"] not in .qtk.err.Error"];
+  if[not errorType in .qtk.err.Error; '"UnknownError: ",string errorType];
   string[errorType],": ",description
  };

@@ -1,7 +1,9 @@
 # Overview
-This document contains documentation for the following APIs:
 
-- [ .qtk.db ]( qtk_db.md )
-- [ .qtk.tbl ]( qtk_tbl.md )
-- [ .qtk.err ]( qtk_err.md )
-- [ .qtk.os ]( qtk_os.md )
+Q Toolkit (QTK) is a set of libraries that ease development by q, a language for kdb+. It provides the following tools:
+
+- package/module management
+- uniform APIs to interact with tables regardless of whether they are in-memory or on-disk
+- database management utilities
+- file system utilities
+- structured error raising
