@@ -1,7 +1,7 @@
 feature Get partitioned tables.
 
   before
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_getCurrentPartitionedTables";
     Table:([] c1:`boolean$(); c2:`long$());
@@ -14,5 +14,5 @@ feature Get partitioned tables.
 
   should give partitioned tables of a partitioned database.
     expect a vector of partitioned tables by name.
-      .qu.compare[.qtk.db.this.getPartitionedTables[]; enlist`Table]
+      .qu.compare[.qtk.pdb.this.getPartitionedTables[]; enlist`Table]
 

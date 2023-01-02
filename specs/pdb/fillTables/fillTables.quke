@@ -1,7 +1,7 @@
 feature Fill all tables missing in some partitions.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_fillTables_partitioned";
     .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
@@ -15,5 +15,5 @@ feature Fill all tables missing in some partitions.
 
   should fill tables missing in some partitions.
     expect tables missing in some partitions filled.
-      .qtk.db.fillTables `:.;
+      .qtk.pdb.fillTables `:.;
       .qu.compare[select c1 from PartitionedTable; ([] c1:enlist 2)]

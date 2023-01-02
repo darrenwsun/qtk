@@ -1,7 +1,7 @@
 feature Row count of each partitioned table per partition.
 
   before
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_countTablesPerPartition";
     Table:([] c1:`boolean$(); c2:`long$());
@@ -14,4 +14,4 @@ feature Row count of each partitioned table per partition.
 
   should return a dictionary between tables and their counts per partition.
     expect a dictionary between tables and their counts per partition.
-      .qu.compare[.qtk.db.rowCountPerTablePerPartition[]; ([partition:2022.01.01 2022.01.02] Table:0 0)]
+      .qu.compare[.qtk.pdb.this.countAllPerPartition[]; ([partition:2022.01.01 2022.01.02] Table:0 0)]

@@ -1,9 +1,9 @@
-feature Partitions per segment.
+feature Get all segments.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qtk.test.dbDir:"/tmp/hdb_partitionsPerSegment";
+    .qtk.test.dbDir:"/tmp/hdb_getSegment";
     .qtk.test.seg1:"/tmp/hdb_segment1";
     .qtk.test.seg2:"/tmp/hdb_segment2";
     Table:([] c1:10b; c2:1 2);
@@ -15,6 +15,6 @@ feature Partitions per segment.
   after each
     .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
 
-  should partitions per segment.
-    expect a dictionary between segments and partitions in each segment.
-      .qu.compare[.qtk.db.this.getPartitionsPerSegment[]; (hsym `$(.qtk.test.seg1; .qtk.test.seg2))!(enlist 2022.01.01; enlist 2022.01.02)]
+  should return all segments.
+    expect all segments returned.
+      .qu.compare[.qtk.pdb.this.getSegments[]; {hsym `$x} each (.qtk.test.seg1; .qtk.test.seg2)]

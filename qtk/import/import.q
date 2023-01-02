@@ -80,6 +80,7 @@ if[()~key `.qtk.import.Module;
  };
 
 // @kind function
+// @private
 // @subcategory import
 // @overview Load modules under a path and its subdirectories (if exists) recursively.
 // @param path {hsym} A path.

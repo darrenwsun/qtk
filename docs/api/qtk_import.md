@@ -1,15 +1,5 @@
 
 
-## .qtk.import._loadModule
-
-Load modules under a path and its subdirectories (if exists) recursively.
-
-**Parameter:**
-
-|Name|Type|Description|
-|---|---|---|
-|path|hsym|A path.|
-
 ## .qtk.import.addPackage
 
 Add a package specified by a name and a path.

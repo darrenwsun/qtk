@@ -7,6 +7,6 @@ feature Row count of each partitioned table per partition.
   should raise error "RuntimeError: no partition" if the database has no partition.
     expect error "RuntimeError: no partition"
       .qu.compare[
-        @[.qtk.db.rowCountPerTablePerPartition; ::; {x}];
+        @[.qtk.pdb.this.countAllPerPartition; ::; {x}];
         "RuntimeError: no partition"
        ]

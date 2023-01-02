@@ -1,7 +1,7 @@
 feature Get partition field of year.
 
   before
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_getCurrentPartitionField_year";
     Table:([] c1:`boolean$(); c2:`long$());
@@ -14,4 +14,4 @@ feature Get partition field of year.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.qtk.db.this.getPartitionField[]; `year]
+      .qu.compare[.qtk.pdb.this.getPartitionField[]; `year]

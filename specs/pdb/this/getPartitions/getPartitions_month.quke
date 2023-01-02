@@ -1,7 +1,7 @@
 feature Get all partitions when `month` is the partition field.
 
   before
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_getPartitions_month";
     Table:([] c1:`boolean$(); c2:`long$());
@@ -14,4 +14,4 @@ feature Get all partitions when `month` is the partition field.
 
   should give all month partitions of a partitioned database.
     expect month partitions of the current database.
-      .qu.compare[.qtk.db.this.getPartitions[]; 2022.01 2022.02m]
+      .qu.compare[.qtk.pdb.this.getPartitions[]; 2022.01 2022.02m]

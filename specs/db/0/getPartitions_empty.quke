@@ -6,4 +6,4 @@ feature Get all partitions when it's not a partitioned database.
 
   should give empty general list if the database is not a partitioned database.
     expect empty general list if the database is not a partitioned database.
-      .qu.compare[.qtk.db.this.getPartitions[]; ()]
+      .qu.compare[.qtk.pdb.this.getPartitions[]; ()]

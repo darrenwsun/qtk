@@ -20,6 +20,5 @@ nav:
         - '.qtk.db': 'api/qtk_db.md'
         - '.qtk.err': 'api/qtk_err.md'
         - '.qtk.import': 'api/qtk_import.md'
-        - '.qtk.os': 'api/qtk_os.md'
+        - '.qtk.pdb': 'api/qtk_pdb.md'
         - '.qtk.tbl': 'api/qtk_tbl.md'
-        - '.qtk.type': 'api/qtk_type.md'

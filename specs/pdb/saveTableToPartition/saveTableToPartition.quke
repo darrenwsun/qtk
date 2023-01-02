@@ -1,7 +1,7 @@
 feature Save a table to a partition.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_saveTableToPartition";
     Table:([] c1:10b; c2:1 2);
@@ -14,30 +14,30 @@ feature Save a table to a partition.
 
   should append to the table if it exists in the partition.
     expect the table appended with new data.
-      .qtk.db.saveTableToPartition[`:.; 2022.01.01; `Table; ([] c1:10b; c2:3 4); ()!()];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.01; `Table; ([] c1:10b; c2:3 4); ()!()];
       .qtk.db.reload[];
       .qu.compare[select c1, c2 from Table where date=2022.01.01; ([] c1:1010b; c2:1 2 3 4)]
 
   should create the table with given data if it doesn't exist in the partition.
     expect the table created with new data.
-      .qtk.db.saveTableToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:3 4); ()!()];
-      .qtk.db.saveTableToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:3 4); ()!()];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:3 4); ()!()];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:3 4); ()!()];
       .qtk.db.reload[];
       .qu.compare[select c1, c2 from Table2 where date=2022.01.01; ([] c1:`sym$`a`b; c2:3 4)] and
         .qu.compare[select c1, c2 from Table2 where date=2022.01.02; ([] c1:`sym$`c`d; c2:3 4)]
 
   should create the table using custom sym domain specified by a symbol.
     expect the table created using custom sym domain specified by a symbol.
-      .qtk.db.saveTableToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:3 4); (enlist`enum)!(enlist `sym_c1)];
-      .qtk.db.saveTableToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:3 4); (enlist`enum)!(enlist `sym_c1)];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:3 4); (enlist`enum)!(enlist `sym_c1)];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:3 4); (enlist`enum)!(enlist `sym_c1)];
       .qtk.db.reload[];
       .qu.compare[select c1, c2 from Table2 where date=2022.01.01; ([] c1:`sym_c1$`a`b; c2:3 4)] and
         .qu.compare[select c1, c2 from Table2 where date=2022.01.02; ([] c1:`sym_c1$`c`d; c2:3 4)]
 
   should create the table using custom sym domain specified by a dictionary.
     expect the table created using custom sym domain specified by a dictionary.
-      .qtk.db.saveTableToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:`aa`bb); (enlist`enum)!(enlist (enlist`c1)!(enlist `sym_c1))];
-      .qtk.db.saveTableToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:`cc`dd); (enlist`enum)!(enlist (enlist`c1)!(enlist `sym_c1))];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.01; `Table2; ([] c1:`a`b; c2:`aa`bb); (enlist`enum)!(enlist (enlist`c1)!(enlist `sym_c1))];
+      .qtk.pdb.saveToPartition[`:.; 2022.01.02; `Table2; ([] c1:`c`d; c2:`cc`dd); (enlist`enum)!(enlist (enlist`c1)!(enlist `sym_c1))];
       .qtk.db.reload[];
       .qu.compare[select c1, c2 from Table2 where date=2022.01.01; ([] c1:`sym_c1$`a`b; c2:`sym$`aa`bb)] and
         .qu.compare[select c1, c2 from Table2 where date=2022.01.02; ([] c1:`sym_c1$`c`d; c2:`sym$`cc`dd)]
@@ -45,13 +45,13 @@ feature Save a table to a partition.
   should raise error "SchemaError: mismatch between actual columns [*] and expected ones [*]" if column names don't match.
     expect error "SchemaError: mismatch between actual columns [*] and expected ones [*]"
       .qu.compare[
-        .[.qtk.db.saveTableToPartition; (`:.; 2022.01.01; `Table; ([] c3:10b; c2:3 4); ()!()); {x}];
+        .[.qtk.pdb.saveToPartition; (`:.; 2022.01.01; `Table; ([] c3:10b; c2:3 4); ()!()); {x}];
         "SchemaError: mismatch between actual columns [`c3`c2] and expected ones [`c1`c2]"
       ]
 
   should raise error "SchemaError: mismatch between actual types [*] and expected ones [*]" if column types don't match.
     expect error "SchemaError: mismatch between actual types [*] and expected ones [*]"
       .qu.compare[
-        .[.qtk.db.saveTableToPartition; (`:.; 2022.01.01; `Table; ([] c1:"10"; c2:3 4); ()!()); {x}];
+        .[.qtk.pdb.saveToPartition; (`:.; 2022.01.01; `Table; ([] c1:"10"; c2:3 4); ()!()); {x}];
         "SchemaError: mismatch between actual types [cj] and expected ones [bj]"
       ]

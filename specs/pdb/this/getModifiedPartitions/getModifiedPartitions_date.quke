@@ -1,7 +1,7 @@
 feature Get all modified partitions when `date` is the partition field.
 
   before each
-    .qtk.import.loadModule["db";`qtk];
+    .qtk.import.loadModule["pdb";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
     .qtk.test.dbDir:"/tmp/hdb_getModified_partitioned";
     .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
@@ -15,5 +15,5 @@ feature Get all modified partitions when `date` is the partition field.
 
   should give all modified date partitions of a partitioned database.
     expect modified date partitions of the current database.
-      .qu.compare[.qtk.db.this.getModifiedPartitions[]; enlist 2022.01.01]
+      .qu.compare[.qtk.pdb.this.getModifiedPartitions[]; enlist 2022.01.01]
 
