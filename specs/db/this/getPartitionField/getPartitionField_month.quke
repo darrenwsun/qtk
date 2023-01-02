@@ -1,12 +1,12 @@
-feature Get partition field of date.
+feature Get partition field of month.
 
   before
     .qtk.import.loadModule["db";`qtk];
     .qtk.import.loadModule["tbl";`qtk];
-    .qtk.test.dbDir:"/tmp/hdb_getCurrentPartitionField_date";
+    .qtk.test.dbDir:"/tmp/hdb_getCurrentPartitionField_month";
     Table:([] c1:`boolean$(); c2:`long$());
-    (hsym `$.qtk.test.dbDir,"/2022.01.01/Table/") set Table;
-    (hsym `$.qtk.test.dbDir,"/2022.01.02/Table/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2022.01/Table/") set Table;
+    (hsym `$.qtk.test.dbDir,"/2022.02/Table/") set Table;
     system "l ",.qtk.test.dbDir;
 
   after
@@ -14,4 +14,4 @@ feature Get partition field of date.
 
   should give partition field of a partitioned database.
     expect partition field of the current database.
-      .qu.compare[.qtk.db.getCurrentPartitionField[]; `date]
+      .qu.compare[.qtk.db.this.getPartitionField[]; `month]

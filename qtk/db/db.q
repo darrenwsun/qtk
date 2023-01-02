@@ -1,25 +1,20 @@
 
 // @kind function
 // @subcategory db
-// @overview Get all partitions.
-//
-// See also [.Q.PV](https://code.kx.com/q/ref/dotq/#qpv-partition-values).
-// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
-// if the database is not a partitioned database.
-// @see .qtk.db.getModifiedPartitions
-.qtk.db.getCurrentPartitions:{
-  @[value; `.Q.PV; ()]
- };
-
-// @kind function
-// @private
-// @subcategory db
 // @overview Get all partitions of a database.
 // @param dbDir {hsym} DB directory.
-// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty general list
+// @return {date[] | month[] | int[] | ()} Partitions of the database, or an empty list
 // if the database is not a partitioned database.
-// @throws {FileNotFoundError} If the directory doesn't exist.
-// @throws {NotADirectoryError} If the input argument is not a directory.
+// @throws {FileNotFoundError} If `dbDir` doesn't exist.
+// @throws {NotADirectoryError} If `dbDir` doesn't point to a directory.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["db";`qtk];
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:`:/tmp/qtk/db/getPartitions`date`PartitionedTable;
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// 2022.01.01 2022.01.02~.qtk.db.getPartitions first tabRef
 .qtk.db.getPartitions:{[dbDir]
   items:.qtk.os.listDir dbDir;
   partitionDirectories:$[`par.txt in items;
@@ -65,33 +60,19 @@
 
 // @kind function
 // @subcategory db
-// @overview Get all partitions, subject to modification by [`.Q.view`](https://code.kx.com/q/ref/dotq/#qview-subview).
-//
-// See also [.Q.pv](https://code.kx.com/q/ref/dotq/#qpv-modified-partition-values).
-// @return {date[] | month[] | int[] | ()} Partitions of the database subject to modification by `.Q.view`,
-// or an empty general list if the database is not a partitioned database.
-// @see .qtk.db.getCurrentPartitions
-.qtk.db.getModifiedPartitions:{
-  @[value; `.Q.pv; ()]
- };
-
-// @kind function
-// @subcategory db
-// @overview Get partition field of the current database.
-//
-// See also [.Q.pf](https://code.kx.com/q/ref/dotq/#qpf-partition-field).
-// @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
-// if the database is not a partitioned database.
-.qtk.db.getCurrentPartitionField:{
-  @[value; `.Q.pf; `]
- };
-
-// @kind function
-// @subcategory db
 // @overview Get partition field of a database under a directory.
-// @param {hsym} A database directory.
-// @return {symbol} Partition field of the database, either of `` `date`month`year`int ``, or an empty symbol
+// @param dbDir {hsym} A database directory.
+// @return {symbol} Partition field of the database, either of ``#!q `date`month`year`int ``, or an empty symbol
 // if the database is not a partitioned database.
+// @see .qtk.db.this.getPartitionField
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["db";`qtk];
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:`:/tmp/qtk/db/getPartitionField`date`PartitionedTable;
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+//
+// tabRef[1]~.qtk.db.getPartitionField first tabRef
 .qtk.db.getPartitionField:{[dbDir]
   partitions:.qtk.db.getPartitions dbDir;
   $[14h=t:type partitions; `date;
@@ -99,14 +80,6 @@
     0h=t; `;
     all partitions within\: 1000 9999; `year;
     `int]
- };
-
-// @kind function
-// @subcategory db
-// @overview Get partitioned tables.
-// @return {symbol[]} Partitioned tables of the database, or empty symbol vector if it's not a partitioned database.
-.qtk.db.getPartitionedTables:{
-  @[value; `.Q.pt; enlist `]
  };
 
 // @kind function
@@ -123,7 +96,7 @@
         '.qtk.err.compose[`NotAPartitionedTableError; string[tableName]]
       }[; tableName]
      ];
-  .qtk.db.getModifiedPartitions[]!rowCounts
+  .qtk.db.this.getModifiedPartitions[]!rowCounts
  };
 
 // @kind function
@@ -132,32 +105,14 @@
 // @return {dict} A table keyed by partition and each column is row count of a partitioned table in each partition.
 // @throws {RuntimeError: no partition} If there is no partition.
 .qtk.db.rowCountPerTablePerPartition:{
-  partitionedTables:.qtk.db.getPartitionedTables[];
+  partitionedTables:.qtk.db.this.getPartitionedTables[];
   .qtk.db.rowCountPerPartition each partitionedTables;
   rowCountsByTable:
     @[value; `.Q.pn;
       {'.qtk.err.compose[`RuntimeError; "no partition"]}
      ];
-  rowCountsByTable[`partition]:.qtk.db.getModifiedPartitions[];
+  rowCountsByTable[`partition]:.qtk.db.this.getModifiedPartitions[];
   `partition xkey flip rowCountsByTable
- };
-
-// @kind function
-// @subcategory db
-// @overview Get all segments.
-// @return {hsym[] | ()} Segments of the database, or an empty general list.
-// if the database is not a partitioned database.
-.qtk.db.getSegments:{
-  @[value; `.Q.P; ()]
- };
-
-// @kind function
-// @subcategory db
-// @overview Partitions per segment.
-// @return {dict} A dictionary from segments to partitions in each segment. It's empty if the database doesn't load
-// any segment.
-.qtk.db.partitionsPerSegment:{
-  .qtk.db.getSegments[]!@[value; `.Q.D; ()]
  };
 
 .qtk.db.loadSym:{[dbDir;sym]
@@ -225,6 +180,7 @@
 // @subcategory db
 // @overview Load database in a given directory.
 // @param dir {string | hsym} Directory.
+// @see .qtk.db.reload
 .qtk.db.load:{[dir]
   dirStr:$[10h=type dir; dir; 1_string dir];
   system "l ",dirStr;
@@ -233,6 +189,7 @@
 // @kind function
 // @subcategory db
 // @overview Reload current database.
+// @see .qtk.db.load
 .qtk.db.reload:{
   .qtk.db.load enlist".";
  };
@@ -291,7 +248,7 @@
 // @param tableName {symbol} Table name.
 // @return {symbol} Paths of the table.
 .qtk.db._locateTable:{[tableName]
-  partitions:.qtk.db.getCurrentPartitions[];
+  partitions:.qtk.db.this.getPartitions[];
   .Q.par[`:.; ; tableName] each partitions
  };
 
