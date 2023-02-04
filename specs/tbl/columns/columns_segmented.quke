@@ -1,0 +1,27 @@
+feature Get column names of a segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_columns_segmented";
+    .qtk.test.seg1:"/tmp/hdb_columns_segment1";
+    .qtk.test.seg2:"/tmp/hdb_columns_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
+
+  should get column names of a segmented table by value.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns SegmentedTable; `date`c1`c2]
+
+  should get column names of a segmented table by name.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns `SegmentedTable; `date`c1`c2]
+
+  should get column names of a segmented table by hsym.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns .qtk.test.tabRef; `date`c1`c2]

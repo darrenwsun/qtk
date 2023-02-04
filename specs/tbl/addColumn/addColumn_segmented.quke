@@ -2,9 +2,9 @@ feature Add a column to a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
-    .qtk.test.dbDir:"/tmp/hdb_insert_segmented";
-    .qtk.test.seg1:"/tmp/hdb_insert_segment1";
-    .qtk.test.seg2:"/tmp/hdb_insert_segment2";
+    .qtk.test.dbDir:"/tmp/hdb_addColumn_segmented";
+    .qtk.test.seg1:"/tmp/hdb_addColumn_segment1";
+    .qtk.test.seg2:"/tmp/hdb_addColumn_segment2";
     .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
     .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
     .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];

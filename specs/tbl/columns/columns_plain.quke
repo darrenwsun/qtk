@@ -1,0 +1,16 @@
+feature Get column names of a plain table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:("aa";"bb"); c2:`a`b)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should get column names of a plain table by name.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns `PlainTable; `c1`c2]
+
+  should get column names of a plain table by value.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns PlainTable; `c1`c2]

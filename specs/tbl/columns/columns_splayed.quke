@@ -1,0 +1,24 @@
+feature Get column names of a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_columns_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get column names of a splayed table by value.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns SplayedTable; `c1`c2]
+
+  should get column names of a splayed table by name.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns `SplayedTable; `c1`c2]
+
+  should get column names of a splayed table by hsym.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns .qtk.test.tabRef; `c1`c2]

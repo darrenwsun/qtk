@@ -652,6 +652,38 @@
 
 // @kind function
 // @subcategory tbl
+// @overview Get column names of a table.
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
+// @return {symbol[]} Column names.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/columns; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// `date`c1`c2~.qtk.tbl.columns tabRef
+.qtk.tbl.columns:{[t]
+  if[type[t] in 98 99h; :cols t];
+
+  tabRefDesc:.qtk.tbl.describe t;
+  tableType:tabRefDesc`type;
+  tableName:tabRefDesc`name;
+  $[tableType in `Plain`Splayed;
+    cols t;
+    tableType=`Serialized;
+    cols get t;
+    // tableType=`Partitioned
+    [
+      dbDir:tabRefDesc`dbDir;
+      tablePath:.Q.par[dbDir; ; tableName] last .qtk.pdb.getPartitions dbDir;
+      tabRefDesc[`parField],.qtk.db._getColumns tablePath
+      ]
+   ]
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Add a column to a table with a given value.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param column {symbol} Name of new column to be added.
@@ -1193,6 +1225,7 @@
  };
 
 // @kind function
+// @private
 // @subcategory tbl
 // @overview Count rows of an on-disk table. Only the first column is taken into consideration.
 // @param tablePath {hsym} Path to an on-disk table.

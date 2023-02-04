@@ -1,21 +1,5 @@
 
 
-## .qtk.tbl._count
-
-Count rows of an on-disk table. Only the first column is taken into consideration.
-
-**Parameter:**
-
-|Name|Type|Description|
-|---|---|---|
-|tablePath|hsym|Path to an on-disk table.|
-
-**Returns:**
-
-|Type|Description|
-|---|---|
-|long|Row count of the table.|
-
 ## .qtk.tbl.addColumn
 
 Add a column to a table with a given value.
@@ -175,6 +159,34 @@ For partitioned tables, it requires the condition holds for the latest partition
 
  // Or replace tabRef with `PartitionedTable if the database is loaded
  .qtk.tbl.columnExists[tabRef;`c1]
+```
+
+## .qtk.tbl.columns
+
+Get column names of a table.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|t|table \| symbol \| hsym \| (hsym; symbol; symbol)|Table or table reference.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|symbol[]|Column names.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["tbl";`qtk];
+ tabRef:(`:/tmp/qtk/tbl/columns; `date; `PartitionedTable);
+ .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`a`b)];
+
+ // Or replace tabRef with `PartitionedTable if the database is loaded
+ `date`c1`c2~.qtk.tbl.columns tabRef
 ```
 
 ## .qtk.tbl.copyColumn

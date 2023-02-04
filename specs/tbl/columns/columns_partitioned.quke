@@ -1,0 +1,24 @@
+feature Get column names of a plain table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_columns_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"); c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `PartitionedTable;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get column names of a partitioned table by value.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns PartitionedTable; `date`c1`c2]
+
+  should get column names of a partitioned table by name.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns `PartitionedTable; `date`c1`c2]
+
+  should get column names of a partitioned table by hsym.
+    expect column names of the table.
+      .qu.compare[.qtk.tbl.columns .qtk.test.tabRef; `date`c1`c2]
