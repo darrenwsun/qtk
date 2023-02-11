@@ -96,6 +96,16 @@
 
 // @kind function
 // @subcategory tbl
+// @overview Get foreign keys of a table. It's similar to [fkeys](https://code.kx.com/q/ref/fkeys/) but supports table name besides value.
+// For partitioned table, the latest partition is used. Note that this is supported only for the current database.
+// @param t {table | symbol} Table or table name.
+// @return {dict} A dictionary that maps foreign-key columns to their tables.
+.qtk.tbl.foreignKeys:{[t]
+  $[type[t] in 98 99h; fkeys t; fkeys get t]
+ };
+
+// @kind function
+// @subcategory tbl
 // @overview Create a new table with given data.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
 // @param data {table} Table data.
@@ -652,7 +662,8 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Get column names of a table.
+// @overview Get column names of a table. It's similar to [cols](https://code.kx.com/q/ref/cols/#cols) but supports all table types.
+// For partitioned table, the latest partition is used.
 // @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
 // @return {symbol[]} Column names.
 // @doctest

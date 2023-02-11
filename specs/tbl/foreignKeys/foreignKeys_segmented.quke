@@ -1,0 +1,31 @@
+feature Get foreign keys of a segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_foreignKeys_segmented";
+    .qtk.test.seg1:"/tmp/hdb_foreignKeys_segment1";
+    .qtk.test.seg2:"/tmp/hdb_foreignKeys_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+
+    .qtk.test.tabRef1:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable1);
+    `SegmentedTable1 set ([] date:2022.01.01 2022.01.01 2022.01.02; c1:`a`b`c; c2:1 2 3);
+    .qtk.tbl.create[.qtk.test.tabRef1; SegmentedTable1];
+
+    .qtk.test.tabRef2:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable2);
+    `SegmentedTable2 set ([] date:2022.01.01 2022.01.01 2022.01.02; c1:`SegmentedTable1!0 1 0; c3:("aa";"bb";"cc"));
+    .qtk.tbl.create[.qtk.test.tabRef2; SegmentedTable2];
+
+    delete SegmentedTable1, SegmentedTable2 from `.;
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop each `SegmentedTable1`SegmentedTable2;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get foreign keys of a segmented table by name.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys `SegmentedTable2; enlist[`c1]!enlist[`SegmentedTable1]]
+
+  should get foreign keys of a segmented table by value.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys SegmentedTable2; enlist[`c1]!enlist[`SegmentedTable1]]

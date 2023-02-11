@@ -1,0 +1,28 @@
+feature Get foreign keys of a partitioned table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_foreignKeys_partitioned";
+
+    .qtk.test.tabRef1:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable1);
+    `PartitionedTable1 set ([] date:2022.01.01 2022.01.01 2022.01.02; c1:`a`b`c; c2:1 2 3);
+    .qtk.tbl.create[.qtk.test.tabRef1; PartitionedTable1];
+
+    .qtk.test.tabRef2:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable2);
+    `PartitionedTable2 set ([] date:2022.01.01 2022.01.01 2022.01.02; c1:`PartitionedTable1!0 1 0; c3:("aa";"bb";"cc"));
+    .qtk.tbl.create[.qtk.test.tabRef2; PartitionedTable2];
+
+    delete PartitionedTable1, PartitionedTable2 from `.;
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop each `PartitionedTable1`PartitionedTable2;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get foreign keys of a partitioned table by name.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys `PartitionedTable2; enlist[`c1]!enlist[`PartitionedTable1]]
+
+  should get foreign keys of a partitioned table by value.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys PartitionedTable2; enlist[`c1]!enlist[`PartitionedTable1]]

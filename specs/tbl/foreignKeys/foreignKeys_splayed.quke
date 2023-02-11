@@ -1,0 +1,28 @@
+feature Get foreign keys of a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_foreignKeys_splayed";
+    .qtk.test.tabRef1:hsym `$.qtk.test.dbDir,"/SplayedTable1/";
+    `SplayedTable1 set ([] c1:`a`b`c; c2:1 2 3);
+
+    .qtk.test.tabRef2:hsym `$.qtk.test.dbDir,"/SplayedTable2/";
+    `SplayedTable2 set ([] c1:`a`b; c3:("aa";"bb"));
+    update c1:`SplayedTable1!SplayedTable1[`c1]?SplayedTable2[`c1] from `SplayedTable2;
+
+    .qtk.tbl.create[.qtk.test.tabRef1; SplayedTable1];
+    .qtk.tbl.create[.qtk.test.tabRef2; SplayedTable2];
+    delete SplayedTable1, SplayedTable2 from `.;
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop each (.qtk.test.tabRef1; .qtk.test.tabRef2);
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get foreign keys of a splayed table by name.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys `SplayedTable2; enlist[`c1]!enlist[`SplayedTable1]]
+
+  should get foreign keys of a splayed table by value.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys SplayedTable2; enlist[`c1]!enlist[`SplayedTable1]]

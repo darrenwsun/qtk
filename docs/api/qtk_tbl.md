@@ -163,7 +163,8 @@ For partitioned tables, it requires the condition holds for the latest partition
 
 ## .qtk.tbl.columns
 
-Get column names of a table.
+Get column names of a table. It's similar to [cols](https://code.kx.com/q/ref/cols/#cols) but supports all table types.
+For partitioned table, the latest partition is used.
 
 **Parameter:**
 
@@ -480,6 +481,23 @@ Fix a partitioned table based on a good partition. Fixable issues include:
  // Or replace tabRef with `PartitionedTable if the database is loaded
  tabRef~.qtk.tbl.fix[tabRef; 2022.01.01]
 ```
+
+## .qtk.tbl.foreignKeys
+
+Get foreign keys of a table. It's similar to [fkeys](https://code.kx.com/q/ref/fkeys/) but supports table name besides value.
+For partitioned table, the latest partition is used. Note that this is supported only for the current database.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|t|table \| symbol|Table or table name.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|dict|A dictionary that maps foreign-key columns to their tables.|
 
 ## .qtk.tbl.getType
 

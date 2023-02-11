@@ -1,0 +1,18 @@
+feature Get foreign keys of a plain table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable1; ([c1:`a`b`c] c2:1 2 3)];
+    .qtk.tbl.create[`PlainTable2; ([] c1:`a`b; c3:("aa";"bb"))];
+    .qtk.tbl.apply[`PlainTable2; `c1; `PlainTable1$];
+
+  after each
+    .qtk.tbl.drop each `PlainTable1`PlainTable2;
+
+  should get foreign keys of a plain table by name.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys `PlainTable2; enlist[`c1]!enlist[`PlainTable1]]
+
+  should get foreign keys of a plain table by value.
+    expect foreign keys of the table.
+      .qu.compare[.qtk.tbl.foreignKeys PlainTable2; enlist[`c1]!enlist[`PlainTable1]]
