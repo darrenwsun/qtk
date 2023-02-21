@@ -1498,3 +1498,28 @@
 
   tablePath
  };
+
+
+// @kind function
+// @subcategory tbl
+// @overview Return the key of a table if it's keyed table, or generic null otherwise.
+// It's an alias of [key](https://code.kx.com/q/ref/key/#keys-of-a-keyed-table).
+// @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
+// @return {table | ::} Key of the table.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+//
+// ([] c1:`a`b)~.qtk.tbl.key ([c1:`a`b] c2:1 2)
+.qtk.tbl.key:{[t]
+  if[type[t] in 98 99h; :@[key; t; {(::)}]];
+
+  tabRefDesc:.qtk.tbl.describe t;
+  tableType:tabRefDesc`type;
+
+  $[tableType in `Plain`Serialized;
+    @[key get @; t; {(::)}];
+    // splayed/partitioned tables cannot be keyed
+    (::)
+   ]
+ };

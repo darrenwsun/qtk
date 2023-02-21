@@ -1,0 +1,16 @@
+feature Get the enumeration domain of a list.
+
+  before
+    .qtk.import.loadModule["list";`qtk];
+    `u set `a`b`c;
+
+  after
+    delete u from `.;
+
+  should get the enumeration domain of an enumerated list.
+    expect the enumeration domain.
+      .qu.compare[.qtk.list.getEnumDomain `u$`b`c; `u]
+
+  should get null symbol for a non-enumerated list.
+    expect null symbol.
+      .qu.compare[.qtk.list.getEnumDomain `b`c; `]

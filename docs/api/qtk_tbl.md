@@ -568,6 +568,32 @@ or empty lists for compound columns.
  tabRef~.qtk.tbl.insert[tabRef; ([] date:2022.01.03 2022.01.04; c1:3 4)]
 ```
 
+## .qtk.tbl.key
+
+Return the key of a table if it's keyed table, or generic null otherwise.
+It's an alias of [key](https://code.kx.com/q/ref/key/#keys-of-a-keyed-table).
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|t|table \| symbol \| hsym \| (hsym; symbol; symbol)|Table or table reference.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|table \| ::|Key of the table.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["tbl";`qtk];
+
+ ([] c1:`a`b)~.qtk.tbl.key ([c1:`a`b] c2:1 2)
+```
+
 ## .qtk.tbl.meta
 
 Get metadata of a table. It's similar to [meta](https://code.kx.com/q/ref/meta/) but supports all table types.

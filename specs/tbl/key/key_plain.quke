@@ -1,0 +1,25 @@
+feature Return the key of a plain table if it's keyed table, or generic null otherwise.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable1; ([c1:("aa";"bb")] c2:1 2)];
+    .qtk.tbl.create[`PlainTable2; ([] c1:("aa";"bb"))];
+
+  after each
+    .qtk.tbl.drop each `PlainTable1`PlainTable1;
+
+  should Return the key of a plain keyed table by name.
+    expect the key of the plain keyed table.
+      .qu.compare[.qtk.tbl.key `PlainTable1; ([] c1:("aa";"bb"))]
+
+  should Return the key of a plain keyed table by value.
+    expect the key of the plain keyed table.
+      .qu.compare[.qtk.tbl.key PlainTable1; ([] c1:("aa";"bb"))]
+
+  should Return generic null for a plain non-keyed table by name.
+    expect generic null.
+      .qu.compare[.qtk.tbl.key `PlainTable2; (::)]
+
+  should Return generic null for a plain non-keyed table by value.
+    expect generic null.
+      .qu.compare[.qtk.tbl.key PlainTable2; (::)]

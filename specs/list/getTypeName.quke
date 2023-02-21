@@ -1,0 +1,14 @@
+feature Get type name of a list.
+
+  before
+    .qtk.import.loadModule["list";`qtk];
+
+  should Get type name of a vector.
+    expect the type name of symbol.
+      .qu.compare[.qtk.list.getTypeName `a`b; `symbol]
+    expect the type name of long.
+      .qu.compare[.qtk.list.getTypeName 1 2; `long]
+
+  should get null symbol for a general list.
+    expect null symbol.
+      .qu.compare[.qtk.list.getTypeName (`a;1); `]

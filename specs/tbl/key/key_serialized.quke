@@ -1,0 +1,21 @@
+feature Return the key of a serialized table if it's keyed table, or generic null otherwise.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_key_serialized";
+    .qtk.test.tabRef1:hsym `$.qtk.test.dbDir,"/SerializedTable1";
+    .qtk.tbl.create[.qtk.test.tabRef1; ([c1:("aa";"bb")] c2:1 2)];
+    .qtk.test.tabRef2:hsym `$.qtk.test.dbDir,"/SerializedTable2";
+    .qtk.tbl.create[.qtk.test.tabRef2; ([] c1:("aa";"bb"))];
+
+  after each
+    .qtk.tbl.drop each (.qtk.test.tabRef1; .qtk.test.tabRef2);
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should return the key of a serialized keyed table.
+    expect the key of the serialized keyed table.
+      .qu.compare[.qtk.tbl.key .qtk.test.tabRef1; ([] c1:("aa";"bb"))]
+
+  should return generic null for a serialized non-keyed table.
+    expect generic null.
+      .qu.compare[.qtk.tbl.key .qtk.test.tabRef2; (::)]

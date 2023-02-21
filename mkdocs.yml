@@ -18,7 +18,11 @@ nav:
     - 'Getting Started': 'get_started.md'
     - 'API Reference':
         - '.qtk.db': 'api/qtk_db.md'
+        - '.qtk.dict': 'api/qtk_dict.md'
         - '.qtk.err': 'api/qtk_err.md'
         - '.qtk.import': 'api/qtk_import.md'
+        - '.qtk.list': 'api/qtk_list.md'
+        - '.qtk.os': 'api/qtk_os.md'
         - '.qtk.pdb': 'api/qtk_pdb.md'
         - '.qtk.tbl': 'api/qtk_tbl.md'
+        - '.qtk.utils': 'api/qtk_utils.md'

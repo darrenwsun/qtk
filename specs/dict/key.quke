@@ -1,0 +1,8 @@
+feature Return the key of a dictionary.
+
+  before
+    .qtk.import.loadModule["dict";`qtk];
+
+  should return the key of a dictionary.
+    expect the key of a dictionary.
+      .qu.compare[.qtk.dict.key `a`b!1 2; `a`b]

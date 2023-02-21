@@ -1,0 +1,16 @@
+feature Return generic null for a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_key_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:("aa";"bb"))];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should return generic null for a splayed table.
+    expect generic null.
+      .qu.compare[.qtk.tbl.key .qtk.test.tabRef; (::)]

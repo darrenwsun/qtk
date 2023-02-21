@@ -1,0 +1,16 @@
+feature Return the key of a partitioned table if it's keyed table, or generic null otherwise.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_key_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:("aa";"bb"))];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `PartitionedTable;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should return generic null for a partitioned table.
+    expect generic null.
+      .qu.compare[.qtk.tbl.key .qtk.test.tabRef; (::)]
