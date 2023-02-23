@@ -1,0 +1,8 @@
+feature Join path segments.
+
+  before
+    .qtk.import.loadModule["os";`qtk];
+
+  should Get joined path segments.
+    expect joined path segments.
+      .qu.compare[.qtk.os.path.join[`:/tmp;`seg1`seg2]; `:/tmp/seg1/seg2]

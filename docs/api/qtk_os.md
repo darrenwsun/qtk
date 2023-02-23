@@ -138,6 +138,33 @@ It's an alias of [key](https://code.kx.com/q/ref/key/#whether-a-file-exists).
  .qtk.os.path.isFile `:/bin/bash
 ```
 
+## .qtk.os.path.join
+
+Join path segments. It's similar to [filepath-components overload of sv](https://code.kx.com/q/ref/sv/#filepath-components)
+but moving the file handle out as a standalone argument.
+
+**Parameters:**
+
+|Name|Type|Description|
+|---|---|---|
+|base|hsym|Base path.|
+|segments|symbol \| symbol[]|Path segments.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|hsym|A path by joining base path with the segments.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["os";`qtk];
+
+ `:/tmp/seg1/seg2~.qtk.os.path.join[`:/tmp;`seg1`seg2]
+```
+
 ## .qtk.os.path.string
 
 Get OS-compliant path of a file.

@@ -43,6 +43,22 @@
 
 // @kind function
 // @subcategory os
+// @overview Join path segments. It's similar to [filepath-components overload of sv](https://code.kx.com/q/ref/sv/#filepath-components)
+// but moving the file handle out as a standalone argument.
+// @param base {hsym} Base path.
+// @param segments {symbol | symbol[]} Path segments.
+// @return {hsym} A path by joining base path with the segments.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["os";`qtk];
+//
+// `:/tmp/seg1/seg2~.qtk.os.path.join[`:/tmp;`seg1`seg2]
+.qtk.os.path.join:{[base;segments]
+  ` sv base,segments
+ };
+
+// @kind function
+// @subcategory os
 // @overview Get OS-compliant path of a file.
 // @param path {symbol | string} A file path, of either symbol, file symbol, or string format.
 // @return {string} OS-compliant path of the file.

@@ -1,0 +1,20 @@
+feature Decode a length-8/16/32/64 boolean vector to byte/short/int/long.
+
+  before
+    .qtk.import.loadModule["utils";`qtk];
+
+  should decode a length-8 byte vector to short.
+    expect the right short integer.
+      .qu.compare[.qtk.utils.toIntByBools 8#1b; 0xff]
+
+  should decode a length-16 byte vector to short.
+    expect the right short integer.
+      .qu.compare[.qtk.utils.toIntByBools 16#1b; -1h]
+
+  should decode a length-32 byte vector to int.
+    expect the right int integer.
+      .qu.compare[.qtk.utils.toIntByBools 32#1b; -1i]
+
+  should decode a length-64 byte vector to short.
+    expect the right long integer.
+      .qu.compare[.qtk.utils.toIntByBools 64#1b; -1]
