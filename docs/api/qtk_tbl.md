@@ -499,6 +499,35 @@ For partitioned table, the latest partition is used. Note that this is supported
 |---|---|
 |dict|A dictionary that maps foreign-key columns to their tables.|
 
+## .qtk.tbl.getAttr
+
+Get attributes of a table. It's an extended from of [attr](https://code.kx.com/q/ref/attr/)
+that is applicable to tables.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|tabRef|symbol \| hsym \| (hsym; symbol; symbol)|Table reference.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|dict|A mapping from columns names to attributes, where columns without attributes are not included.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["tbl";`qtk];
+ tabRef:(`:/tmp/qtk/tbl/getAttr; `date; `PartitionedTable);
+ .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+ .qtk.tbl.setAttr[tabRef; enlist[`c1]!enlist[`s]];
+ // Or replace tabRef with `PartitionedTable if the database is loaded
+ (enlist[`c1]!enlist[`s])~.qtk.tbl.getAttr tabRef
+```
+
 ## .qtk.tbl.getType
 
 Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
@@ -878,15 +907,15 @@ but support all table types.
 
 ## .qtk.tbl.setAttr
 
-Set an attribute to a column. See also [Set Attribute](https://code.kx.com/q/ref/set-attribute/).
+Set attributes to a table. It's an extended form of [Set Attribute](https://code.kx.com/q/ref/set-attribute/)
+that is applicable to tables.
 
 **Parameters:**
 
 |Name|Type|Description|
 |---|---|---|
 |tabRef|symbol \| hsym \| (hsym; symbol; symbol)|Table reference.|
-|column|symbol|A column name of the table.|
-|attribute|symbol|Attribute to be added to the column.|
+|attrs|||
 
 **Returns:**
 
@@ -909,7 +938,7 @@ Set an attribute to a column. See also [Set Attribute](https://code.kx.com/q/ref
  .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 
  // Or replace tabRef with `PartitionedTable if the database is loaded
- .qtk.tbl.setAttr[tabRef; `c1; `s];
+ .qtk.tbl.setAttr[tabRef; enlist[`c1]!enlist[`s]];
  `s=.qtk.tbl.meta[tabRef][`c1;`a]
 ```
 

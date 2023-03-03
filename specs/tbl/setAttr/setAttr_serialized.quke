@@ -1,4 +1,4 @@
-feature Add attribute to a column of a serialized table.
+feature Set attributes to a serialized table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
@@ -12,10 +12,10 @@ feature Add attribute to a column of a serialized table.
 
   should add an attribute to a column of a serialized table.
     expect the attribute added to the column.
-      .qtk.tbl.setAttr[.qtk.test.tabRef; `c1; `p];
+      .qtk.tbl.setAttr[.qtk.test.tabRef; enlist[`c1]!enlist[`p]];
       .qu.compare[(meta[get .qtk.test.tabRef]`c1)`a; `p]
 
   should remove an attribute to a column of a serialized table.
     expect the attribute removed to the column.
-      .qtk.tbl.setAttr[.qtk.test.tabRef; `c2; `];
+      .qtk.tbl.setAttr[.qtk.test.tabRef; enlist[`c2]!enlist[`]];
       .qu.compare[(meta[get .qtk.test.tabRef]`c2)`a; `]

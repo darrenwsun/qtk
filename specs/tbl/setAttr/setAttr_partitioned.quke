@@ -1,4 +1,4 @@
-feature Add attribute to a column of a partitioned table.
+feature Set attributes to a partitioned table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
@@ -13,10 +13,10 @@ feature Add attribute to a column of a partitioned table.
 
   should add an attribute to a column of a partitioned table.
     expect the attribute added to the column.
-      .qtk.tbl.setAttr[`PartitionedTable; `c1; `p];
+      .qtk.tbl.setAttr[`PartitionedTable; enlist[`c1]!enlist[`p]];
       .qu.compare[(meta[PartitionedTable]`c1)`a; `p]
 
   should remove an attribute to a column of a partitioned table.
     expect the attribute removed to the column.
-      .qtk.tbl.setAttr[`PartitionedTable; `c2; `];
+      .qtk.tbl.setAttr[`PartitionedTable; enlist[`c2]!enlist[`]];
       .qu.compare[(meta[PartitionedTable]`c2)`a; `]

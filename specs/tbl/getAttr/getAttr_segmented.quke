@@ -1,0 +1,29 @@
+feature Get attributes of a segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_getAttr_segmented";
+    .qtk.test.seg1:"/tmp/hdb_getAttr_segment1";
+    .qtk.test.seg2:"/tmp/hdb_getAttr_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2; c2:`g#`a`b)];
+    system "l ",.qtk.test.dbDir;
+    .qtk.tbl.setAttr[`SegmentedTable; enlist[`c2]!enlist[`g]];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
+
+  should get attributes of a segmented table, by value.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr SegmentedTable; enlist[`c2]!enlist[`g]]
+
+  should get attributes of a segmented table, by name.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr `SegmentedTable; enlist[`c2]!enlist[`g]]
+
+  should get attributes of a segmented table, by partitioned table ID.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr .qtk.test.tabRef; enlist[`c2]!enlist[`g]]

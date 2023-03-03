@@ -1,4 +1,4 @@
-feature Add attribute to a column of a plain table.
+feature Set attributes to a plain table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
@@ -9,10 +9,10 @@ feature Add attribute to a column of a plain table.
 
   should add an attribute to a column of a plain table.
     expect the attribute added to the column.
-      .qtk.tbl.setAttr[`PlainTable; `c1; `p];
+      .qtk.tbl.setAttr[`PlainTable; enlist[`c1]!enlist[`p]];
       .qu.compare[(meta[PlainTable]`c1)`a; `p]
 
   should remove an attribute from a column of a plain table.
     expect the attribute removed from the column.
-      .qtk.tbl.setAttr[`PlainTable; `c2; `];
+      .qtk.tbl.setAttr[`PlainTable; enlist[`c2]!enlist[`]];
       .qu.compare[(meta[PlainTable]`c2)`a; `]

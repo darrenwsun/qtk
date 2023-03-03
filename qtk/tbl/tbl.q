@@ -1170,12 +1170,12 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Set an attribute to a column. See also [Set Attribute](https://code.kx.com/q/ref/set-attribute/).
+// @overview Set attributes to a table. It's an extended form of [Set Attribute](https://code.kx.com/q/ref/set-attribute/)
+// that is applicable to tables.
 // @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
-// @param column {symbol} A column name of the table.
-// @param attribute {symbol} Attribute to be added to the column.
-// @return {symbol} The table name.
-// @throws {ColumnNotFoundError} If `column` doesn't exist.
+// @param attrs {dict} A mapping from column names to attributes.
+// @return {symbol | hsym | (hsym; symbol; symbol)} The table reference.
+// @throws {ColumnNotFoundError} If some columns in `attrs` don't exist.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["tbl";`qtk];
@@ -1183,10 +1183,36 @@
 // .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
 //
 // // Or replace tabRef with `PartitionedTable if the database is loaded
-// .qtk.tbl.setAttr[tabRef; `c1; `s];
+// .qtk.tbl.setAttr[tabRef; enlist[`c1]!enlist[`s]];
 // `s=.qtk.tbl.meta[tabRef][`c1;`a]
-.qtk.tbl.setAttr:{[tabRef;column;attribute]
-  .qtk.tbl.apply[tabRef; column; attribute#]
+.qtk.tbl.setAttr:{[tabRef;attrs]
+  columns:key attrs;
+  columnExists:.qtk.tbl.columnExists[tabRef; ] each columns;
+  if[not all columnExists;
+    .qtk.err.compose[`ColumnNotFoundError; "," sv string columns where not columnExists]
+    ];
+
+  .qtk.tbl.apply[tabRef; ;]'[columns; {x#} each value attrs];
+  tabRef
+ };
+
+// @kind function
+// @subcategory tbl
+// @overview Get attributes of a table. It's an extended from of [attr](https://code.kx.com/q/ref/attr/)
+// that is applicable to tables.
+// @param tabRef {symbol | hsym | (hsym; symbol; symbol)} Table reference.
+// @return {dict} A mapping from columns names to attributes, where columns without attributes are not included.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["tbl";`qtk];
+// tabRef:(`:/tmp/qtk/tbl/getAttr; `date; `PartitionedTable);
+// .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+// .qtk.tbl.setAttr[tabRef; enlist[`c1]!enlist[`s]];
+//
+// // Or replace tabRef with `PartitionedTable if the database is loaded
+// (enlist[`c1]!enlist[`s])~.qtk.tbl.getAttr tabRef
+.qtk.tbl.getAttr:{[tabRef]
+  exec c!a from .qtk.tbl.meta[tabRef] where not null a
  };
 
 // @kind function

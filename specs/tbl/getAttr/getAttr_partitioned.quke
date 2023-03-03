@@ -1,0 +1,26 @@
+feature Get attributes of a partitioned table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_getAttr_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2; c2:`a`b)];
+    system "l ",.qtk.test.dbDir;
+    .qtk.tbl.setAttr[`PartitionedTable; enlist[`c2]!enlist[`g]];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get attributes of a partitioned table, by value.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr PartitionedTable; enlist[`c2]!enlist[`g]]
+
+  should get attributes of a partitioned table, by name.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr `PartitionedTable; enlist[`c2]!enlist[`g]]
+
+  should get attributes of a partitioned table, by partitioned table ID.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr .qtk.test.tabRef; enlist[`c2]!enlist[`g]]

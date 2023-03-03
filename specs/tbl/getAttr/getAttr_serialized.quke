@@ -1,0 +1,15 @@
+feature Get attributes of a serialized table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_getAttr_serialized";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SerializedTable";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:1 2; c2:`g#`a`b)];
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should get attributes of a serialized table.
+    expect the attributes.
+      .qu.compare[.qtk.tbl.getAttr .qtk.test.tabRef; enlist[`c2]!enlist[`g]]

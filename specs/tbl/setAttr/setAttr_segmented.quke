@@ -1,4 +1,4 @@
-feature Add attribute to a column of a segmented table.
+feature Set attributes to a segmented table.
 
   before each
     .qtk.import.loadModule["tbl";`qtk];
@@ -16,10 +16,10 @@ feature Add attribute to a column of a segmented table.
 
   should add an attribute to a column of a segmented table.
     expect the attribute added to the column.
-      .qtk.tbl.setAttr[`SegmentedTable; `c1; `p];
+      .qtk.tbl.setAttr[`SegmentedTable; enlist[`c1]!enlist[`p]];
       .qu.compare[(meta[SegmentedTable]`c1)`a; `p]
 
   should remove an attribute to a column of a segmented table.
     expect the attribute removed to the column.
-      .qtk.tbl.setAttr[`SegmentedTable; `c2; `];
+      .qtk.tbl.setAttr[`SegmentedTable; enlist[`c2]!enlist[`]];
       .qu.compare[(meta[SegmentedTable]`c2)`a; `]
