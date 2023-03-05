@@ -1,0 +1,19 @@
+feature Set attributes to a partitioned table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_keepAttr_partitioned";
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `PartitionedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.01; c1:1 2)];
+    system "l ",.qtk.test.dbDir;
+    .qtk.tbl.setAttr[`PartitionedTable; enlist[`c1]!enlist[`s]];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should wrap a function that modifies a partitioned table but keep the original attributes.
+    expect the wrapped function.
+      func:.qtk.tbl.keepAttr .qtk.tbl.apply[; `c1; 2*];
+      .qu.compare[attr exec c1 from select c1 from (func `PartitionedTable) where date=2022.01.01; `s]

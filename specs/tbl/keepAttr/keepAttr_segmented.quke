@@ -1,0 +1,22 @@
+feature Set attributes to a segmented table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_keepAttr_segmented";
+    .qtk.test.seg1:"/tmp/hdb_keepAttr_segment1";
+    .qtk.test.seg2:"/tmp/hdb_keepAttr_segment2";
+    .Q.dd[hsym `$.qtk.test.dbDir; `par.txt] 0: (.qtk.test.seg1; .qtk.test.seg2);
+    .qtk.test.tabRef:(hsym `$.qtk.test.dbDir; `date; `SegmentedTable);
+    .qtk.tbl.create[.qtk.test.tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
+    system "l ",.qtk.test.dbDir;
+    .qtk.tbl.setAttr[`SegmentedTable; enlist[`c1]!enlist[`s]];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop `SegmentedTable;
+    .qtk.os.rmtree each (.qtk.test.dbDir; .qtk.test.seg1; .qtk.test.seg2);
+
+  should wrap a function that modifies a segmented table but keep the original attributes.
+    expect the wrapped function.
+      func:.qtk.tbl.keepAttr .qtk.tbl.apply[; `c1; 2*];
+      .qu.compare[attr exec c1 from select c1 from (func `SegmentedTable) where date=2022.01.01; `s]

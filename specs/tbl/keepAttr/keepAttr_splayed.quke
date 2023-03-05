@@ -1,0 +1,17 @@
+feature Set attributes to a splayed table.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.test.dbDir:"/tmp/hdb_keepAttr_splayed";
+    .qtk.test.tabRef:hsym `$.qtk.test.dbDir,"/SplayedTable/";
+    .qtk.tbl.create[.qtk.test.tabRef; ([] c1:`s#1 2)];
+    system "l ",.qtk.test.dbDir;
+
+  after each
+    .qtk.tbl.drop .qtk.test.tabRef;
+    .qtk.os.rmtree .qtk.test.dbDir;
+
+  should wrap a function that modifies a splayed table but keep the original attributes.
+    expect the wrapped function.
+      func:.qtk.tbl.keepAttr .qtk.tbl.apply[; `c1; 2*];
+      .qu.compare[attr exec c1 from (func .qtk.test.tabRef); `s]

@@ -524,6 +524,7 @@ that is applicable to tables.
  tabRef:(`:/tmp/qtk/tbl/getAttr; `date; `PartitionedTable);
  .qtk.tbl.create[tabRef; ([] date:2022.01.01 2022.01.02; c1:1 2)];
  .qtk.tbl.setAttr[tabRef; enlist[`c1]!enlist[`s]];
+
  // Or replace tabRef with `PartitionedTable if the database is loaded
  (enlist[`c1]!enlist[`s])~.qtk.tbl.getAttr tabRef
 ```
@@ -596,6 +597,22 @@ or empty lists for compound columns.
  // Or replace tabRef with `PartitionedTable if the database is loaded
  tabRef~.qtk.tbl.insert[tabRef; ([] date:2022.01.03 2022.01.04; c1:3 4)]
 ```
+
+## .qtk.tbl.keepAttr
+
+Wrap a function that modifies a table but keep the original attributes.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|func|func|A function that modifies a table.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|func|A wrapper function that keeps the original attributes.|
 
 ## .qtk.tbl.key
 
@@ -915,19 +932,19 @@ that is applicable to tables.
 |Name|Type|Description|
 |---|---|---|
 |tabRef|symbol \| hsym \| (hsym; symbol; symbol)|Table reference.|
-|attrs|||
+|attrs|dict|A mapping from column names to attributes.|
 
 **Returns:**
 
 |Type|Description|
 |---|---|
-|symbol|The table name.|
+|symbol \| hsym \| (hsym; symbol; symbol)|The table reference.|
 
 **Throws:**
 
 |Type|Description|
 |---|---|
-|ColumnNotFoundError|If `column` doesn't exist.|
+|ColumnNotFoundError|If some columns in `attrs` don't exist.|
 
 **Example:**
 

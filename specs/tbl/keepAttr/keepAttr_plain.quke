@@ -1,0 +1,13 @@
+feature Wrap a function that modifies a plain table but keep the original attributes.
+
+  before each
+    .qtk.import.loadModule["tbl";`qtk];
+    .qtk.tbl.create[`PlainTable; ([] c1:`s#1 2)];
+
+  after each
+    .qtk.tbl.drop `PlainTable;
+
+  should wrap a function that modifies a plain table but keep the original attributes.
+    expect the wrapped function.
+      func:.qtk.tbl.keepAttr .qtk.tbl.apply[; `c1; 2*];
+      .qu.compare[attr exec c1 from (func `PlainTable); `s]

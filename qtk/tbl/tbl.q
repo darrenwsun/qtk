@@ -1549,3 +1549,18 @@
     (::)
    ]
  };
+
+
+// @kind function
+// @subcategory tbl
+// @overview Wrap a function that modifies a table but keep the original attributes.
+// @param func {func} A function that modifies a table.
+// @return {func} A wrapper function that keeps the original attributes.
+.qtk.tbl.keepAttr:{[func]
+  {[table;func]
+    attrs:.qtk.tbl.getAttr table;
+    func table;
+    .qtk.tbl.setAttr[table; attrs];
+    table
+  }[;func]
+ };
