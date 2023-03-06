@@ -4,8 +4,8 @@
 
 // @kind function
 // @subcategory tbl
-// @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
-// classified as Partitioned.
+// @overview Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database
+// are classified as Partitioned.
 //
 // - See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
 // @param t {table | symbol | hsym | (hsym; symbol; symbol)} Table or table reference.
@@ -128,6 +128,7 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._addTable[tablePath; .Q.en[dbDir;data]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     [
       dbDir:tabRefDesc`dbDir;
@@ -136,6 +137,7 @@
       tablePaths:.Q.par[dbDir; ; tableName] each parValues;
       dataByPartition:flip each value parField xgroup .Q.en[dbDir;data];
       .qtk.tbl._addTable'[tablePaths; dataByPartition];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
   tabRef
@@ -200,14 +202,14 @@
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; ![`.; (); 0b; enlist tableName]];
+      if[.qtk.os.path.samefile[dbDir; `:.]; ![`.; (); 0b; enlist tableName]];
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.os.rmtree tablePath;
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; ![`.; (); 0b; enlist tableName]];
+      if[.qtk.os.path.samefile[dbDir; `:.]; ![`.; (); 0b; enlist tableName]];
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.os.rmtree each tablePaths;
       ]
@@ -371,7 +373,7 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._update[dbDir; tablePath; criteria; groupings; columns];
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
@@ -386,7 +388,7 @@
 
       tablePaths:.Q.par[dbDir; ; tableName] each partitions;
       .qtk.tbl._update[dbDir; ; criteria; groupings; columns] each tablePaths;
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -732,12 +734,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._addColumn[tablePath; column; .qtk.db._enumerateAgainst[dbDir;`sym;columnValue]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.tbl._addColumn[; column; .qtk.db._enumerateAgainst[dbDir;`sym;columnValue] ] each tablePaths;
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -804,12 +808,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._deleteColumn[tablePath; column];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.tbl._deleteColumn[; column] each tablePaths;
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -893,14 +899,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._renameColumns[tablePath; nameDict];
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.tbl._renameColumns[; nameDict] each tablePaths;
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -985,14 +991,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._reorderColumns[tablePath; firstColumns];
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.tbl._reorderColumns[; firstColumns] each tablePaths;
-      if[dbDir=`:.; .qtk.db.reload[]];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -1048,12 +1054,14 @@
       dbDir:tabRefDesc`dbDir;
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._copyColumn[tablePath; sourceColumn; targetColumn];
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ];
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       .qtk.tbl._copyColumn[; sourceColumn; targetColumn] each tablePaths;
+      if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
       ]
    ];
 
@@ -1243,7 +1251,7 @@
       if[not table like "*/"; :count get table];
 
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; :count get tableName];
+      if[.qtk.os.path.samefile[dbDir; `:.]; :count get tableName];
 
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.tbl._count tablePath
@@ -1253,7 +1261,7 @@
       if[-11h=tt; :count get table];
 
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; :count get tableName];
+      if[.qtk.os.path.samefile[dbDir; `:.]; :count get tableName];
 
       tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
       sum .qtk.tbl._count each tablePaths
@@ -1300,7 +1308,7 @@
     tableType=`Splayed;
     [
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; :.qtk.utils.nameExists tableName];
+      if[.qtk.os.path.samefile[dbDir; `:.]; :.qtk.utils.nameExists tableName];
 
       tablePath:.Q.dd[dbDir; tableName];
       .qtk.os.path.isDir tablePath
@@ -1308,7 +1316,7 @@
     // tableType=`Partitioned
     [
       dbDir:tabRefDesc`dbDir;
-      if[dbDir=`:.; :.qtk.utils.nameExists tableName];
+      if[.qtk.os.path.samefile[dbDir; `:.]; :.qtk.utils.nameExists tableName];
 
       tablePaths:.Q.par[dbDir; ; tableName] each (first;last) @\: .qtk.pdb.getPartitions dbDir;
       any .qtk.os.path.isDir each tablePaths
@@ -1397,18 +1405,21 @@
   if[tableType=`Splayed;
      dbDir:tabRefDesc`dbDir;
      .qtk.tbl._rename[.Q.dd[dbDir;tableName]; newName];
-     if[dbDir=`:.;
+     if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
+     if[.qtk.os.path.samefile[dbDir; `:.];
         ![`.; (); 0b; enlist tableName];
-        .qtk.db.reload[]];
+        if[.qtk.db.autoReload; .qtk.db.reload[]]
+       ];
      :$[tabRef like "*/"; ` sv (dbDir;newName;`); newName]];
 
   // tableType=`partitioned
   dbDir:tabRefDesc`dbDir;
   tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions dbDir;
   .qtk.tbl._rename[; newName] each tablePaths;
-  if[dbDir=`:.;
+  if[.qtk.os.path.samefile[dbDir; `:.];
      ![`.; (); 0b; enlist tableName];
-     .qtk.db.reload[]];
+     if[.qtk.db.autoReload; .qtk.db.reload[]]
+    ];
   $[11h=type tabRef; (dbDir; tabRefDesc`parField; newName); newName]
  };
 
@@ -1475,7 +1486,7 @@
   tablePaths:.Q.par[dbDir; ; tableName] each .qtk.pdb.getPartitions[dbDir] except refPartition;
   .qtk.tbl._fix[; refColumns!defaultValues] each tablePaths;
 
-  if[dbDir=`:.; .qtk.db.reload[]];
+  if[.qtk.db.autoReload and .qtk.os.path.samefile[dbDir; `:.]; .qtk.db.reload[]];
   tabRef
  };
 

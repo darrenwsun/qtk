@@ -1,4 +1,8 @@
 
+// @kind data
+// @subcategory db
+// @overview A flag to trigger auto reload after a structural change made by a QTK function to the database. It's set by default.
+.qtk.db.autoReload:1b;
 
 // @kind function
 // @subcategory db

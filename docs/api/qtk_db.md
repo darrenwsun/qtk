@@ -1,5 +1,9 @@
 
 
+## .qtk.db.autoReload
+
+A flag to trigger auto reload after a structural change made by a QTK function to the database. It's set by default.
+
 ## .qtk.db.load
 
 Load database in a given directory.

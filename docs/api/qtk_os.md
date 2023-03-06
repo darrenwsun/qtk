@@ -165,6 +165,57 @@ but moving the file handle out as a standalone argument.
  `:/tmp/seg1/seg2~.qtk.os.path.join[`:/tmp;`seg1`seg2]
 ```
 
+## .qtk.os.path.realpath
+
+Get real path eliminating symlinks and up-level references.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|path|symbol \| hsym \| string|A file path, of either symbol, file symbol, or string format.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|string|OS-compliant path of the file.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["os";`qtk];
+
+ "/home"~.qtk.os.path.realpath[`:/tmp/.././home]
+```
+
+## .qtk.os.path.samefile
+
+Check if two paths point to the same file or directory.
+
+**Parameters:**
+
+|Name|Type|Description|
+|---|---|---|
+|path1|symbol \| hsym \| string|A file path, of either symbol, file symbol, or string format.|
+|path2|symbol \| hsym \| string|A file path, of either symbol, file symbol, or string format.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|boolean|`1b` if the two paths point to the same file or directory, `0b` otherwise.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["os";`qtk];
+
+ .qtk.os.path.samefile[`:/tmp/.././home; `:/home]
+```
+
 ## .qtk.os.path.string
 
 Get OS-compliant path of a file.
@@ -173,7 +224,7 @@ Get OS-compliant path of a file.
 
 |Name|Type|Description|
 |---|---|---|
-|path|symbol \| string|A file path, of either symbol, file symbol, or string format.|
+|path|symbol \| hsym \| string|A file path, of either symbol, file symbol, or string format.|
 
 **Returns:**
 

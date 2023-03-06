@@ -60,10 +60,51 @@
 // @kind function
 // @subcategory os
 // @overview Get OS-compliant path of a file.
-// @param path {symbol | string} A file path, of either symbol, file symbol, or string format.
+// @param path {symbol | hsym | string} A file path, of either symbol, file symbol, or string format.
 // @return {string} OS-compliant path of the file.
 .qtk.os.path.string:{[path]
   pathStr:$[10h=type path; path; string path];
   if[.qtk.os.isWindows; pathStr:ssr[pathStr; enlist"/"; "\\"]];
   (":"=first pathStr) _pathStr
+ };
+
+// @kind function
+// @subcategory os
+// @overview Get real path eliminating symlinks and up-level references.
+// @param path {symbol | hsym | string} A file path, of either symbol, file symbol, or string format.
+// @return {string} OS-compliant path of the file.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["os";`qtk];
+//
+// "/home"~.qtk.os.path.realpath[`:/tmp/.././home]
+.qtk.os.path.realpath:{[path]
+  pathStr:.qtk.os.path.string path;
+  r:$[.qtk.os.isWindows;
+    @[system; ssr["powershell \"(Resolve-Path $PATH).Path\""; "$PATH"; pathStr]; ""];
+    @[system; "realpath ",pathStr; ""]];
+  if[r~""; '.qtk.err.compose[`FileNotFoundError; pathStr]];
+  raze r
+ };
+
+
+// @kind function
+// @subcategory os
+// @overview Check if two paths point to the same file or directory.
+// @param path1 {symbol | hsym | string} A file path, of either symbol, file symbol, or string format.
+// @param path2 {symbol | hsym | string} A file path, of either symbol, file symbol, or string format.
+// @return {boolean} `1b` if the two paths point to the same file or directory, `0b` otherwise.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["os";`qtk];
+//
+// .qtk.os.path.samefile[`:/tmp/.././home; `:/home]
+.qtk.os.path.samefile:{[path1;path2]
+  if[path1~path2; :1b];
+
+  pathStr1:@[.qtk.os.path.realpath; path1; ""];
+  if[pathStr1~""; :0b];
+  pathStr2:@[.qtk.os.path.realpath; path2; ""];
+  if[pathStr2~""; :0b];
+  pathStr1~pathStr2
  };

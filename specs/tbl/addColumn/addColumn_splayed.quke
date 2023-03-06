@@ -14,11 +14,9 @@ feature Add a column to a splayed table.
   should add a column to an splayed table specified by table name.
     expect the column added to the table.
       .qtk.tbl.addColumn[`SplayedTable;`c2;`test];
-      .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c1`c2]
 
   should add a column to an splayed table specified by hsym.
     expect the column added to the table.
       .qtk.tbl.addColumn[.qtk.test.tabRef;`c2;`test];
-      .qtk.db.reload[];
       .qu.compare[cols SplayedTable; `c1`c2]

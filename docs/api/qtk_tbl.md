@@ -531,8 +531,8 @@ that is applicable to tables.
 
 ## .qtk.tbl.getType
 
-Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database are
-classified as Partitioned.
+Get table type, either of `` `Plain`Serialized`Splayed`Partitioned ``. Note that tables in segmented database
+are classified as Partitioned.
 
 - See also [.Q.qp](https://code.kx.com/q/ref/dotq/#qqp-is-partitioned).
 

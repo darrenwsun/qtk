@@ -14,11 +14,9 @@ feature Add a column to a partitioned table.
   should add a column to a partitioned table specified by table name.
     expect the column added to the table.
       .qtk.tbl.addColumn[`PartitionedTable; `c2; `test];
-      .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c1`c2]
 
   should add a column to a partitioned table specified by partitioned table ID.
     expect the column added to the table.
       .qtk.tbl.addColumn[.qtk.test.tabRef; `c2; `test];
-      .qtk.db.reload[];
       .qu.compare[cols PartitionedTable; `date`c1`c2]

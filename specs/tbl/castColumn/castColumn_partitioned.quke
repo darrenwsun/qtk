@@ -14,9 +14,7 @@ feature Cast the datatype of a column of a partitioned table.
   should cast a column of a partitioned table to a new type.
     expect the column to be casted to a new type specified by type name.
       .qtk.tbl.castColumn[`PartitionedTable; `c1; `float];
-      .qtk.db.reload[];
       .qu.compare[(meta[PartitionedTable]`c1)`t; "f"]
     expect the column to be casted to a new type specified by type character.
       .qtk.tbl.castColumn[`PartitionedTable; `c1; "f"];
-      .qtk.db.reload[];
       .qu.compare[(meta[PartitionedTable]`c1)`t; "f"]
