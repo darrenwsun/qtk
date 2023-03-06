@@ -70,9 +70,9 @@
 
 // @kind function
 // @subcategory os
-// @overview Get real path eliminating symlinks and up-level references.
+// @overview Get canonical path eliminating symlinks and up-level references.
 // @param path {symbol | hsym | string} A file path, of either symbol, file symbol, or string format.
-// @return {string} OS-compliant path of the file.
+// @return {string} Canonical path eliminating symlinks and up-level references.
 // @doctest
 // system "l ",getenv[`QTK],"/init.q";
 // .qtk.import.loadModule["os";`qtk];

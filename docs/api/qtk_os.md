@@ -167,7 +167,7 @@ but moving the file handle out as a standalone argument.
 
 ## .qtk.os.path.realpath
 
-Get real path eliminating symlinks and up-level references.
+Get canonical path eliminating symlinks and up-level references.
 
 **Parameter:**
 
@@ -179,7 +179,7 @@ Get real path eliminating symlinks and up-level references.
 
 |Type|Description|
 |---|---|
-|string|OS-compliant path of the file.|
+|string|Canonical path eliminating symlinks and up-level references.|
 
 **Example:**
 
