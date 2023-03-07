@@ -1,0 +1,20 @@
+feature Get bit (boolean) representation of a byte/short/int/long.
+
+  before
+    .qtk.import.loadModule["utils";`qtk];
+
+  should decode a length-8 byte vector to short.
+    expect the right short integer.
+      .qu.compare[.qtk.utils.toBoolsByInt 0xff; 8#1b]
+
+  should decode a length-16 byte vector to short.
+    expect the right short integer.
+      .qu.compare[.qtk.utils.toBoolsByInt -1h; 16#1b]
+
+  should decode a length-32 byte vector to int.
+    expect the right int integer.
+      .qu.compare[.qtk.utils.toBoolsByInt -1i; 32#1b]
+
+  should decode a length-64 byte vector to short.
+    expect the right long integer.
+      .qu.compare[.qtk.utils.toBoolsByInt -1; 64#1b]

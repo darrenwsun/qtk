@@ -1,16 +1,16 @@
-feature Decode a length 2/4/8 byte vector to short/int/long.
+feature Get short/int/long from its byte representation.
 
   before
     .qtk.import.loadModule["utils";`qtk];
 
-  should decode a length-2 byte vector to short.
+  should get short from its byte representation.
     expect the right short integer.
       .qu.compare[.qtk.utils.toIntByBytes 0x0101; 257h]
 
-  should decode a length-2 byte vector to int.
+  should get int from its byte representation.
     expect the right int integer.
       .qu.compare[.qtk.utils.toIntByBytes 0x00000101; 257i]
 
-  should decode a length-2 byte vector to short.
+  should get long from its byte representation.
     expect the right long integer.
       .qu.compare[.qtk.utils.toIntByBytes 0x0000000000000101; 257]

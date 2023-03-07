@@ -1,0 +1,16 @@
+feature Get byte representation of a short/int/long.
+
+  before
+    .qtk.import.loadModule["utils";`qtk];
+
+  should get byte representation of a short.
+    expect the byte representation.
+      .qu.compare[.qtk.utils.toBytesByInt 257h; 0x0101]
+
+  should get byte representation of an int.
+    expect the byte representation.
+      .qu.compare[.qtk.utils.toBytesByInt 257i; 0x00000101]
+
+  should get byte representation of a long.
+    expect the byte representation.
+      .qu.compare[.qtk.utils.toBytesByInt 257; 0x0000000000000101]

@@ -216,6 +216,32 @@ Check if two paths point to the same file or directory.
  .qtk.os.path.samefile[`:/tmp/.././home; `:/home]
 ```
 
+## .qtk.os.path.split
+
+Split a file path into directory and file parts. It's similar to [file handle overload of vs](https://code.kx.com/q/ref/vs/#file-handle)
+but leaves out the first argument.
+
+**Parameter:**
+
+|Name|Type|Description|
+|---|---|---|
+|path|hsym|A file path.|
+
+**Returns:**
+
+|Type|Description|
+|---|---|
+|symbol[]|Two-element symbol vector where the first is the directory part and the second the file part.|
+
+**Example:**
+
+```q
+ system "l ",getenv[`QTK],"/init.q";
+ .qtk.import.loadModule["os";`qtk];
+
+ `:/tmp/dir`file~.qtk.os.path.split[`:/tmp/dir/file]
+```
+
 ## .qtk.os.path.string
 
 Get OS-compliant path of a file.

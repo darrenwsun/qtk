@@ -53,9 +53,20 @@
 // .qtk.import.loadModule["os";`qtk];
 //
 // `:/tmp/seg1/seg2~.qtk.os.path.join[`:/tmp;`seg1`seg2]
-.qtk.os.path.join:{[base;segments]
-  ` sv base,segments
- };
+.qtk.os.path.join:{[base;segments] ` sv base,segments };
+
+// @kind function
+// @subcategory os
+// @overview Split a file path into directory and file parts. It's similar to [file handle overload of vs](https://code.kx.com/q/ref/vs/#file-handle)
+// but leaves out the first argument.
+// @param path {hsym} A file path.
+// @return {symbol[]} Two-element symbol vector where the first is the directory part and the second the file part.
+// @doctest
+// system "l ",getenv[`QTK],"/init.q";
+// .qtk.import.loadModule["os";`qtk];
+//
+// `:/tmp/dir`file~.qtk.os.path.split[`:/tmp/dir/file]
+.qtk.os.path.split:{[path] ` vs path };
 
 // @kind function
 // @subcategory os

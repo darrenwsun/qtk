@@ -1,8 +1,0 @@
-feature Decode an vector to integer by bases.
-
-  before
-    .qtk.import.loadModule["utils";`qtk];
-
-  should decode an vector to integer by bases.
-    expect the right integer.
-      .qu.compare[.qtk.utils.toIntByBase[0 24 60 60; 2 3 5 7]; 183907]

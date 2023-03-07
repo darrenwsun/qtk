@@ -1,0 +1,8 @@
+feature Get integer representation of a vector by given base.
+
+  before
+    .qtk.import.loadModule["utils";`qtk];
+
+  should get integer representation of a vector by given base.
+    expect the right integer.
+      .qu.compare[.qtk.utils.vectorToIntByBase[10; 2 3 5 7]; 2357]

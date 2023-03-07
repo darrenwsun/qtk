@@ -1,0 +1,8 @@
+feature Split a file path into directory and file parts.
+
+  before
+    .qtk.import.loadModule["os";`qtk];
+
+  should split a file path into directory and file parts.
+    expect directory and file parts.
+      .qu.compare[.qtk.os.path.split `:/tmp/dir/file; `:/tmp/dir`file]

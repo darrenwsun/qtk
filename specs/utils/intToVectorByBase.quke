@@ -1,0 +1,16 @@
+feature Get vector representation of an integer by given base.
+
+  before
+    .qtk.import.loadModule["utils";`qtk];
+
+  should get vector representation of a short by given base.
+    expect the right integer.
+      .qu.compare[.qtk.utils.intToVectorByBase[10; 2357h]; 2 3 5 7]
+
+  should get vector representation of an int by given base.
+    expect the right integer.
+      .qu.compare[.qtk.utils.intToVectorByBase[10; 2357i]; 2 3 5 7]
+
+  should get vector representation of a long by given base.
+    expect the right integer.
+      .qu.compare[.qtk.utils.intToVectorByBase[10; 2357]; 2 3 5 7]
